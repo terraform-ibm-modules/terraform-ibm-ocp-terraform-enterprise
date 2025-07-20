@@ -4,7 +4,7 @@
 
 module "resource_group" {
   source  = "terraform-ibm-modules/resource-group/ibm"
-  version = "1.2.0"
+  version = "1.2.1"
   # if an existing resource group is not set (null) create a new one using prefix
   resource_group_name          = var.existing_resource_group_name == null ? "${var.prefix}-resource-group" : null
   existing_resource_group_name = var.existing_resource_group_name
@@ -16,7 +16,7 @@ module "resource_group" {
 
 module "cos" {
   source                   = "terraform-ibm-modules/cos/ibm"
-  version                  = "9.0.8"
+  version                  = "9.1.0"
   resource_group_id        = module.resource_group.resource_group_id
   region                   = var.region
   create_cos_instance      = var.existing_cos_instance_id != null ? false : true
@@ -59,7 +59,7 @@ module "ocp_vpc" {
 
 module "icd_postgres" {
   source             = "terraform-ibm-modules/icd-postgresql/ibm"
-  version            = "3.22.25"
+  version            = "3.22.27"
   resource_group_id  = module.resource_group.resource_group_id
   name               = var.postgres_instance_name != null ? var.postgres_instance_name : "${var.prefix}-data-store"
   pg_version         = "16" # TFE supports up to Postgres 16 (not 17)
