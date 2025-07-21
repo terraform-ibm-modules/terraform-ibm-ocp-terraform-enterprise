@@ -414,7 +414,7 @@ resource "kubectl_manifest" "tfe_agent_build_config" {
           ibmcloud api cloud.ibm.com && \
           chmod +x /usr/local/bin/ibmcloud && \
           chown -R 777 /usr/local/bin/ibmcloud && \
-          ibmcloud plugin install -a
+          ibmcloud plugin install -a -f
 
           USER tfc-agent
       strategy:
