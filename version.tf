@@ -8,22 +8,14 @@ terraform {
       source  = "ibm-cloud/ibm"
       version = ">= 1.71.0"
     }
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = ">= 1.19.0, <2.0.0"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">= 2.0.0, <4.0.0"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.15.0, <3.0.0"
-    }
-    tfe = {
-      source  = "hashicorp/tfe"
-      version = ">= 0.33.0, <1.0.0"
-    }
+    # helm = {
+    #   source  = "hashicorp/helm"
+    #   version = ">= 2.15.0, <4.0.0"
+    # }
+    # tfe = {
+    #   source  = "hashicorp/tfe"
+    #   version = ">= 0.33.0, <1.0.0"
+    # }
     restapi = {
       source  = "Mastercard/restapi"
       version = ">= 1.20.0"

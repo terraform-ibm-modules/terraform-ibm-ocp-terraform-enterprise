@@ -9,7 +9,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.15.0, <3.0.0"
+      version = ">= 2.15.0, <4.0.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -19,13 +19,13 @@ terraform {
       source  = "gavinbunney/kubectl"
       version = ">= 1.19.0, <2.0.0"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = ">= 3.0.0, <4.0.0"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = ">= 2.0.0, <4.0.0"
+    }
+    external = {
+      source  = "hashicorp/external"
+      version = ">= 2.3.5, <3.0.0"
     }
   }
 }

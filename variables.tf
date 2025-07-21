@@ -72,11 +72,11 @@ variable "tfe_namespace" {
   default     = "tfe"
 }
 
-variable "add_to_catalog" {
-  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true."
-  type        = bool
-  default     = true
-}
+# variable "add_to_catalog" {
+#   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true."
+#   type        = bool
+#   default     = true
+# }
 
 variable "terraform_enterprise_engine_name" {
   type        = string
@@ -169,11 +169,11 @@ variable "existing_vpc_id" {
   default     = null
 }
 
-variable "existing_cluster_crn" {
-  description = "The ID of the existing vpc. If not set, a new VPC will be created."
-  type        = string
-  default     = null
-}
+# variable "existing_cluster_crn" {
+#   description = "The ID of the existing vpc. If not set, a new VPC will be created."
+#   type        = string
+#   default     = null
+# }
 
 variable "ocp_version" {
   type        = string

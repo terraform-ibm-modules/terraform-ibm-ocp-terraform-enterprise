@@ -157,7 +157,7 @@ locals {
   data_json = jsonencode(local.data)
 }
 
-resource "restapi_object" "tfe-engines" {
+resource "restapi_object" "tfe_engines" {
   path           = "/api/v1-beta/catalogaccount"
   data           = local.data_json
   create_method  = "PUT" # Specify the HTTP method for updates
