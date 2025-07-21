@@ -26,6 +26,6 @@ output "tfe_hostname" {
 }
 output "token" {
   description = "The token for TFE instance"
-  value       = nonsensitive(base64decode(resource.kubernetes_secret.tfe_admin_token.data["token"]))
+  value       = nonsensitive(resource.kubernetes_secret.tfe_admin_token.data["token"])
   sensitive   = false
 }
