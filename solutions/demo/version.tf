@@ -18,7 +18,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "2.15.0"
+      version = "3.0.2"
     }
     tfe = {
       source  = "hashicorp/tfe"
@@ -26,7 +26,7 @@ terraform {
     }
     restapi = {
       source  = "Mastercard/restapi"
-      version = "1.20.0"
+      version = "2.0.1"
     }
   }
 }

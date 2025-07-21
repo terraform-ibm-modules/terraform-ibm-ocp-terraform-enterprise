@@ -52,4 +52,3 @@ provider "restapi" {
   }
   write_returns_object = true
 }
-
