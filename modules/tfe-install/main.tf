@@ -54,221 +54,164 @@ resource "helm_release" "tfe_install" {
   force_update     = true
   reset_values     = true
 
-  set {
-    name  = "image.tag"
-    type  = "string"
-    value = var.tfe_image_tag
-  }
-
-  set {
-    name  = "openshift.enabled"
-    type  = "auto"
-    value = true
-  }
-
-  set {
-    name  = "env.secrets.TFE_LICENSE"
-    type  = "string"
-    value = var.tfe_license
-  }
-
-  set {
-    name  = "env.variables.TFE_HOSTNAME"
-    type  = "string"
-    value = local.tfe_hostname
-  }
-
-  set {
-    name  = "env.variables.TFE_LICENSE_REPORTING_OPT_OUT"
-    type  = "auto"
-    value = true
-  }
-
-  set {
-    name  = "env.variables.TFE_USAGE_REPORTING_OPT_OUT"
-    type  = "auto"
-    value = true
-  }
-
-  set {
-    name  = "env.variables.TFE_INSTALLATION_TYPE"
-    type  = "string"
-    value = "openshift"
-  }
-
-  set {
-    name  = "env.variables.TFE_DATABASE_HOST"
-    type  = "string"
-    value = var.tfe_database_host
-  }
-
-  set {
-    name  = "env.variables.TFE_DATABASE_PARAMETERS"
-    type  = "string"
-    value = "sslmode=require"
-  }
-
-  set {
-    name  = "env.variables.TFE_DATABASE_USER"
-    type  = "string"
-    value = var.tfe_database_user
-  }
-
-  set {
-    name  = "env.variables.TFE_DATABASE_NAME"
-    type  = "string"
-    value = var.tfe_database_name
-  }
-
-  set {
-    name  = "env.variables.TFE_RUN_PIPELINE_DRIVER"
-    type  = "string"
-    value = "kubernetes"
-  }
-
-  set {
-    name  = "env.variables.TFE_TLS_CERT_FILE"
-    type  = "string"
-    value = "/etc/ssl/private/terraform-enterprise/tls.crt"
-  }
-
-  set {
-    name  = "env.variables.TFE_VAULT_DISABLE_MLOCK"
-    type  = "auto"
-    value = true
-  }
-
-  set {
-    name  = "env.secrets.TFE_ENCRYPTION_PASSWORD"
-    type  = "string"
-    value = var.tfe_encryption_password
-  }
-
-  set {
-    name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_OPEN_SHIFT_ENABLED"
-    type  = "auto"
-    value = true
-  }
-
-  set {
-    name  = "env.variables.TFE_HTTP_PORT"
-    type  = "string"
-    value = "8080"
-  }
-
-  set {
-    name  = "env.variables.TFE_TLS_KEY_FILE"
-    type  = "string"
-    value = "/etc/ssl/private/terraform-enterprise/tls.key"
-  }
-
-  set {
-    name  = "env.secrets.TFE_OBJECT_STORAGE_S3_SECRET_ACCESS_KEY"
-    type  = "string"
-    value = var.tfe_s3_secret_key
-  }
-
-  set {
-    name  = "env.secrets.TFE_DATABASE_PASSWORD"
-    type  = "string"
-    value = var.tfe_database_password
-  }
-
-  set {
-    name  = "env.secrets.TFE_REDIS_PASSWORD"
-    type  = "string"
-    value = var.tfe_redis_password
-  }
-
-  set {
-    name  = "env.variables.TFE_OBJECT_STORAGE_S3_ACCESS_KEY_ID"
-    type  = "string"
-    value = var.tfe_s3_access_key
-  }
-
-  set {
-    name  = "env.variables.TFE_REDIS_USE_AUTH"
-    type  = "auto"
-    value = true
-  }
-
-  set {
-    name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE"
-    type  = "string"
-    value = "eyJzZWN1cml0eUNvbnRleHQiOnsiYWxsb3dQcml2aWxlZ2VFc2NhbGF0aW9uIjpmYWxzZSwiY2FwYWJpbGl0aWVzIjp7ImRyb3AiOlsiQUxMIl19LCJydW5Bc05vblJvb3QiOnRydWUsInNlY2NvbXBQcm9maWxlIjp7InR5cGUiOiJSdW50aW1lRGVmYXVsdCJ9fX0=" # pragma: allowlist secret
-  }
-
-  set {
-    name  = "env.variables.TFE_OBJECT_STORAGE_S3_BUCKET"
-    type  = "string"
-    value = var.tfe_s3_bucket
-  }
-
-  set {
-    name  = "env.variables.TFE_OBJECT_STORAGE_TYPE"
-    type  = "string"
-    value = "s3"
-  }
-
-  set {
-    name  = "env.variables.TFE_REDIS_USE_TLS"
-    type  = "auto"
-    value = false
-  }
-
-  set {
-    name  = "env.variables.TFE_REDIS_HOST"
-    type  = "string"
-    value = var.tfe_redis_host
-  }
-
-  set {
-    name  = "env.variables.TFE_OBJECT_STORAGE_S3_REGION"
-    type  = "string"
-    value = var.tfe_s3_region
-  }
-
-  set {
-    name  = "env.variables.TFE_OPERATIONAL_MODE"
-    type  = "string"
-    value = "external"
-  }
-
-  set {
-    name  = "env.variables.TFE_OBJECT_STORAGE_S3_ENDPOINT"
-    type  = "string"
-    value = var.tfe_s3_endpoint
-  }
-
-  set {
-    name  = "env.variables.TFE_RUN_PIPELINE_IMAGE"
-    type  = "string"
-    value = data.kubernetes_resource.tfe_agent_image_stream.object.status.dockerImageRepository
-  }
-
-  set {
-    name  = "env.variables.TFE_OBJECT_STORAGE_S3_USE_INSTANCE_PROFILE"
-    type  = "auto"
-    value = false
-  }
-
-  set {
-    name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_NAMESPACE"
-    type  = "string"
-    value = kubernetes_namespace.tfe.metadata[0].name
-  }
-
-  set {
-    name  = "agents.namespace.enabled"
-    type  = "auto"
-    value = false
-  }
-
-  set {
-    name  = "agents.namespace.name"
-    type  = "string"
-    value = kubernetes_namespace.tfe.metadata[0].name
-  }
+  set = [
+    {
+      name  = "image.tag"
+      value = var.tfe_image_tag
+    },
+    {
+      name  = "openshift.enabled"
+      value = true
+    },
+    {
+      name  = "env.secrets.TFE_LICENSE"
+      value = var.tfe_license
+    },
+    {
+      name  = "env.variables.TFE_HOSTNAME"
+      value = local.tfe_hostname
+    },
+    {
+      name  = "env.variables.TFE_LICENSE_REPORTING_OPT_OUT"
+      value = true
+    },
+    {
+      name  = "env.variables.TFE_USAGE_REPORTING_OPT_OUT"
+      value = true
+    },
+    {
+      name  = "env.variables.TFE_INSTALLATION_TYPE"
+      value = "openshift"
+    },
+    {
+      name  = "env.variables.TFE_DATABASE_HOST"
+      value = var.tfe_database_host
+    },
+    {
+      name  = "env.variables.TFE_DATABASE_PARAMETERS"
+      value = "sslmode=require"
+    },
+    {
+      name  = "env.variables.TFE_DATABASE_USER"
+      value = var.tfe_database_user
+    },
+    {
+      name  = "env.variables.TFE_DATABASE_NAME"
+      value = var.tfe_database_name
+    },
+    {
+      name  = "env.variables.TFE_RUN_PIPELINE_DRIVER"
+      value = "kubernetes"
+    },
+    {
+      name  = "env.variables.TFE_TLS_CERT_FILE"
+      value = "/etc/ssl/private/terraform-enterprise/tls.crt"
+    },
+    {
+      name  = "env.variables.TFE_VAULT_DISABLE_MLOCK"
+      value = true
+    },
+    {
+      name  = "env.secrets.TFE_ENCRYPTION_PASSWORD"
+      value = var.tfe_encryption_password
+    },
+    {
+      name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_OPEN_SHIFT_ENABLED"
+      value = true
+    },
+    {
+      name  = "env.variables.TFE_HTTP_PORT"
+      value = "8080"
+    },
+    {
+      name  = "env.variables.TFE_TLS_KEY_FILE"
+      value = "/etc/ssl/private/terraform-enterprise/tls.key"
+    },
+    {
+      name  = "env.secrets.TFE_OBJECT_STORAGE_S3_SECRET_ACCESS_KEY"
+      value = var.tfe_s3_secret_key
+    },
+    {
+      name  = "env.secrets.TFE_DATABASE_PASSWORD"
+      value = var.tfe_database_password
+    },
+    {
+      name  = "env.secrets.TFE_REDIS_PASSWORD"
+      value = var.tfe_redis_password
+    },
+    {
+      name  = "env.variables.TFE_OBJECT_STORAGE_S3_ACCESS_KEY_ID"
+      value = var.tfe_s3_access_key
+    },
+    {
+      name  = "env.variables.TFE_REDIS_USE_AUTH"
+      value = true
+    },
+    {
+      name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE"
+      value = "eyJzZWN1cml0eUNvbnRleHQiOnsiYWxsb3dQcml2aWxlZ2VFc2NhbGF0aW9uIjpmYWxzZSwiY2FwYWJpbGl0aWVzIjp7ImRyb3AiOlsiQUxMIl19LCJydW5Bc05vblJvb3QiOnRydWUsInNlY2NvbXBQcm9maWxlIjp7InR5cGUiOiJSdW50aW1lRGVmYXVsdCJ9fX0=" # pragma: allowlist secret
+    },
+    {
+      name  = "env.variables.TFE_OBJECT_STORAGE_S3_BUCKET"
+      value = var.tfe_s3_bucket
+    },
+    {
+      name  = "env.variables.TFE_OBJECT_STORAGE_TYPE"
+      value = "s3"
+    },
+    {
+      name  = "env.variables.TFE_REDIS_USE_TLS"
+      value = false
+    },
+    {
+      name  = "env.variables.TFE_REDIS_HOST"
+      value = var.tfe_redis_host
+    },
+    {
+      name  = "env.variables.TFE_OBJECT_STORAGE_S3_REGION"
+      value = var.tfe_s3_region
+    },
+    {
+      name  = "env.variables.TFE_OPERATIONAL_MODE"
+      value = "external"
+    },
+    {
+      name  = "env.variables.TFE_OBJECT_STORAGE_S3_ENDPOINT"
+      value = var.tfe_s3_endpoint
+    },
+    {
+      name  = "env.variables.TFE_RUN_PIPELINE_IMAGE"
+      value = data.kubernetes_resource.tfe_agent_image_stream.object.status.dockerImageRepository
+    },
+    {
+      name  = "env.variables.TFE_OBJECT_STORAGE_S3_USE_INSTANCE_PROFILE"
+      value = false
+    },
+    {
+      name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_NAMESPACE"
+      value = kubernetes_namespace.tfe.metadata[0].name
+    },
+    {
+      name  = "agents.namespace.enabled"
+      value = false
+    },
+    {
+      name  = "agents.namespace.name"
+      value = kubernetes_namespace.tfe.metadata[0].name
+    },
+    {
+      name  = "serviceAccount.enabled"
+      value = true
+    },
+    {
+      name  = "serviceAccount.name"
+      value = "tfe"
+    },
+    {
+      name  = "env.secrets.TFE_IACT_TOKEN"
+      value = random_string.iact_token.result
+    }
+  ]
 
   values = [<<-EOF
     container:
@@ -276,32 +219,6 @@ resource "helm_release" "tfe_install" {
         runAsUser: 1000
   EOF
   ]
-
-  # set {
-  #   name = "service.Annotations"
-  #   type = "string"
-  #   value = jsonencode({
-  #     "service.beta.openshift.io/serving-cert-secret-name" = "terraform-enterprise-certificates"
-  #   })
-  # }
-
-  set {
-    name  = "serviceAccount.enabled"
-    type  = "auto"
-    value = true
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    type  = "string"
-    value = "tfe"
-  }
-
-  set {
-    name  = "env.secrets.TFE_IACT_TOKEN"
-    type  = "string"
-    value = random_string.iact_token.result
-  }
 }
 
 resource "random_string" "iact_token" {
