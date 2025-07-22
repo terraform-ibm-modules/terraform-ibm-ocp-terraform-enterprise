@@ -59,3 +59,13 @@ variable "admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "tfe_organization_name" {
+  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
+  type        = string
+  default     = "default"
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization_name))
+    error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
+  }
+}

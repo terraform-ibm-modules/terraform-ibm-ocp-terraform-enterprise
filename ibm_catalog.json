@@ -309,6 +309,14 @@
               "description": "An existing resource group name to provision resources in, if unset a new resource group will be created using name \"<prefix>-resource-group\"",
               "required": false,
               "virtual": false
+            },
+            {
+              "key": "tfe_organization_name",
+              "type": "string",
+              "default_value": "default",
+              "description": "If set, the name of the TFE organization to create. If not set, the module will not create an organization.",
+              "required": false,
+              "virtual": false
             }
           ],
           "terraform_version": "",

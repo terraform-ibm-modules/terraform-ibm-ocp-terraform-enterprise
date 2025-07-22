@@ -12,4 +12,5 @@ module "tfe" {
   admin_username               = var.admin_username
   admin_password               = var.admin_password
   admin_email                  = var.admin_email
+  tfe_organization             = var.tfe_organization_name
 }

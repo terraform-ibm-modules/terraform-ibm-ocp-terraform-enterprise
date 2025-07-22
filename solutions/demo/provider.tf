@@ -37,10 +37,6 @@ provider "kubectl" {
   load_config_file       = false # https://github.com/gavinbunney/terraform-provider-kubectl/issues/333
 }
 
-provider "tfe" {
-  hostname = module.tfe_install.tfe_hostname
-  token    = base64encode(module.tfe_install.token)
-}
 data "ibm_iam_auth_token" "auth_token" {
   depends_on = [module.tfe.cluster_id]
 }

@@ -72,6 +72,17 @@ variable "tfe_namespace" {
   default     = "tfe"
 }
 
+variable "tfe_organization" {
+  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
+  type        = string
+  default     = "default"
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization))
+    error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
+  }
+}
+
+
 # variable "add_to_catalog" {
 #   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true."
 #   type        = bool
@@ -168,12 +179,6 @@ variable "existing_vpc_id" {
   type        = string
   default     = null
 }
-
-# variable "existing_cluster_crn" {
-#   description = "The ID of the existing vpc. If not set, a new VPC will be created."
-#   type        = string
-#   default     = null
-# }
 
 variable "ocp_version" {
   type        = string

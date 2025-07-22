@@ -8,14 +8,6 @@ terraform {
       source  = "ibm-cloud/ibm"
       version = ">= 1.71.0"
     }
-    # helm = {
-    #   source  = "hashicorp/helm"
-    #   version = ">= 2.15.0, <4.0.0"
-    # }
-    # tfe = {
-    #   source  = "hashicorp/tfe"
-    #   version = ">= 0.33.0, <1.0.0"
-    # }
     restapi = {
       source  = "Mastercard/restapi"
       version = ">= 1.20.0"

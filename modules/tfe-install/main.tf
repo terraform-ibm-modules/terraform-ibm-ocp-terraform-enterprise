@@ -385,3 +385,14 @@ resource "kubernetes_secret" "tfe_admin_token" {
   }
   type = "Opaque"
 }
+
+
+# Use scrupt to create TFE organization
+# This is a workaround to avoid using the TFE provider which attempt to evaluate the token and host before the deployment is created
+resource "null_resource" "tfe_org" {
+  count = var.tfe_organization != null && length(trimspace(var.tfe_organization)) > 0 ? 1 : 0
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/create_org.sh ${kubernetes_secret.tfe_admin_token.data.token} ${var.tfe_organization} ${var.admin_email} ${data.kubernetes_resource.tfe_route.object.status.ingress[0].host}"
+  }
+}

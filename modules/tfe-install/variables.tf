@@ -18,11 +18,9 @@ variable "namespace" {
   default     = "tfe"
 }
 
-variable "tfe_license" {
-  description = "The license key for TFE"
-  type        = string
-  sensitive   = true
-}
+#################################################################################
+# Initialize TFE instance variables
+#################################################################################
 
 variable "admin_username" {
   description = "The user name of the TFE admin user"
@@ -48,10 +46,28 @@ variable "admin_password" {
   sensitive = true
 }
 
+variable "tfe_organization" {
+  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
+  type        = string
+  default     = "default"
+  validation {
+    condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization))
+    error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
+  }
+}
+
+
 
 ##############################################################################
 # TFE Installation variables
 ##############################################################################
+
+
+variable "tfe_license" {
+  description = "The license key for TFE"
+  type        = string
+  sensitive   = true
+}
 
 variable "tfe_image_tag" {
   description = "The version tag of the TFE image to use"
