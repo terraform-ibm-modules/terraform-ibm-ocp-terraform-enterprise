@@ -325,6 +325,14 @@ resource "kubectl_manifest" "tfe_agent_build_config" {
           # Verify installation
           RUN oc version --client
 
+          # Install the ibmcloud CLI & all plugins
+          RUN curl -fsSL https://clis.cloud.ibm.com/install/linux | sh && \
+          ibmcloud config --check-version=false && \
+          ibmcloud api cloud.ibm.com && \
+          chmod +x /usr/local/bin/ibmcloud && \
+          chown -R 777 /usr/local/bin/ibmcloud && \
+          ibmcloud plugin install -a -f
+
           USER tfc-agent
       strategy:
         type: Docker
