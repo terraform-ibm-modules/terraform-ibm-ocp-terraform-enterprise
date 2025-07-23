@@ -139,7 +139,7 @@ locals {
       {
         name            = local.terraform_enterprise_engine_name
         type            = "terraform-enterprise"
-        public_endpoint = module.tfe_install.tfe_hostname
+        public_endpoint = module.tfe_install.tfe_console_url
         api_token       = module.tfe_install.token
         da_creation = {
           enabled                    = var.enable_automatic_deployable_architecture_creation
