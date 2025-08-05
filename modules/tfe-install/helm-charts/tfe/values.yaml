@@ -341,7 +341,7 @@ pdb:
   # Whether to create a PodDisruptionBudget for the Terraform Enterprise deployment.
   enabled: false
   # The number of replicas that must be available during disruptions.
-  replicaCount: 3
+  replicaCount: 1
   annotations: {}
   labels: {}
 
