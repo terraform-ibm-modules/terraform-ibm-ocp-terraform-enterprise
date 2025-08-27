@@ -166,3 +166,53 @@ resource "restapi_object" "tfe_engines" {
   update_method  = "PUT"
   destroy_method = "PUT"
 }
+
+########################################################################################################################
+# Store Credentials in Secrets Manager
+########################################################################################################################
+
+locals {
+  secrets_manager_region = var.secrets_manager_crn != null ? split(":", var.secrets_manager_crn)[5] : null
+  secrets_manager_guid   = var.secrets_manager_crn != null ? split(":", var.secrets_manager_crn)[7] : null
+}
+
+module "secrets_manager_secret_group" {
+  count                    = var.secrets_manager_crn != null && var.secrets_manager_secret_group_id == null ? 1 : 0
+  source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
+  version                  = "1.3.13"
+  secret_group_name        = var.prefix
+  secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
+  secrets_manager_guid     = local.secrets_manager_guid
+  region                   = local.secrets_manager_region
+}
+
+locals {
+  secret_group_id = var.secrets_manager_secret_group_id != null ? var.secrets_manager_secret_group_id : module.secrets_manager_secret_group[0].secret_group_id
+}
+
+module "instance_token_secret" {
+  count                   = var.secrets_manager_crn != null ? 1 : 0
+  source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
+  version                 = "1.7.0"
+  region                  = local.secrets_manager_region
+  secrets_manager_guid    = local.secrets_manager_guid
+  secret_group_id         = local.secret_group_id
+  secret_name             = "${var.prefix}-terraform-enterprise-token"
+  secret_description      = "Token for the Terraform Enterprise instance."
+  secret_type             = "arbitrary"
+  secret_payload_password = module.tfe_install.token
+}
+
+module "redis_password_secret" {
+  count                   = var.secrets_manager_crn != null ? 1 : 0
+  source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
+  version                 = "1.7.0"
+  region                  = local.secrets_manager_region
+  secrets_manager_guid    = local.secrets_manager_guid
+  secret_group_id         = local.secret_group_id
+  secret_name             = "${var.prefix}-terraform-enterprise-redis-password"
+  secret_description      = "Password for the Terraform Enterprise redis instance."
+  secret_type             = "arbitrary"
+  secret_payload_password = local.redis_pass_base64
+}
+

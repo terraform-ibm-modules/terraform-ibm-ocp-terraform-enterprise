@@ -191,3 +191,19 @@ variable "ocp_entitlement" {
   description = "Value that is applied to the entitlements for OCP cluster provisioning"
   default     = null
 }
+
+##############################################################################
+# Secrets Manager
+##############################################################################
+
+variable "secrets_manager_crn" {
+  description = "The CRN of the existing Secrets Manager instance. If not set, secrets will not be stored in a Secrets Manager instance."
+  type        = string
+  default     = null
+}
+
+variable "secrets_manager_secret_group_id" {
+  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>` secret group."
+  type        = string
+  default     = null
+}

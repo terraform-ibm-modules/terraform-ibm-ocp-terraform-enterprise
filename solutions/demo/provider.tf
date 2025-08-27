@@ -37,6 +37,7 @@ provider "kubectl" {
   load_config_file       = false # https://github.com/gavinbunney/terraform-provider-kubectl/issues/333
 }
 
+# delays the fetching of the auth token because it is unlikely to be valid for the entire run
 data "ibm_iam_auth_token" "auth_token" {
   depends_on = [module.tfe.cluster_id]
 }
