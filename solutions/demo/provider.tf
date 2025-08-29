@@ -36,15 +36,3 @@ provider "kubectl" {
   cluster_ca_certificate = data.ibm_container_cluster_config.cluster_config.ca_certificate
   load_config_file       = false # https://github.com/gavinbunney/terraform-provider-kubectl/issues/333
 }
-
-data "ibm_iam_auth_token" "auth_token" {
-  depends_on = [module.tfe.cluster_id]
-}
-
-provider "restapi" {
-  uri = "https://cm.globalcatalog.cloud.ibm.com"
-  headers = {
-    Authorization = data.ibm_iam_auth_token.auth_token.iam_access_token
-  }
-  write_returns_object = true
-}

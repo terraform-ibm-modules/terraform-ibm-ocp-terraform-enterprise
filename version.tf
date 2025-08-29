@@ -6,11 +6,7 @@ terraform {
   required_providers {
     ibm = {
       source  = "ibm-cloud/ibm"
-      version = ">= 1.71.0"
-    }
-    restapi = {
-      source  = "Mastercard/restapi"
-      version = ">= 1.20.0"
+      version = ">= 1.82.0"
     }
   }
 }

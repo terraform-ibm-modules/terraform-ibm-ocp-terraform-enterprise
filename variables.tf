@@ -105,6 +105,16 @@ variable "default_private_catalog_id" {
   type        = string
   description = "If `enable_deployable_architecture_creation` is true, specify the private catalog ID to create the Deployable Architectures in."
   default     = null
+  validation {
+    condition     = var.enable_automatic_deployable_architecture_creation != true ? true : var.default_private_catalog_id != null
+    error_message = "Must specific a `default_private_catalog_id` if `enable_deployable_architecture_creation` is true."
+  }
+}
+
+variable "terraform_engine_scopes" {
+  type        = object(string)
+  description = "List of scopes to auto-create deployable architectures from workspaces in the engine."
+  default     = null
 }
 
 ##############################################################################
