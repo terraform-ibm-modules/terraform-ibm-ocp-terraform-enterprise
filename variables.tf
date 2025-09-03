@@ -83,11 +83,11 @@ variable "tfe_organization" {
 }
 
 
-# variable "add_to_catalog" {
-#   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true."
-#   type        = bool
-#   default     = true
-# }
+variable "add_to_catalog" {
+  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
+  type        = bool
+  default     = true
+}
 
 variable "terraform_enterprise_engine_name" {
   type        = string
@@ -112,7 +112,10 @@ variable "default_private_catalog_id" {
 }
 
 variable "terraform_engine_scopes" {
-  type        = object(string)
+  type = list(object({
+    name = string,
+    type = string
+  }))
   description = "List of scopes to auto-create deployable architectures from workspaces in the engine."
   default     = null
 }

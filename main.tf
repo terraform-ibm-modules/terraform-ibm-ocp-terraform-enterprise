@@ -126,6 +126,7 @@ locals {
 }
 
 resource "ibm_cm_account" "cm_account_instance" {
+  count = var.add_to_catalog ? 1 : 0
   terraform_engines {
     name            = local.terraform_enterprise_engine_name
     type            = "terraform-enterprise"
@@ -137,12 +138,10 @@ resource "ibm_cm_account" "cm_account_instance" {
       default_private_catalog_id = var.default_private_catalog_id
       polling_info {
         dynamic "scopes" {
-
-          for_each = var.terraform_engine_scopes != null ? [1] : [0]
-
+          for_each = var.terraform_engine_polling_scopes
           content {
-            name = local.scopes.name
-            type = local.scopes.type
+            name = scopes.value.name
+            type = scopes.value.type
           }
         }
       }
