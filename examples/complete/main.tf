@@ -13,4 +13,5 @@ module "tfe" {
   admin_password               = var.admin_password
   admin_email                  = var.admin_email
   tfe_organization             = var.tfe_organization_name
+  add_to_catalog               = var.add_to_catalog
 }
