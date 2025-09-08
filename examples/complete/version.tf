@@ -6,7 +6,7 @@ terraform {
   required_providers {
     ibm = {
       source  = "ibm-cloud/ibm"
-      version = "1.80.4"
+      version = "1.82.0"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"

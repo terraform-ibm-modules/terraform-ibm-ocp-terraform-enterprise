@@ -69,3 +69,9 @@ variable "tfe_organization_name" {
     error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
   }
 }
+
+variable "add_to_catalog" {
+  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
+  type        = bool
+  default     = true
+}

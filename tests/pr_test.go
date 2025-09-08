@@ -20,6 +20,9 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 		TerraformDir:  dir,
 		Prefix:        prefix,
 		ResourceGroup: resourceGroup,
+		TerraformVars: map[string]interface{}{
+			"add_to_catalog": false,
+		},
 	})
 	return options
 }
