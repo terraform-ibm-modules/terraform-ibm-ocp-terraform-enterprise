@@ -1,5 +1,5 @@
 data "ibm_container_vpc_cluster" "cluster" {
-  cluster_name_id   = var.cluster_id
+  name              = var.cluster_id
   resource_group_id = var.cluster_resource_group_id
 }
 
@@ -45,7 +45,7 @@ resource "helm_release" "tfe_install" {
   depends_on = [kubernetes_secret.tfe_pull_secret]
 
   name             = "terraform-enterprise"
-  chart            = "${path.module}/helm-charts/tfe"
+  chart            = "${path.module}/chart/tfe"
   namespace        = kubernetes_namespace.tfe.metadata[0].name
   create_namespace = false
   timeout          = 1200
