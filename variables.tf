@@ -111,7 +111,7 @@ variable "default_private_catalog_id" {
   }
 }
 
-variable "terraform_engine_polling_scopes" {
+variable "terraform_engine_scopes" {
   type = list(object({
     name = string,
     type = string
