@@ -111,13 +111,14 @@ variable "default_private_catalog_id" {
   }
 }
 
-variable "terraform_engine_scopes" {
+variable "terraform_engine_polling_scopes" {
   type = list(object({
     name = string,
     type = string
   }))
   description = "List of scopes to auto-create deployable architectures from workspaces in the engine."
-  default     = null
+  default     = []
+  nullable    = false
 }
 
 ##############################################################################
