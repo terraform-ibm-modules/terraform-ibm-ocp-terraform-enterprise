@@ -119,8 +119,6 @@ module "tfe_install" {
 # Connect to Catalog Management
 ########################################################################################################################
 
-data "ibm_cm_account" "cm_account" {}
-
 locals {
   terraform_enterprise_engine_name = var.terraform_enterprise_engine_name != null ? var.terraform_enterprise_engine_name : "${var.prefix}-tfe"
 }
