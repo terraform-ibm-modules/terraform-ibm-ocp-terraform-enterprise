@@ -136,7 +136,7 @@ resource "ibm_cm_account" "cm_account_instance" {
       default_private_catalog_id = var.default_private_catalog_id
       polling_info {
         dynamic "scopes" {
-          for_each = var.terraform_engine_polling_scopes
+          for_each = var.terraform_engine_scopes
           content {
             name = scopes.value.name
             type = scopes.value.type
