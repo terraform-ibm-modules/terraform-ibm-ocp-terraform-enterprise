@@ -24,7 +24,7 @@ variable "region" {
   default     = "us-south"
 }
 
-variable "existing_resource_group_name" {
+variable "resource_group" {
   type        = string
   description = "An existing resource group name to provision resources in, if unset a new resource group will be created"
   default     = null
