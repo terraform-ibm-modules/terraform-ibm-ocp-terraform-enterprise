@@ -69,6 +69,7 @@ module "icd_postgres" {
   service_credential_names = {
     "tfe" : "Operator"
   }
+  deletion_protection = var.postgres_deletion_protection
 }
 
 ########################################################################################################################

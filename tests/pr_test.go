@@ -12,7 +12,6 @@ import (
 	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/IBM/secrets-manager-go-sdk/v2/secretsmanagerv2"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/common"
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/testhelper"
 )
@@ -37,30 +36,47 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
+	// get the license from a secrets manager, fail test if error
+	license, licenseErr := getLicenseString()
+	if licenseErr != nil {
+		log.Fatal(licenseErr)
+	}
+
+	// generate a random password, fail if error
+	pass, passErr := getRandomAdminPassword()
+	if passErr != nil {
+		log.Fatal(passErr)
+	}
+
+	// ADD SENSITIVE VALS TO ENV
+	// not adding to regular vars so not to leak the values
+	setLicenseEnvErr := os.Setenv("TF_VAR_tfe_license", *license)
+	if setLicenseEnvErr != nil {
+		log.Fatal(setLicenseEnvErr)
+	}
+	setPassEnvErr := os.Setenv("TF_VAR_admin_password", *pass)
+	if setPassEnvErr != nil {
+		log.Fatal(setPassEnvErr)
+	}
+
 	os.Exit(m.Run())
 }
 
 func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptions {
-
-	// get the license from a secrets manager, fail test if error
-	license, licenseErr := getLicenseString()
-	require.NoError(t, licenseErr)
-
-	// generate a random password, fail if error
-	pass, passErr := getRandomAdminPassword()
-	require.NoError(t, passErr)
-
 	options := testhelper.TestOptionsDefaultWithVars(&testhelper.TestOptions{
 		Testing:       t,
 		TerraformDir:  dir,
 		Prefix:        prefix,
 		ResourceGroup: resourceGroup,
 		TerraformVars: map[string]interface{}{
-			"tfe_license":    *license,
-			"admin_password": *pass,
-			"add_to_catalog": false,
+			"add_to_catalog":               false,
+			"postgres_deletion_protection": false,
 		},
 	})
+
+	// NOTE ON INPUT VARS:
+	// the inputs for license and password are added in TestMain in the ENV.
+
 	return options
 }
 

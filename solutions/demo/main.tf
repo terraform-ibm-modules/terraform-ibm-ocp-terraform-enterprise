@@ -13,4 +13,5 @@ module "tfe" {
   admin_password               = var.admin_password
   admin_email                  = var.admin_email
   tfe_organization             = var.tfe_organization_name
+  postgres_deletion_protection = var.postgres_deletion_protection
 }
