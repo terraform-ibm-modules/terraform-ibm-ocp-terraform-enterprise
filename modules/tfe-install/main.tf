@@ -64,10 +64,6 @@ resource "helm_release" "tfe_install" {
       value = true
     },
     {
-      name  = "env.secrets.TFE_LICENSE"
-      value = var.tfe_license
-    },
-    {
       name  = "env.variables.TFE_HOSTNAME"
       value = local.tfe_hostname
     },
@@ -112,10 +108,6 @@ resource "helm_release" "tfe_install" {
       value = true
     },
     {
-      name  = "env.secrets.TFE_ENCRYPTION_PASSWORD"
-      value = var.tfe_encryption_password
-    },
-    {
       name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_OPEN_SHIFT_ENABLED"
       value = true
     },
@@ -128,28 +120,8 @@ resource "helm_release" "tfe_install" {
       value = "/etc/ssl/private/terraform-enterprise/tls.key"
     },
     {
-      name  = "env.secrets.TFE_OBJECT_STORAGE_S3_SECRET_ACCESS_KEY"
-      value = var.tfe_s3_secret_key
-    },
-    {
-      name  = "env.secrets.TFE_DATABASE_PASSWORD"
-      value = var.tfe_database_password
-    },
-    {
-      name  = "env.secrets.TFE_REDIS_PASSWORD"
-      value = var.tfe_redis_password
-    },
-    {
-      name  = "env.variables.TFE_OBJECT_STORAGE_S3_ACCESS_KEY_ID"
-      value = var.tfe_s3_access_key
-    },
-    {
       name  = "env.variables.TFE_REDIS_USE_AUTH"
       value = true
-    },
-    {
-      name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE"
-      value = "eyJzZWN1cml0eUNvbnRleHQiOnsiYWxsb3dQcml2aWxlZ2VFc2NhbGF0aW9uIjpmYWxzZSwiY2FwYWJpbGl0aWVzIjp7ImRyb3AiOlsiQUxMIl19LCJydW5Bc05vblJvb3QiOnRydWUsInNlY2NvbXBQcm9maWxlIjp7InR5cGUiOiJSdW50aW1lRGVmYXVsdCJ9fX0=" # pragma: allowlist secret
     },
     {
       name  = "env.variables.TFE_OBJECT_STORAGE_S3_BUCKET"
@@ -206,6 +178,37 @@ resource "helm_release" "tfe_install" {
     {
       name  = "serviceAccount.name"
       value = "tfe"
+    }
+  ]
+
+  set_sensitive = [
+    {
+      name  = "env.secrets.TFE_LICENSE"
+      value = var.tfe_license
+    },
+    {
+      name  = "env.secrets.TFE_ENCRYPTION_PASSWORD"
+      value = var.tfe_encryption_password
+    },
+    {
+      name  = "env.secrets.TFE_OBJECT_STORAGE_S3_SECRET_ACCESS_KEY"
+      value = var.tfe_s3_secret_key
+    },
+    {
+      name  = "env.secrets.TFE_DATABASE_PASSWORD"
+      value = var.tfe_database_password
+    },
+    {
+      name  = "env.secrets.TFE_REDIS_PASSWORD"
+      value = var.tfe_redis_password
+    },
+    {
+      name  = "env.variables.TFE_OBJECT_STORAGE_S3_ACCESS_KEY_ID"
+      value = var.tfe_s3_access_key
+    },
+    {
+      name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE"
+      value = "eyJzZWN1cml0eUNvbnRleHQiOnsiYWxsb3dQcml2aWxlZ2VFc2NhbGF0aW9uIjpmYWxzZSwiY2FwYWJpbGl0aWVzIjp7ImRyb3AiOlsiQUxMIl19LCJydW5Bc05vblJvb3QiOnRydWUsInNlY2NvbXBQcm9maWxlIjp7InR5cGUiOiJSdW50aW1lRGVmYXVsdCJ9fX0=" # pragma: allowlist secret
     },
     {
       name  = "env.secrets.TFE_IACT_TOKEN"
