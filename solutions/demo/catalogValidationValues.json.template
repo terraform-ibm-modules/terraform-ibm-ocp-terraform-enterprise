@@ -1,0 +1,10 @@
+{
+  "ibmcloud_api_key": $VALIDATION_APIKEY,
+  "existing_resource_group_name": $RG_NAME,
+  "prefix": $PREFIX,
+  "tfe_license": $TFE_LICENSE,
+  "admin_email": "validation@example.com",
+  "admin_password": $RAND_PASSWORD,
+  "postgres_deletion_protection": false,
+  "add_to_catalog": false
+}
