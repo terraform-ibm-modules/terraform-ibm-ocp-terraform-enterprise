@@ -59,6 +59,13 @@ func TestMain(m *testing.M) {
 		log.Fatal(setPassEnvErr)
 	}
 
+	// NOTE: SHOULD REMOVE THIS WHEN PROJECT IS MORE STABLE
+	// While in Alpha phase we want to debug failures
+	setDoNotDestroyErr := os.Setenv("DO_NOT_DESTROY_ON_FAILURE", "true")
+	if setDoNotDestroyErr != nil {
+		log.Fatal(setDoNotDestroyErr)
+	}
+
 	os.Exit(m.Run())
 }
 
