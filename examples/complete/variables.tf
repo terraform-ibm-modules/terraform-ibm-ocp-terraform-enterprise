@@ -24,7 +24,7 @@ variable "region" {
   default     = "us-south"
 }
 
-variable "existing_resource_group_name" {
+variable "resource_group" {
   type        = string
   description = "An existing resource group name to provision resources in, if unset a new resource group will be created"
   default     = null
@@ -70,14 +70,14 @@ variable "tfe_organization_name" {
   }
 }
 
-variable "postgres_deletion_protection" {
-  type        = bool
-  description = "Enable deletion protection within terraform. This is not a property of the resource and does not prevent deletion outside of terraform. The database can not be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
-  default     = true
-}
-
 variable "add_to_catalog" {
   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
   type        = bool
+  default     = true
+}
+
+variable "postgres_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection within terraform. This is not a property of the resource and does not prevent deletion outside of terraform. The database can not be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
   default     = true
 }

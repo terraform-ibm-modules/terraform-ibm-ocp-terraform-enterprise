@@ -69,6 +69,7 @@ module "icd_postgres" {
   service_credential_names = {
     "tfe" : "Operator"
   }
+  deletion_protection = var.postgres_deletion_protection
 }
 
 ########################################################################################################################
@@ -119,50 +120,30 @@ module "tfe_install" {
 # Connect to Catalog Management
 ########################################################################################################################
 
-data "ibm_cm_account" "cm_account" {}
-
 locals {
   terraform_enterprise_engine_name = var.terraform_enterprise_engine_name != null ? var.terraform_enterprise_engine_name : "${var.prefix}-tfe"
-
-  data = { # this will become a provider call once `terraform_engines` is added to it
-    id   = data.ibm_cm_account.cm_account.id
-    _rev = data.ibm_cm_account.cm_account.rev
-
-    # pass thru
-    account_filters = {
-      include_all      = data.ibm_cm_account.cm_account.account_filters[0].include_all,
-      id_filters       = length(data.ibm_cm_account.cm_account.account_filters[0].id_filters) != 0 ? data.ibm_cm_account.cm_account.account_filters[0].id_filters[0] : {},
-      category_filters = length(data.ibm_cm_account.cm_account.account_filters[0].category_filters) != 0 ? data.ibm_cm_account.cm_account.account_filters[0].category_filters[0] : {},
-    }
-
-    terraform_engines = [
-      {
-        name            = local.terraform_enterprise_engine_name
-        type            = "terraform-enterprise"
-        public_endpoint = module.tfe_install.tfe_console_url
-        api_token       = module.tfe_install.token
-        da_creation = {
-          enabled                    = var.enable_automatic_deployable_architecture_creation
-          default_private_catalog_id = var.default_private_catalog_id
-          # "polling_info": { // If polling info is not provided, we will try to auto-create DAs in all workspaces in all orgs
-          #   "scopes": [
-          #     {
-          #       "name": "kz-test",
-          #       "type": "project" // Type can be project | org | workspace to poll on to auto-create DAs
-          #     }
-          #   ]
-          # }
-        }
-      }
-    ]
-  }
-  data_json = jsonencode(local.data)
 }
 
-resource "restapi_object" "tfe_engines" {
-  path           = "/api/v1-beta/catalogaccount"
-  data           = local.data_json
-  create_method  = "PUT" # Specify the HTTP method for updates
-  update_method  = "PUT"
-  destroy_method = "PUT"
+resource "ibm_cm_account" "cm_account_instance" {
+  count = var.add_to_catalog ? 1 : 0
+  terraform_engines {
+    name            = local.terraform_enterprise_engine_name
+    type            = "terraform-enterprise"
+    public_endpoint = module.tfe_install.tfe_console_url
+    # private_endpoint = "<private_endpoint>"
+    api_token = module.tfe_install.token
+    da_creation {
+      enabled                    = var.enable_automatic_deployable_architecture_creation
+      default_private_catalog_id = var.default_private_catalog_id
+      polling_info {
+        dynamic "scopes" {
+          for_each = var.terraform_engine_scopes
+          content {
+            name = scopes.value.name
+            type = scopes.value.type
+          }
+        }
+      }
+    }
+  }
 }

@@ -6,7 +6,23 @@ terraform {
   required_providers {
     ibm = {
       source  = "ibm-cloud/ibm"
-      version = ">= 1.82.1"
+      version = "1.82.1"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.19.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.37.1"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "3.0.2"
+    }
+    restapi = {
+      source  = "Mastercard/restapi"
+      version = "2.0.1"
     }
   }
 }
