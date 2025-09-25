@@ -1,7 +1,7 @@
 {
   "products": [
     {
-      "label": "Terraform Enterprise on IBM Cloud",
+      "label": "[PoC] Terraform Enterprise on IBM Cloud",
       "name": "terraform-enterprise-fullstack-demo",
       "product_kind": "solution",
       "tags": [
@@ -22,8 +22,8 @@
         "terraform",
         "tfe"
       ],
-      "short_description": "Automate HashiCorp Terraform Enterprise deployment with supporting IBM Cloud  services.",
-      "long_description": "This solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
+      "short_description": "Automate Terraform HashiCorp Enterprise deployment with supporting IBM Cloud services.",
+      "long_description": "**This is a working proof of concept. It is not productized or available in any public catalog. Please refrain from using, sharing, or demonstrating it without first discussing it with vincent.burckhardt@ie.ibm.com and ldharrel@us.ibm.com.**\n\nThis solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
       "offering_docs_url": "https://github.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise/blob/main/README.md",
       "offering_icon_url": "https://cdn.worldvectorlogo.com/logos/terraform-enterprise.svg",
       "features": [

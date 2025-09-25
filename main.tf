@@ -24,6 +24,7 @@ module "cos" {
   cos_instance_name        = var.cos_instance_name != null ? var.cos_instance_name : "${var.prefix}-tfe"
   cos_tags                 = var.resource_tags
   bucket_name              = var.cos_bucket_name != null ? var.cos_bucket_name : "${var.prefix}-tfe-bucket"
+  add_bucket_name_suffix   = true
   create_cos_bucket        = true
   retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
   kms_encryption_enabled   = false
