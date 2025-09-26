@@ -26,7 +26,7 @@ variable "region" {
 
 variable "existing_resource_group_name" {
   type        = string
-  description = "An existing resource group name to provision resources in, if unset a new resource group will be created"
+  description = "The name of an existing resource group to provision the resources. If not provided the default resource group will be used."
   default     = null
 }
 
