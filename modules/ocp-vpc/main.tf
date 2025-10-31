@@ -114,7 +114,6 @@ module "openshift" {
   tags                                = var.resource_tags
   access_tags                         = var.access_tags
   ocp_version                         = var.ocp_version
-  use_private_endpoint                = false
   ocp_entitlement                     = var.ocp_entitlement
   enable_ocp_console                  = true
   disable_outbound_traffic_protection = true
