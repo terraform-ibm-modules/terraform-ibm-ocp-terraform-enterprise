@@ -103,7 +103,7 @@ locals {
 module "openshift" {
   count                               = var.existing_cluster_id == null ? 1 : 0
   source                              = "terraform-ibm-modules/base-ocp-vpc/ibm"
-  version                             = "3.52.3"
+  version                             = "3.69.1"
   cluster_name                        = var.prefix
   resource_group_id                   = var.resource_group_id
   region                              = var.region
@@ -114,7 +114,6 @@ module "openshift" {
   tags                                = var.resource_tags
   access_tags                         = var.access_tags
   ocp_version                         = var.ocp_version
-  use_private_endpoint                = false
   ocp_entitlement                     = var.ocp_entitlement
   enable_ocp_console                  = true
   disable_outbound_traffic_protection = true
