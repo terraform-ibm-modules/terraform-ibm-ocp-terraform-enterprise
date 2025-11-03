@@ -363,7 +363,8 @@
           ],
           "install_type": "fullstack",
           "scripts": [],
-          "change_notices": {}
+          "change_notices": {},
+          "ignore_readme": true
         }
       ]
     }
