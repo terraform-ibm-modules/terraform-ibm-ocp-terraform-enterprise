@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+offerings:
+  - name: terraform-enterprise-fullstack-demo
+    kind: solution
+    catalog_id: 7df1e4ca-d54c-4fd0-82ce-3d13247308cd
+    offering_id: 04705d84-f5f6-4706-8ca3-dcc3e46b7a46
+    variations:
+      - name: quick-start
+        mark_ready: true
+        install_type: fullstack
+        scc:
+          instance_id: 1c7d5f78-9262-44c3-b779-b28fe4d88c37
+          region: us-south

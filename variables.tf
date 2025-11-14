@@ -83,11 +83,11 @@ variable "tfe_organization" {
 }
 
 
-# variable "add_to_catalog" {
-#   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true."
-#   type        = bool
-#   default     = true
-# }
+variable "add_to_catalog" {
+  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
+  type        = bool
+  default     = true
+}
 
 variable "terraform_enterprise_engine_name" {
   type        = string
@@ -105,6 +105,20 @@ variable "default_private_catalog_id" {
   type        = string
   description = "If `enable_deployable_architecture_creation` is true, specify the private catalog ID to create the Deployable Architectures in."
   default     = null
+  validation {
+    condition     = var.enable_automatic_deployable_architecture_creation != true ? true : var.default_private_catalog_id != null
+    error_message = "Must specific a `default_private_catalog_id` if `enable_deployable_architecture_creation` is true."
+  }
+}
+
+variable "terraform_engine_scopes" {
+  type = list(object({
+    name = string,
+    type = string
+  }))
+  description = "List of scopes to auto-create deployable architectures from workspaces in the engine."
+  default     = []
+  nullable    = false
 }
 
 ##############################################################################
@@ -147,6 +161,12 @@ variable "postgres_instance_name" {
   description = "Name of postgres instance to create. If set to `null`, name will be `{prefix}-data-store`"
   type        = string
   default     = null
+}
+
+variable "postgres_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection within terraform. This is not a property of the resource and does not prevent deletion outside of terraform. The database can not be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
+  default     = true
 }
 
 ##############################################################################

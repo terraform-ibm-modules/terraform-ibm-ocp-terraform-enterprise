@@ -1,7 +1,7 @@
 {
   "products": [
     {
-      "label": "Terraform Enterprise on IBM Cloud",
+      "label": "[PoC] Terraform Enterprise on IBM Cloud",
       "name": "terraform-enterprise-fullstack-demo",
       "product_kind": "solution",
       "tags": [
@@ -16,15 +16,15 @@
         "application_modernization",
         "Technology",
         "SoftwareAndPlatformApplications",
-        "converged_infra"
+        "platform_engineering"
       ],
       "keywords": [
         "terraform",
         "tfe"
       ],
-      "short_description": "Automate HashiCorp Terraform Enterprise deployment with supporting IBM Cloud  services.",
-      "long_description": "This solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
-      "offering_docs_url": "https://github.com/vburckhardt/terraform-ibm-ocp-terraform-enterprise/blob/main/README.md",
+      "short_description": "Automate Terraform HashiCorp Enterprise deployment with supporting IBM Cloud services.",
+      "long_description": "**This is a working proof of concept. It is not productized or available in any public catalog. Please refrain from using, sharing, or demonstrating it without first discussing it with vincent.burckhardt@ie.ibm.com and ldharrel@us.ibm.com.**\n\nThis solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
+      "offering_docs_url": "https://github.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise/blob/main/README.md",
       "offering_icon_url": "https://cdn.worldvectorlogo.com/logos/terraform-enterprise.svg",
       "features": [
         {
@@ -62,15 +62,6 @@
           "name": "quick-start",
           "working_directory": "solutions/demo",
           "licenses": [],
-          "compliance": {
-            "authority": "scc-v3",
-            "profiles": [
-              {
-                "profile_name": "CIS IBM Cloud Foundations Benchmark v1.1.0",
-                "profile_version": "1.1.0"
-              }
-            ]
-          },
           "iam_permissions": [
             {
               "service_name": "containers-kubernetes",
@@ -188,10 +179,10 @@
             "diagrams": [
               {
                 "diagram": {
-                  "url": "https://raw.githubusercontent.com/vburckhardt/terraform-ibm-ocp-terraform-enterprise/main/reference-architecture/diagram-quick-start.svg",
+                  "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise/main/reference-architectures/diagram-quick-start.svg",
                   "caption": "Terraform Enterprise installation and its surrounding components.",
                   "type": "image/svg+xml",
-                  "thumbnail_url": "https://raw.githubusercontent.com/vburckhardt/terraform-ibm-ocp-terraform-enterprise/main/reference-architecture/diagram-quick-start.svg"
+                  "thumbnail_url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise/main/reference-architectures/diagram-quick-start.svg"
                 },
                 "description": "This architecture automates the deployment of Terraform Enterprise (TFE) on a small 2-node OpenShift cluster, with supporting services and relaxed network settings for full outbound internet access.\n- Custom TFE Agent Image: Built with kubectl, oc, and soon ibmcloud CLI, stored in the OpenShift image registry and backed by a COS bucket.\n- PostgreSQL via ICD: Uses a lightweight, multi-tenant ICD Postgres instance with minimal configuration.\nRedis: Deploys a Redis instance on-cluster, with plans to migrate to ICD Redis.\n- TFE Admin Setup: Automatically configures the default admin account post-deployment."
               }
@@ -304,11 +295,17 @@
             },
             {
               "key": "existing_resource_group_name",
-              "type": "string",
-              "default_value": "__NULL__",
-              "description": "An existing resource group name to provision resources in, if unset a new resource group will be created using name \"<prefix>-resource-group\"",
-              "required": false,
-              "virtual": false
+              "display_name": "resource_group",
+              "custom_config": {
+                "type": "resource_group",
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "config_constraints": {
+                  "identifier": "rg_name"
+                }
+              },
+              "default_value": "Default",
+              "description": "The name of an existing resource group to provision the resources."
             },
             {
               "key": "tfe_organization_name",
@@ -317,9 +314,23 @@
               "description": "If set, the name of the TFE organization to create. If not set, the module will not create an organization.",
               "required": false,
               "virtual": false
+            },
+            {
+              "key": "postgres_deletion_protection",
+              "type": "boolean",
+              "default_value": true,
+              "description": "Enable deletion protection within terraform. This is not a property of the resource and does not prevent deletion outside of terraform. The database can not be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'.",
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "add_to_catalog",
+              "hidden": true,
+              "required": false,
+              "virtual": false
             }
           ],
-          "terraform_version": "1.10.5",
+          "terraform_version": "1.12.2",
           "outputs": [
             {
               "key": "tfe_console_url",
@@ -352,7 +363,8 @@
           ],
           "install_type": "fullstack",
           "scripts": [],
-          "change_notices": {}
+          "change_notices": {},
+          "ignore_readme": true
         }
       ]
     }
