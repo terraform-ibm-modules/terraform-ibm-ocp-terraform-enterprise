@@ -103,7 +103,7 @@ locals {
 module "openshift" {
   count                               = var.existing_cluster_id == null ? 1 : 0
   source                              = "terraform-ibm-modules/base-ocp-vpc/ibm"
-  version                             = "3.71.3"
+  version                             = "3.73.0"
   cluster_name                        = var.prefix
   resource_group_id                   = var.resource_group_id
   region                              = var.region
