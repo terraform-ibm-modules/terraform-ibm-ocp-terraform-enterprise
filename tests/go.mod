@@ -8,7 +8,7 @@ require (
 	github.com/IBM/go-sdk-core/v5 v5.21.0
 	github.com/IBM/secrets-manager-go-sdk/v2 v2.0.16
 	github.com/stretchr/testify v1.11.1
-	github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper v1.60.22
+	github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper v1.60.26
 )
 
 require (
