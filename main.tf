@@ -171,7 +171,7 @@ module "secrets_manager_secret_group" {
 }
 
 locals {
-  secret_group_id = var.secrets_manager_secret_group_id != null ? var.secrets_manager_secret_group_id : module.secrets_manager_secret_group[0].secret_group_id
+  secret_group_id = var.secrets_manager_crn == null ? null : var.secrets_manager_secret_group_id != null ? var.secrets_manager_secret_group_id : module.secrets_manager_secret_group[0].secret_group_id
 }
 
 module "instance_token_secret" {
