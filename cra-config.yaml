@@ -1,9 +1,0 @@
-#
-# Developer tips:
-#   - CRA = Code Risk Analyzer (more info on CRA: https://cloud.ibm.com/docs/code-risk-analyzer-cli-plugin?topic=code-risk-analyzer-cli-plugin-cra-cli-plugin)
-#   - Multiple directories can be scanned by CRA. Ensure if there are any deployable architecture in the repository that they are all scanned
-#   - More info about supported configurations at https://github.com/terraform-ibm-modules/common-pipeline-assets/blob/main/.github/workflows/terraform-test-pipeline.md#cra-config-yaml
-#
-
-version: "v1"
-CRA_TARGETS: [] # disable CRA scanning until project is in more stable state (currently Alpha release)
