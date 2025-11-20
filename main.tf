@@ -65,12 +65,30 @@ module "icd_postgres" {
   name               = var.postgres_instance_name != null ? var.postgres_instance_name : "${var.prefix}-data-store"
   postgresql_version = "16" # TFE supports up to Postgres 16 (not 17)
   region             = var.region
-  service_endpoints  = "public-and-private"
+  service_endpoints  = var.postgres_service_endpoints
   member_host_flavor = "multitenant"
   service_credential_names = {
     "tfe" : "Operator"
   }
   deletion_protection = var.postgres_deletion_protection
+}
+
+module "icd_postgres_vpe" {
+  count   = var.postgres_vpe_enabled ? 1 : 0
+  source  = "terraform-ibm-modules/vpe-gateway/ibm"
+  version = "4.8.4"
+  region  = var.region
+  cloud_service_by_crn = [
+    {
+      crn          = (module.icd_postgres.crn)
+      service_name = "postgresql"
+    }
+  ]
+  service_endpoints = var.service_endpoints
+  vpc_name          = module.ocp_vpc.vpc_name
+  vpc_id            = module.ocp_vpc.vpc_id
+  subnet_zone_list  = module.ocp_vpc.vpc_subnet_zone_list
+  resource_group_id = module.resource_group.resource_group_id
 }
 
 ########################################################################################################################

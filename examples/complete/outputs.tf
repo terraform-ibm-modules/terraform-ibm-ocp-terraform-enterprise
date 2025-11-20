@@ -17,6 +17,11 @@ output "postgres_crn" {
   description = "The crm of the provisioned postgres instance."
 }
 
+output "postgres_vpe" {
+  description = "Details for the Virtual Private Endpoint created to postgres."
+  value       = module.tfe.postgres_vpe
+}
+
 output "redis_host" {
   value       = module.tfe.redis_host
   description = "The name of the provisioned redis host."

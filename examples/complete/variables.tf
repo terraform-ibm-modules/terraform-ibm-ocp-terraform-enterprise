@@ -8,6 +8,12 @@ variable "ibmcloud_api_key" {
   sensitive   = true
 }
 
+variable "ibmcloud_provider_visibility" {
+  type        = string
+  description = "The IBM Cloud provider visibility setting"
+  default     = "public"
+}
+
 variable "prefix" {
   type        = string
   description = "Prefix for name of all resource created by this example"
@@ -80,4 +86,16 @@ variable "postgres_deletion_protection" {
   type        = bool
   description = "Enable deletion protection within terraform. This is not a property of the resource and does not prevent deletion outside of terraform. The database can not be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
   default     = true
+}
+
+variable "postgres_service_endpoints" {
+  description = "Service endpoints for the postgres instance to deploy. Default is `public-and-private`"
+  default     = "public-and-private"
+  type        = string
+}
+
+variable "postgres_vpe_enabled" {
+  type        = bool
+  description = "Enable VPE connection for the Postgres instance. Default is `false`. If true, a VPE gateway is created to the Postgres instance and TFE is configured with the VPE endpoint."
+  default     = false
 }

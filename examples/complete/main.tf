@@ -15,4 +15,6 @@ module "tfe" {
   tfe_organization             = var.tfe_organization_name
   add_to_catalog               = var.add_to_catalog
   postgres_deletion_protection = var.postgres_deletion_protection
+  postgres_vpe_enabled         = var.postgres_vpe_enabled
+  postgres_service_endpoints   = var.postgres_service_endpoints
 }

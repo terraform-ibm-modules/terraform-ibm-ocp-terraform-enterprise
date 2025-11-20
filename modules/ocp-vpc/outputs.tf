@@ -16,3 +16,23 @@ output "ingress_hostname" {
   value       = local.ingress_hostname
   description = "The hostname of the cluster's ingress controller."
 }
+
+output "vpc_id" {
+  value       = local.vpc_id
+  description = "The ID of the VPC used by the cluster."
+}
+
+output "vpc_name" {
+  value       = local.vpc_name
+  description = "The ID of the VPC used by the cluster."
+}
+
+output "vpc_subnet_zone_list" {
+  value       = module.vpc.subnet_zone_list
+  description = "The list of subnets created for the VPC."
+}
+
+output "security_group_details" {
+  value       = module.vpc.security_group_details
+  description = "The details of security group added to the VPC."
+}
