@@ -41,4 +41,15 @@ output "tfe_hostname" {
 output "tfe_token" {
   value       = module.tfe.token
   description = "token of TFE"
+  sensitive   = true
+}
+
+output "redis_password_secret_crn" {
+  value       = module.tfe.redis_password_secret_crn
+  description = "The CRN of the secret containing the redis admin password"
+}
+
+output "instance_token_secret_crn" {
+  value       = module.tfe.instance_token_secret_crn
+  description = "The CRN of the secret containing the redis token"
 }

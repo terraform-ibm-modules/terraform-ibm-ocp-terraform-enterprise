@@ -28,8 +28,8 @@ output "redis_host" {
 }
 
 output "redis_password" {
-  value       = local.redis_pass_base64
-  description = "password to redis instance"
+  value       = var.secrets_manager_crn == null ? local.redis_pass_base64 : null
+  description = "password to redis instance, this is set to null when a value for `secrets_manager_crn` is provided"
   sensitive   = true
 }
 
@@ -44,7 +44,17 @@ output "tfe_hostname" {
 }
 
 output "token" {
-  value       = nonsensitive(module.tfe_install.token)
-  description = "The token for TFE instance"
-  sensitive   = false
+  value       = var.secrets_manager_crn == null ? module.tfe_install.token : null
+  description = "The token for TFE instance, this is set to null when a value for `secrets_manager_crn` is provided"
+  sensitive   = true
+}
+
+output "redis_password_secret_crn" {
+  value       = var.secrets_manager_crn != null ? module.redis_password_secret[0].secret_crn : null
+  description = "The CRN of the secret containing the redis admin password"
+}
+
+output "instance_token_secret_crn" {
+  value       = var.secrets_manager_crn != null ? module.instance_token_secret[0].secret_crn : null
+  description = "The CRN of the secret containing the redis token"
 }

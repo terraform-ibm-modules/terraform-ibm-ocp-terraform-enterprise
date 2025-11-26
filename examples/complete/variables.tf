@@ -39,6 +39,7 @@ variable "resource_tags" {
 variable "tfe_license" {
   type        = string
   description = "The license key for TFE"
+  default     = null
   sensitive   = true
 }
 
@@ -80,4 +81,26 @@ variable "postgres_deletion_protection" {
   type        = bool
   description = "Enable deletion protection within terraform. This is not a property of the resource and does not prevent deletion outside of terraform. The database can not be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
   default     = true
+}
+
+##############################################################################
+# Secrets Manager
+##############################################################################
+
+variable "secrets_manager_crn" {
+  description = "The CRN of the existing Secrets Manager instance. If not set, secrets will not be stored in a Secrets Manager instance."
+  type        = string
+  default     = null
+}
+
+variable "secrets_manager_secret_group_id" {
+  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>` secret group."
+  type        = string
+  default     = null
+}
+
+variable "tfe_license_secret_crn" {
+  type        = string
+  description = "The CRN of the Secrets Manager secret containing the license key for TFE"
+  default     = null
 }
