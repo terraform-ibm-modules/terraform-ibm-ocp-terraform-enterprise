@@ -91,12 +91,31 @@ locals {
 # TFE
 ########################################################################################################################
 
+module "license" {
+  count   = var.tfe_license_secret_crn != null ? 1 : 0
+  source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
+  version = "1.1.0"
+  crn     = var.tfe_license_secret_crn
+}
+
+# retrieving secret about the arbitrary secret
+data "ibm_sm_arbitrary_secret" "tfe_license" {
+  count       = var.tfe_license_secret_crn != null ? 1 : 0
+  instance_id = module.license[0].service_instance
+  region      = module.license[0].region
+  secret_id   = module.license[0].resource
+}
+
+locals {
+  tfe_license = var.tfe_license_secret_crn != null ? data.ibm_sm_arbitrary_secret.tfe_license[0].payload : var.tfe_license
+}
+
 module "tfe_install" {
   source                    = "./modules/tfe-install"
   cluster_id                = module.ocp_vpc.cluster_id
   cluster_resource_group_id = module.resource_group.resource_group_id
   namespace                 = var.tfe_namespace
-  tfe_license               = var.tfe_license
+  tfe_license               = local.tfe_license
   tfe_database_host         = "${module.icd_postgres.hostname}:${module.icd_postgres.port}"
   tfe_database_user         = module.icd_postgres.service_credentials_object.credentials["tfe"].username
   tfe_database_password     = module.icd_postgres.service_credentials_object.credentials["tfe"].password

@@ -39,6 +39,7 @@ variable "resource_tags" {
 variable "tfe_license" {
   type        = string
   description = "The license key for TFE"
+  default     = null
   sensitive   = true
 }
 
@@ -80,4 +81,52 @@ variable "add_to_catalog" {
   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
   type        = bool
   default     = true
+}
+
+##############################################################################
+# Secrets Manager
+##############################################################################
+
+variable "secrets_manager_crn" {
+  description = "The CRN of the existing Secrets Manager instance. If set, secrets will be stored in a Secrets Manager instance."
+  type        = string
+  default     = null
+}
+
+variable "secrets_manager_secret_group_id" {
+  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>` secret group."
+  type        = string
+  default     = null
+
+  validation {
+    condition = (
+      !(var.secrets_manager_crn == null &&
+      var.secrets_manager_secret_group_id != null)
+    )
+    error_message = "`secrets_manager_secret_group_id` is not required when `secrets_manager_crn` is not specified."
+  }
+}
+
+variable "tfe_license_secret_crn" {
+  type        = string
+  description = "The CRN of the Secrets Manager arbitrary secret containing the license key for TFE"
+  default     = null
+
+  validation {
+    condition     = !(var.tfe_license == null && var.tfe_license_secret_crn == null)
+    error_message = "Exactly one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition     = !(var.tfe_license != null && var.tfe_license_secret_crn != null)
+    error_message = "Only one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition = anytrue([
+      var.tfe_license_secret_crn == null,
+      can(regex("^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}::$", var.tfe_license_secret_crn))
+    ])
+    error_message = "The value provided for 'tfe_license_secret_crn' is not valid."
+  }
 }

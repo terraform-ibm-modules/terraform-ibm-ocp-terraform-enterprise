@@ -48,6 +48,31 @@ variable "tfe_license" {
   type        = string
   description = "The license key for TFE"
   sensitive   = true
+  default     = null
+}
+
+variable "tfe_license_secret_crn" {
+  type        = string
+  description = "The CRN of the Secrets Manager secret containing the license key for TFE"
+  default     = null
+
+  validation {
+    condition     = !(var.tfe_license == null && var.tfe_license_secret_crn == null)
+    error_message = "Exactly one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition     = !(var.tfe_license != null && var.tfe_license_secret_crn != null)
+    error_message = "Only one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition = anytrue([
+      var.tfe_license_secret_crn == null,
+      can(regex("^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}::$", var.tfe_license_secret_crn))
+    ])
+    error_message = "The value provided for 'tfe_license_secret_crn' is not valid."
+  }
 }
 
 variable "admin_username" {
