@@ -4,7 +4,7 @@
 
 output "resource_group_id" {
   value       = module.resource_group.resource_group_id
-  description = "The name of the provisioned cos instance."
+  description = "The ID of the provisioned resource group."
 }
 
 output "cos_instance_id" {
@@ -14,12 +14,12 @@ output "cos_instance_id" {
 
 output "cluster_id" {
   value       = module.ocp_vpc.cluster_id
-  description = "The name of the provisioned cluster."
+  description = "The ID of the provisioned cluster."
 }
 
 output "postgres_crn" {
   value       = module.icd_postgres.crn
-  description = "The crm of the provisioned postgres instance."
+  description = "The CRN of the provisioned postgres instance."
 }
 
 output "redis_host" {
@@ -43,18 +43,7 @@ output "tfe_hostname" {
   description = "The hostname for TFE instance"
 }
 
-output "token" {
-  value       = var.secrets_manager_crn == null ? module.tfe_install.token : null
-  description = "The token for TFE instance, this is set to null when a value for `secrets_manager_crn` is provided"
-  sensitive   = true
-}
-
 output "redis_password_secret_crn" {
   value       = var.secrets_manager_crn != null ? module.redis_password_secret[0].secret_crn : null
   description = "The CRN of the secret containing the redis admin password"
-}
-
-output "instance_token_secret_crn" {
-  value       = var.secrets_manager_crn != null ? module.instance_token_secret[0].secret_crn : null
-  description = "The CRN of the secret containing the redis token"
 }

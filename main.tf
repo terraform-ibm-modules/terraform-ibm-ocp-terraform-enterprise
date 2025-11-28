@@ -193,19 +193,6 @@ locals {
   secret_group_id = var.secrets_manager_crn == null ? null : var.secrets_manager_secret_group_id != null ? var.secrets_manager_secret_group_id : module.secrets_manager_secret_group[0].secret_group_id
 }
 
-module "instance_token_secret" {
-  count                   = var.secrets_manager_crn != null ? 1 : 0
-  source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
-  version                 = "1.7.0"
-  region                  = module.secrets_manager_crn[0].region
-  secrets_manager_guid    = module.secrets_manager_crn[0].service_instance
-  secret_group_id         = local.secret_group_id
-  secret_name             = "${var.prefix}-terraform-enterprise-token"
-  secret_description      = "Token for the Terraform Enterprise instance."
-  secret_type             = "arbitrary"
-  secret_payload_password = module.tfe_install.token
-}
-
 module "redis_password_secret" {
   count                   = var.secrets_manager_crn != null ? 1 : 0
   source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
