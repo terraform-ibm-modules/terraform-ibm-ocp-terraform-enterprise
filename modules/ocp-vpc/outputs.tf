@@ -36,3 +36,13 @@ output "security_group_details" {
   value       = module.vpc.security_group_details
   description = "The details of security group added to the VPC."
 }
+
+output "kube_cluster_sg" {
+  description = "The ID of the default security group representing the cluster nodes."
+  value       = data.ibm_is_security_group.kube_cluster_sg
+}
+
+output "vpc_default_security_group" {
+  description = "The ID of the VPC default security group."
+  value       = data.ibm_is_vpc.vpc.default_security_group
+}

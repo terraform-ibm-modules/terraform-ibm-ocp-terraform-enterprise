@@ -328,6 +328,39 @@
               "hidden": true,
               "required": false,
               "virtual": false
+            },
+            {
+              "key": "postgres_add_acl_rule",
+              "type": "boolean",
+              "default_value": true,
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "postgres_service_endpoints",
+              "type": "string",
+              "default_value": "public",
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "postgres_vpe_enabled",
+              "type": "boolean",
+              "default_value": false,
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "subnets_zones_cidr",
+              "hidden": true,
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "vpc_acl_rules",
+              "hidden": true,
+              "required": false,
+              "virtual": false
             }
           ],
           "terraform_version": "1.12.2",

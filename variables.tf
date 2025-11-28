@@ -190,6 +190,12 @@ variable "postgres_vpe_enabled" {
   default     = false
 }
 
+variable "postgres_add_acl_rule" {
+  type        = bool
+  default     = true
+  description = "Concatenate two rules to enable traffic to/from Postgres instance port to the VPC ACLs. If postgres_vpe_enabled is enabled the ACL rules will be configured VPC subnets CIDR as source and target, if postgres_vpe_enabled is disabled the ACL rules will use 0.0.0.0/0 as CIDR of Postgres instance references. Default true."
+}
+
 ##############################################################################
 # Redis
 ##############################################################################
@@ -231,4 +237,59 @@ variable "ocp_entitlement" {
   type        = string
   description = "Value that is applied to the entitlements for OCP cluster provisioning"
   default     = null
+}
+
+variable "vpc_acl_rules" {
+  description = "Custom ACLs rules to attach to the VPC ones"
+  type = list(object({
+    action      = string
+    destination = string
+    direction   = string
+    name        = string
+    source      = string
+    tcp = object({
+      port_max        = optional(number, 65535)
+      port_min        = optional(number, 1)
+      source_port_max = optional(number, 65535)
+      source_port_min = optional(number, 1)
+    })
+  }))
+  default = [
+    {
+      name        = "allow-all-inbound"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "0.0.0.0/0"
+      tcp = {
+        port_max        = 65535
+        port_min        = 1
+        source_port_max = 65535
+        source_port_min = 1
+      }
+    },
+    {
+      name        = "allow-all-outbound"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "0.0.0.0/0"
+      destination = "0.0.0.0/0"
+      tcp = {
+        port_max        = 65535
+        port_min        = 1
+        source_port_max = 65535
+        source_port_min = 1
+      }
+    }
+  ]
+}
+
+variable "subnets_zones_cidr" {
+  description = "Map of zone name (key) and cidr to use in the zone (value)"
+  type        = map(string)
+  default = {
+    "zone-1" = "10.10.10.0/24"
+    "zone-2" = "10.20.10.0/24"
+    "zone-3" = "10.30.10.0/24"
+  }
 }

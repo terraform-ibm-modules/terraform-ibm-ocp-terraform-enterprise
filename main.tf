@@ -37,23 +37,6 @@ module "cos" {
   ]
 }
 
-
-########################################################################################################################
-# VPC
-########################################################################################################################
-
-module "ocp_vpc" {
-  source            = "./modules/ocp-vpc"
-  region            = var.region
-  prefix            = var.prefix
-  resource_group_id = module.resource_group.resource_group_id
-  resource_tags     = var.resource_tags
-  access_tags       = var.access_tags
-  ocp_version       = var.ocp_version
-  ocp_entitlement   = var.ocp_entitlement
-  existing_vpc_id   = var.existing_vpc_id
-}
-
 ########################################################################################################################
 # ICD Postgres
 ########################################################################################################################
@@ -73,6 +56,101 @@ module "icd_postgres" {
   deletion_protection = var.postgres_deletion_protection
 }
 
+########################################################################################################################
+# VPC
+########################################################################################################################
+
+# defining ACL rules to allow traffic to/from the ICD Postgres instance based on the selected service endpoints and VPE configuration
+locals {
+
+  postgres_public_acl_rules = flatten([
+    for subnet, cidr in var.subnets_zones_cidr :
+    concat(
+      [
+        {
+          name        = "allow-postgres-outbound-${subnet}"
+          action      = "allow"
+          direction   = "outbound"
+          source      = cidr
+          destination = "0.0.0.0/0"
+          tcp = {
+            source_port_max = 65535
+            source_port_min = 1
+            port_min        = module.icd_postgres.port
+            port_max        = module.icd_postgres.port
+          }
+        }
+      ],
+      [
+        {
+          name        = "allow-postgres-inbound-${subnet}"
+          action      = "allow"
+          direction   = "inbound"
+          source      = "0.0.0.0/0"
+          destination = cidr
+          tcp = {
+            source_port_max = module.icd_postgres.port
+            source_port_min = module.icd_postgres.port
+            port_max        = 65535
+            port_min        = 1
+          }
+        }
+      ]
+    )
+    ]
+  )
+
+  # ACL rules allowing traffic from/to the subnet CIDRs when VPE is enabled
+  postgres_vpe_acl_rules = flatten([
+    for subnet, cidr in var.subnets_zones_cidr : [
+      {
+        name        = "allow-postgres-outbound-to-vpe-${subnet}"
+        action      = "allow"
+        direction   = "outbound"
+        source      = cidr
+        destination = cidr
+        tcp = {
+          source_port_max = 65535
+          source_port_min = 1
+          port_min        = module.icd_postgres.port
+          port_max        = module.icd_postgres.port
+        }
+      },
+      {
+        name        = "allow-postgres-inbound-from-vpe-${subnet}"
+        action      = "allow"
+        direction   = "inbound"
+        source      = cidr
+        destination = cidr
+        tcp = {
+          source_port_max = module.icd_postgres.port
+          source_port_min = module.icd_postgres.port
+          port_max        = 65535
+          port_min        = 1
+        }
+      }
+    ]
+  ])
+
+  # if postgres_add_acl_rule is true, concatenate the appropriate postgres ACL rules to the VPC ACL rules (according to var.postgres_vpe_enabled flag value)
+  final_acl_rules = var.postgres_add_acl_rule ? (var.postgres_vpe_enabled == true ? concat(var.vpc_acl_rules, local.postgres_vpe_acl_rules) : concat(var.vpc_acl_rules, local.postgres_public_acl_rules)) : var.vpc_acl_rules
+  # final_acl_rules = var.postgres_vpe_enabled == true ? concat(var.vpc_acl_rules, local.postgres_vpe_acl_rules) : concat(var.vpc_acl_rules, local.postgres_public_acl_rules)
+}
+
+module "ocp_vpc" {
+  source             = "./modules/ocp-vpc"
+  region             = var.region
+  prefix             = var.prefix
+  resource_group_id  = module.resource_group.resource_group_id
+  resource_tags      = var.resource_tags
+  access_tags        = var.access_tags
+  ocp_version        = var.ocp_version
+  ocp_entitlement    = var.ocp_entitlement
+  existing_vpc_id    = var.existing_vpc_id
+  vpc_acl_rules      = local.final_acl_rules
+  subnets_zones_cidr = var.subnets_zones_cidr
+}
+
 module "icd_postgres_vpe" {
   count   = var.postgres_vpe_enabled ? 1 : 0
   source  = "terraform-ibm-modules/vpe-gateway/ibm"
@@ -89,6 +167,28 @@ module "icd_postgres_vpe" {
   vpc_id            = module.ocp_vpc.vpc_id
   subnet_zone_list  = module.ocp_vpc.vpc_subnet_zone_list
   resource_group_id = module.resource_group.resource_group_id
+}
+
+
+# attach rules to the VPC default security group to enable traffic from the OCP cluster's workers to the ICD Postgres instance
+# if the VPE gateway to postgres is enabled, restrict access to the subnet CIDRs, otherwise allow from anywhere
+resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
+  for_each = {
+    for subnet in module.ocp_vpc.vpc_subnet_zone_list :
+    "${subnet.name}_${subnet.zone}" => {
+      id   = subnet.id
+      zone = subnet.zone
+      cidr = subnet.cidr
+    }
+  }
+  group     = module.ocp_vpc.vpc_default_security_group
+  direction = "inbound"
+  local     = var.postgres_vpe_enabled == true ? each.value.cidr : "0.0.0.0/0"
+  remote    = module.ocp_vpc.kube_cluster_sg.id
+  tcp {
+    port_min = module.icd_postgres.port
+    port_max = module.icd_postgres.port
+  }
 }
 
 ########################################################################################################################
