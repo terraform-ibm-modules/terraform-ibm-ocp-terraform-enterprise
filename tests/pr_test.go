@@ -82,6 +82,7 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 		TerraformVars: map[string]interface{}{
 			"add_to_catalog":               false,
 			"postgres_deletion_protection": false,
+			"postgres_vpe_enabled":         true,
 		},
 		IgnoreUpdates: testhelper.Exemptions{ // Ignore for consistency check
 			List: []string{
