@@ -3,16 +3,19 @@
 ########################################################################################################################
 
 module "tfe" {
-  source                       = "../.."
-  prefix                       = var.prefix
-  region                       = var.region
-  existing_resource_group_name = var.resource_group
-  resource_tags                = var.resource_tags
-  tfe_license                  = var.tfe_license
-  admin_username               = var.admin_username
-  admin_password               = var.admin_password
-  admin_email                  = var.admin_email
-  tfe_organization             = var.tfe_organization_name
-  add_to_catalog               = var.add_to_catalog
-  postgres_deletion_protection = var.postgres_deletion_protection
+  source                          = "../.."
+  prefix                          = var.prefix
+  region                          = var.region
+  existing_resource_group_name    = var.resource_group
+  resource_tags                   = var.resource_tags
+  tfe_license                     = var.tfe_license
+  tfe_license_secret_crn          = var.tfe_license_secret_crn
+  admin_username                  = var.admin_username
+  admin_password                  = var.admin_password
+  admin_email                     = var.admin_email
+  tfe_organization                = var.tfe_organization_name
+  add_to_catalog                  = var.add_to_catalog
+  postgres_deletion_protection    = var.postgres_deletion_protection
+  secrets_manager_crn             = var.secrets_manager_crn
+  secrets_manager_secret_group_id = var.secrets_manager_secret_group_id
 }

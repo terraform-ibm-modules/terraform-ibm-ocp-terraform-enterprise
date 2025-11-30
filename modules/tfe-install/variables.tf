@@ -30,6 +30,7 @@ variable "admin_username" {
 variable "admin_email" {
   description = "The email address of the TFE admin user"
   type        = string
+
   validation {
     condition     = can(regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", var.admin_email))
     error_message = "Invalid email format for admin_email. Please provide a valid email address."
@@ -39,6 +40,7 @@ variable "admin_email" {
 variable "admin_password" {
   description = "The password for the TFE admin user"
   type        = string
+
   validation {
     condition     = length(var.admin_password) >= 10
     error_message = "The admin password must be at least 10 characters long."
@@ -50,18 +52,16 @@ variable "tfe_organization" {
   description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
   type        = string
   default     = "default"
+
   validation {
     condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization))
     error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
   }
 }
 
-
-
 ##############################################################################
 # TFE Installation variables
 ##############################################################################
-
 
 variable "tfe_license" {
   description = "The license key for TFE"

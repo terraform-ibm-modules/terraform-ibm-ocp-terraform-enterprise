@@ -2,12 +2,6 @@
 # Input Variables
 ########################################################################################################################
 
-# variable "ibmcloud_api_key" {
-#   type        = string
-#   description = "The IBM Cloud api key"
-#   sensitive   = true
-# }
-
 variable "resource_group_id" {
   type        = string
   description = "The Resource Group ID to use for all resources created in this solution (VPC and cluster)"
@@ -17,6 +11,7 @@ variable "resource_group_id" {
 variable "prefix" {
   type        = string
   description = "Prefix for name of all resource created by this example"
+
   validation {
     error_message = "Prefix must begin and end with a letter and contain only letters, numbers, and - characters."
     condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.prefix))
@@ -55,13 +50,13 @@ variable "ocp_entitlement" {
 }
 
 variable "existing_vpc_id" {
-  description = "The ID of the existing vpc. If not set, a new VPC will be created."
   type        = string
+  description = "The ID of the existing vpc. If not set, a new VPC will be created."
   default     = null
 }
 
 variable "existing_cluster_id" {
-  description = "The CRN of the existing cluster. If not set, a new cluster will be created."
   type        = string
+  description = "The CRN of the existing cluster. If not set, a new cluster will be created."
   default     = null
 }

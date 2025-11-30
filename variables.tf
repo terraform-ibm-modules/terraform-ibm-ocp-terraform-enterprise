@@ -65,35 +65,61 @@ variable "access_tags" {
 variable "tfe_license" {
   type        = string
   description = "The license key for TFE"
+  default     = null
   sensitive   = true
 }
 
-variable "admin_username" {
-  description = "The user name of the TFE admin user"
+variable "tfe_license_secret_crn" {
   type        = string
+  description = "The CRN of the Secrets Manager secret containing the license key for TFE"
+  default     = null
+
+  validation {
+    condition     = !(var.tfe_license == null && var.tfe_license_secret_crn == null)
+    error_message = "Exactly one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition     = !(var.tfe_license != null && var.tfe_license_secret_crn != null)
+    error_message = "Only one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition = anytrue([
+      var.tfe_license_secret_crn == null,
+      can(regex("^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}:secret:[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$", var.tfe_license_secret_crn))
+    ])
+    error_message = "The value provided for 'tfe_license_secret_crn' is not valid."
+  }
+}
+
+variable "admin_username" {
+  type        = string
+  description = "The user name of the TFE admin user"
 }
 
 variable "admin_email" {
-  description = "The email address of the TFE admin user"
   type        = string
+  description = "The email address of the TFE admin user"
 }
 
 variable "admin_password" {
-  description = "The password for the TFE admin user"
   type        = string
+  description = "The password for the TFE admin user"
   sensitive   = true
 }
 
 variable "tfe_namespace" {
-  description = "namespace to place TFE in on cluster"
   type        = string
+  description = "namespace to place TFE in on cluster"
   default     = "tfe"
 }
 
 variable "tfe_organization" {
-  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
   type        = string
+  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
   default     = "default"
+
   validation {
     condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization))
     error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
@@ -102,8 +128,8 @@ variable "tfe_organization" {
 
 
 variable "add_to_catalog" {
-  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
   type        = bool
+  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
   default     = true
 }
 
@@ -123,6 +149,7 @@ variable "default_private_catalog_id" {
   type        = string
   description = "If `enable_deployable_architecture_creation` is true, specify the private catalog ID to create the Deployable Architectures in."
   default     = null
+
   validation {
     condition     = var.enable_automatic_deployable_architecture_creation != true ? true : var.default_private_catalog_id != null
     error_message = "Must specific a `default_private_catalog_id` if `enable_deployable_architecture_creation` is true."
@@ -144,15 +171,16 @@ variable "terraform_engine_scopes" {
 ##############################################################################
 
 variable "existing_cos_instance_id" {
-  description = "Existing COS instance to pass in. If set to `null`, a new instance will be created."
   type        = string
+  description = "Existing COS instance to pass in. If set to `null`, a new instance will be created."
   default     = null
 }
 
 variable "cos_instance_name" {
-  description = "Name of COS instance to create. If set to `null`, name will be `{prefix}-tfe`"
   type        = string
+  description = "Name of COS instance to create. If set to `null`, name will be `{prefix}-tfe`"
   default     = null
+
   validation {
     condition     = var.cos_instance_name == null || var.existing_cos_instance_id == null
     error_message = "If var.existing_cos_instance_id is set, a new COS instance will not be created."
@@ -160,14 +188,14 @@ variable "cos_instance_name" {
 }
 
 variable "cos_bucket_name" {
-  description = "Name of the bucket to create in COS instance. If set to `null`, name will be `{prefix}-tfe-bucket`"
   type        = string
+  description = "Name of the bucket to create in COS instance. If set to `null`, name will be `{prefix}-tfe-bucket`"
   default     = null
 }
 
 variable "cos_retention" {
-  description = "Whether retention for the Object Storage bucket is enabled. Enable for staging and prod environments."
   type        = bool
+  description = "Whether retention for the Object Storage bucket is enabled. Enable for staging and prod environments."
   default     = false
 }
 
@@ -176,8 +204,8 @@ variable "cos_retention" {
 ##############################################################################
 
 variable "postgres_instance_name" {
-  description = "Name of postgres instance to create. If set to `null`, name will be `{prefix}-data-store`"
   type        = string
+  description = "Name of postgres instance to create. If set to `null`, name will be `{prefix}-data-store`"
   default     = null
 }
 
@@ -192,16 +220,17 @@ variable "postgres_deletion_protection" {
 ##############################################################################
 
 variable "redis_host_name" {
-  description = "Hostname of redis instance on cluster. If set to `null`, a new redis instance will be provisioned"
   type        = string
+  description = "Hostname of redis instance on cluster. If set to `null`, a new redis instance will be provisioned"
   default     = null
 }
 
 variable "redis_password_base64" {
-  description = "password for redis instance (base64 encoded)"
   type        = string
-  sensitive   = true
+  description = "password for redis instance (base64 encoded)"
   default     = null
+  sensitive   = true
+
   validation {
     condition     = var.redis_host_name != null ? var.redis_password_base64 != null : true
     error_message = "If var.redis_host_name is set, var.redis_password_base64 must also be set."
@@ -213,8 +242,8 @@ variable "redis_password_base64" {
 ##############################################################################
 
 variable "existing_vpc_id" {
-  description = "The ID of the existing vpc. If not set, a new VPC will be created."
   type        = string
+  description = "The ID of the existing vpc. If not set, a new VPC will be created."
   default     = null
 }
 
@@ -228,4 +257,45 @@ variable "ocp_entitlement" {
   type        = string
   description = "Value that is applied to the entitlements for OCP cluster provisioning"
   default     = null
+}
+
+##############################################################################
+# Secrets Manager
+##############################################################################
+
+variable "secrets_manager_crn" {
+  type        = string
+  description = "The CRN of the existing Secrets Manager instance. If not set, secrets will not be stored in a Secrets Manager instance."
+  default     = null
+
+  validation {
+    condition = anytrue([
+      var.secrets_manager_crn == null,
+      can(regex("^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}::$", var.secrets_manager_crn))
+    ])
+    error_message = "The value provided for 'secrets_manager_crn' is not valid."
+  }
+}
+
+variable "secrets_manager_secret_group_id" {
+  type        = string
+  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>` secret group."
+  default     = null
+
+  validation {
+    condition = anytrue([
+      var.secrets_manager_secret_group_id == null,
+      var.secrets_manager_secret_group_id == "default",
+      can(regex("^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", var.secrets_manager_secret_group_id))
+    ])
+    error_message = "The value provided for 'secrets_manager_secret_group_id' is not valid."
+  }
+
+  validation {
+    condition = (
+      !(var.secrets_manager_crn == null &&
+      var.secrets_manager_secret_group_id != null)
+    )
+    error_message = "`secrets_manager_secret_group_id` is not required when `secrets_manager_crn` is not specified."
+  }
 }
