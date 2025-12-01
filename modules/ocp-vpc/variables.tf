@@ -12,7 +12,7 @@ variable "instance_name" {
   type        = string
   nullable    = false
   description = "The TFE instance name. The resources will be created starting from this, i.e. cluster will be named '[instance_name]_cluster'. Default set to tfe_instance"
-  default = "tfe_instance"
+  default     = "tfe_instance"
   validation {
     error_message = "instance_name must begin and end with a letter and contain only letters, numbers, and - characters."
     condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.instance_name))

@@ -122,7 +122,7 @@ module "tfe_install" {
 ########################################################################################################################
 
 locals {
-   terraform_enterprise_engine_name = var.terraform_enterprise_engine_name != null ? var.terraform_enterprise_engine_name : "${var.instance_name}-engine"
+  terraform_enterprise_engine_name = var.terraform_enterprise_engine_name != null ? var.terraform_enterprise_engine_name : "${var.instance_name}-engine"
 }
 
 resource "ibm_cm_account" "cm_account_instance" {

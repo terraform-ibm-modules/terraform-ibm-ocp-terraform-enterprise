@@ -12,7 +12,7 @@ variable "instance_name" {
   type        = string
   nullable    = false
   description = "The TFE instance name. The resources will be created starting from this, i.e. cluster will be named '[instance_name]_cluster'. Default set to tfe_instance"
-  default = "tfe_instance"
+  default     = "tfe_instance"
 
   validation {
     # - Must not contain consecutive hyphens (--): length(regexall("--", var.instance_name)) == 0
@@ -23,7 +23,7 @@ variable "instance_name" {
       can(regex("^[a-z][-a-z0-9]*[a-z0-9]$", var.instance_name)),
       length(regexall("--", var.instance_name)) == 0
     ])
-    
+
     error_message = "var.instance_name must begin with a lowercase letter and may contain only lowercase letters, digits, and hyphens '-'. It must not end with a hyphen('-'), and cannot contain consecutive hyphens ('--')."
   }
 
