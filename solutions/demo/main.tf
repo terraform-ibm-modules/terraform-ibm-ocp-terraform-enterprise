@@ -2,9 +2,13 @@
 # Resource Group
 ########################################################################################################################
 
+locals {
+  prefix = var.prefix != null ? trimspace(var.prefix) != "" ? "${var.prefix}-" : "" : ""
+}
+
 module "tfe" {
   source                       = "../.."
-  instance_name                = var.instance_name
+  instance_name                = "${local.prefix}${var.instance_name}"
   region                       = var.region
   existing_resource_group_name = var.existing_resource_group_name
   resource_tags                = var.resource_tags
