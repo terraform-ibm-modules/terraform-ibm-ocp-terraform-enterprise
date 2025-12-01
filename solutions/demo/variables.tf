@@ -128,6 +128,7 @@ variable "vpc_acl_rules" {
     })
   }))
   default = [
+    # rules needed to access tfe dashboard on public route
     {
       name        = "allow-https-inbound-zone-1"
       action      = "allow"
@@ -199,6 +200,85 @@ variable "vpc_acl_rules" {
       direction   = "outbound"
       source      = "10.30.10.0/24"
       destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    # rules currently needed to pull images for redis into the cluster
+    {
+      name        = "allow-https-outbound-for-images-zone-1"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.10.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-for-images-zone-2"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.20.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-for-images-zone-3"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.30.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-inbound-for-images-zone-1"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "0.0.0.0/0"
+      destination = "10.10.10.0/24"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-for-images-zone-2"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "0.0.0.0/0"
+      destination = "10.20.10.0/24"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-for-images-zone-3"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "0.0.0.0/0"
+      destination = "10.30.10.0/24"
       tcp = {
         source_port_max = 443
         source_port_min = 443
