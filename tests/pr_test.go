@@ -80,6 +80,7 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 		ResourceGroup:      resourceGroup,
 		BestRegionYAMLPath: regionSelectionPath,
 		TerraformVars: map[string]interface{}{
+			"instance_name":                "dev",
 			"add_to_catalog":               false,
 			"postgres_deletion_protection": false,
 		},
@@ -107,7 +108,7 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 func TestRunCompleteExample(t *testing.T) {
 	t.Parallel()
 
-	options := setupOptions(t, "tfe-complete", completeExampleDir)
+	options := setupOptions(t, "compl", completeExampleDir)
 
 	output, err := options.RunTestConsistency()
 	assert.Nil(t, err, "This should not have errored")
@@ -119,7 +120,7 @@ func TestRunUpgradeExample(t *testing.T) {
 	t.Parallel()
 	t.Skip("Skip upgrade test while in Alpha release stage - resume upon official release")
 
-	options := setupOptions(t, "tfe-complete-upg", completeExampleDir)
+	options := setupOptions(t, "compl-upg", completeExampleDir)
 
 	output, err := options.RunTestUpgrade()
 	if !options.UpgradeTestSkipped {
