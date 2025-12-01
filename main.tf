@@ -151,11 +151,23 @@ module "ocp_vpc" {
   subnets_zones_cidr = var.subnets_zones_cidr
 }
 
+locals {
+  sleep_before_creating_vpe = "300s"
+}
+
+# in order to avoit to fail as service is not found we need to sleep for 5 minutes before creating the VPE
+resource "time_sleep" "wait_before_creating_vpe" {
+  depends_on      = [module.ocp_vpc]
+  count           = var.postgres_vpe_enabled == true ? 1 : 0
+  create_duration = local.sleep_before_creating_vpe
+}
+
 module "icd_postgres_vpe" {
-  count   = var.postgres_vpe_enabled ? 1 : 0
-  source  = "terraform-ibm-modules/vpe-gateway/ibm"
-  version = "4.8.4"
-  region  = var.region
+  depends_on = [time_sleep.wait_before_creating_vpe]
+  count      = var.postgres_vpe_enabled ? 1 : 0
+  source     = "terraform-ibm-modules/vpe-gateway/ibm"
+  version    = "4.8.4"
+  region     = var.region
   cloud_service_by_crn = [
     {
       crn          = (module.icd_postgres.crn)
