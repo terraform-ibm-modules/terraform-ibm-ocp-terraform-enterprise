@@ -80,6 +80,7 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 		ResourceGroup:      resourceGroup,
 		BestRegionYAMLPath: regionSelectionPath,
 		TerraformVars: map[string]interface{}{
+			"instance_name":                prefix + "tfe",
 			"add_to_catalog":               false,
 			"postgres_deletion_protection": false,
 		},

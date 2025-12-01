@@ -6,7 +6,7 @@ module "resource_group" {
   source  = "terraform-ibm-modules/resource-group/ibm"
   version = "1.4.0"
   # if an existing resource group is not set (null) create a new one using prefix
-  resource_group_name          = var.existing_resource_group_name == null ? "${var.prefix}-resource-group" : null
+  resource_group_name          = var.existing_resource_group_name == null ? "${var.instance_name}-rg" : null
   existing_resource_group_name = var.existing_resource_group_name
 }
 
@@ -21,9 +21,9 @@ module "cos" {
   region                   = var.region
   create_cos_instance      = var.existing_cos_instance_id != null ? false : true
   existing_cos_instance_id = var.existing_cos_instance_id
-  cos_instance_name        = var.cos_instance_name != null ? var.cos_instance_name : "${var.prefix}-tfe"
+  cos_instance_name        = var.cos_instance_name != null ? var.cos_instance_name : "${var.instance_name}-cos"
   cos_tags                 = var.resource_tags
-  bucket_name              = var.cos_bucket_name != null ? var.cos_bucket_name : "${var.prefix}-tfe-bucket"
+  bucket_name              = var.cos_bucket_name != null ? var.cos_bucket_name : "${var.instance_name}-bucket"
   add_bucket_name_suffix   = true
   create_cos_bucket        = true
   retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
@@ -45,7 +45,7 @@ module "cos" {
 module "ocp_vpc" {
   source            = "./modules/ocp-vpc"
   region            = var.region
-  prefix            = var.prefix
+  instance_name     = var.instance_name
   resource_group_id = module.resource_group.resource_group_id
   resource_tags     = var.resource_tags
   access_tags       = var.access_tags
@@ -62,7 +62,7 @@ module "icd_postgres" {
   source             = "terraform-ibm-modules/icd-postgresql/ibm"
   version            = "4.4.0"
   resource_group_id  = module.resource_group.resource_group_id
-  name               = var.postgres_instance_name != null ? var.postgres_instance_name : "${var.prefix}-data-store"
+  name               = var.postgres_instance_name != null ? var.postgres_instance_name : "${var.instance_name}-data-store"
   postgresql_version = "16" # TFE supports up to Postgres 16 (not 17)
   region             = var.region
   service_endpoints  = "public-and-private"
@@ -122,7 +122,7 @@ module "tfe_install" {
 ########################################################################################################################
 
 locals {
-  terraform_enterprise_engine_name = var.terraform_enterprise_engine_name != null ? var.terraform_enterprise_engine_name : "${var.prefix}-tfe"
+   terraform_enterprise_engine_name = var.terraform_enterprise_engine_name != null ? var.terraform_enterprise_engine_name : "${var.instance_name}-engine"
 }
 
 resource "ibm_cm_account" "cm_account_instance" {

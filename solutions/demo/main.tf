@@ -4,7 +4,7 @@
 
 module "tfe" {
   source                       = "../.."
-  prefix                       = var.prefix
+  instance_name                = var.instance_name
   region                       = var.region
   existing_resource_group_name = var.existing_resource_group_name
   resource_tags                = var.resource_tags

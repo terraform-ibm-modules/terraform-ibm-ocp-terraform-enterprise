@@ -2,26 +2,21 @@
 # Input Variables
 ########################################################################################################################
 
-# variable "ibmcloud_api_key" {
-#   type        = string
-#   description = "The IBM Cloud api key"
-#   sensitive   = true
-# }
-
 variable "resource_group_id" {
   type        = string
   description = "The Resource Group ID to use for all resources created in this solution (VPC and cluster)"
   default     = null
 }
 
-variable "prefix" {
+variable "instance_name" {
   type        = string
-  description = "Prefix for name of all resource created by this example"
+  nullable    = false
+  description = "The TFE instance name. The resources will be created starting from this, i.e. cluster will be named '[instance_name]_cluster'. Default set to tfe_instance"
+  default = "tfe_instance"
   validation {
-    error_message = "Prefix must begin and end with a letter and contain only letters, numbers, and - characters."
-    condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.prefix))
+    error_message = "instance_name must begin and end with a letter and contain only letters, numbers, and - characters."
+    condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.instance_name))
   }
-  default = "tfe"
 }
 
 variable "region" {
