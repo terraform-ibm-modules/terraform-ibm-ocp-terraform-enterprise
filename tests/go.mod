@@ -1,4 +1,4 @@
-module github.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise
+module github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise
 
 go 1.24.0
 

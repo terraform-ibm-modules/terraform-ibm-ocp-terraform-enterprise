@@ -112,7 +112,7 @@ variable "postgres_vpe_enabled" {
 }
 
 variable "vpc_acl_rules" {
-  description = "Custom ACLs rules to attach to the VPC ones"
+  description = "Custom ACLs rules to attach to the VPC ones. Default to open port 443 to VPC subnets"
   type = list(object({
     action      = string
     before      = optional(string, null)
@@ -129,29 +129,81 @@ variable "vpc_acl_rules" {
   }))
   default = [
     {
-      name        = "allow-all-inbound"
+      name        = "allow-https-inbound-zone-1"
       action      = "allow"
       direction   = "inbound"
       source      = "0.0.0.0/0"
-      destination = "0.0.0.0/0"
+      destination = "10.10.10.0/24"
       tcp = {
-        port_max        = 65535
-        port_min        = 1
         source_port_max = 65535
         source_port_min = 1
+        port_max        = 443
+        port_min        = 443
       }
     },
     {
-      name        = "allow-all-outbound"
+      name        = "allow-https-outbound-zone-1"
       action      = "allow"
       direction   = "outbound"
-      source      = "0.0.0.0/0"
+      source      = "10.10.10.0/24"
       destination = "0.0.0.0/0"
       tcp = {
+        source_port_max = 443
+        source_port_min = 443
         port_max        = 65535
         port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-zone-2"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.10.20.0/24"
+      tcp = {
         source_port_max = 65535
         source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-zone-2"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.20.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-zone-3"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.30.10.0/24"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-zone-3"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.30.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
       }
     }
   ]
