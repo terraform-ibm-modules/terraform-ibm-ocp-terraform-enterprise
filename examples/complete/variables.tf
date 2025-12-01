@@ -8,6 +8,22 @@ variable "ibmcloud_api_key" {
   sensitive   = true
 }
 
+variable "prefix" {
+  type        = string
+  nullable    = true
+  description = "The prefix for the TFE instance name. The resources will be created starting from this, i.e. cluster will be named '[prefix_][instancename]_cluster'. Default set to empty string."
+  validation {
+    error_message = "var.prefix must begin and end with a letter and contain only letters, numbers, and - characters."
+    condition = (var.prefix == null || var.prefix == "" ? true :
+      alltrue([
+        can(regex("^[a-z][-a-z0-9]*[a-z0-9]$", var.prefix)),
+        length(regexall("--", var.prefix)) == 0
+      ])
+    )
+  }
+  default = ""
+}
+
 variable "instance_name" {
   type        = string
   nullable    = false
@@ -16,7 +32,7 @@ variable "instance_name" {
     error_message = "var.instance_name must begin and end with a letter and contain only letters, numbers, and - characters."
     condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.instance_name))
   }
-  default = "tfe_instance"
+  default = "tfeinstance"
 }
 
 
