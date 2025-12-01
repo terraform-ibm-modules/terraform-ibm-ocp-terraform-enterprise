@@ -34,7 +34,7 @@ resource "kubernetes_secret" "tfe_pull_secret" {
 
 locals {
   route_name   = "tfe"
-  tfe_hostname = "${local.route_name}-${var.namespace}.${data.ibm_container_vpc_cluster.cluster.ingress_hostname}" # Compute the TFE hostname based on the namespace and cluster ingress hostname. Not putting a depenency on the route resource here, as it is created after the helm release.
+  tfe_hostname = "${local.route_name}-${var.namespace}.${data.ibm_container_vpc_cluster.cluster.ingress_hostname}" # Compute the TFE hostname based on the namespace and cluster ingress hostname. Not putting a dependency on the route resource here, as it is created after the helm release.
 }
 
 

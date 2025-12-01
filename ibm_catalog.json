@@ -24,7 +24,7 @@
       ],
       "short_description": "Automate Terraform HashiCorp Enterprise deployment with supporting IBM Cloud services.",
       "long_description": "**This is a working proof of concept. It is not productized or available in any public catalog. Please refrain from using, sharing, or demonstrating it without first discussing it with vincent.burckhardt@ie.ibm.com and ldharrel@us.ibm.com.** \n\nLeverage [Terraform IBM Modules](https://github.com/terraform-ibm-modules) to shape and scale your solutions. You can integrate Terraform IBM Modules (TIM) to extend functionality and design a solution tailored to your environment and operations needs. These modules offer reusable, customizable elements that follow IBM Cloud's recommended practices. You can access the [source code and documentation](https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise) and use it to extend your current architecture or create new solutions.\n\nThis solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
-      "offering_docs_url": "https://github.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise/blob/main/README.md",
+      "offering_docs_url": "https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/blob/main/README.md",
       "offering_icon_url": "https://cdn.worldvectorlogo.com/logos/terraform-enterprise.svg",
       "features": [
         {
@@ -183,10 +183,10 @@
             "diagrams": [
               {
                 "diagram": {
-                  "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise/main/reference-architectures/diagram-quick-start.svg",
+                  "url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/main/reference-architectures/diagram-quick-start.svg",
                   "caption": "Terraform Enterprise installation and its surrounding components.",
                   "type": "image/svg+xml",
-                  "thumbnail_url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-ocp-terraform-enterprise/main/reference-architectures/diagram-quick-start.svg"
+                  "thumbnail_url": "https://raw.githubusercontent.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/main/reference-architectures/diagram-quick-start.svg"
                 },
                 "description": "This architecture automates the deployment of Terraform Enterprise (TFE) on a small 2-node OpenShift cluster, with supporting services and relaxed network settings for full outbound internet access.\n- Custom TFE Agent Image: Built with kubectl, oc, and soon ibmcloud CLI, stored in the OpenShift image registry and backed by a COS bucket.\n- PostgreSQL via ICD: Uses a lightweight, multi-tenant ICD Postgres instance with minimal configuration.\nRedis: Deploys a Redis instance on-cluster, with plans to migrate to ICD Redis.\n- TFE Admin Setup: Automatically configures the default admin account post-deployment."
               }
