@@ -208,8 +208,9 @@ resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
 ########################################################################################################################
 
 module "redis" {
-  count  = var.redis_host_name == null ? 1 : 0
-  source = "./modules/redis"
+  depends_on = [module.ocp_vpc]
+  count      = var.redis_host_name == null ? 1 : 0
+  source     = "./modules/redis"
 }
 
 locals {
@@ -222,6 +223,7 @@ locals {
 ########################################################################################################################
 
 module "tfe_install" {
+  depends_on                = [module.redis, module.icd_postgres_vpe]
   source                    = "./modules/tfe-install"
   cluster_id                = module.ocp_vpc.cluster_id
   cluster_resource_group_id = module.resource_group.resource_group_id
