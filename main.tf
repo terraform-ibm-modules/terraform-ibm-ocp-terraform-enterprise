@@ -132,9 +132,14 @@ locals {
     ]
   ])
 
-  # if postgres_add_acl_rule is true, concatenate the appropriate postgres ACL rules to the VPC ACL rules (according to var.postgres_vpe_enabled flag value)
-  final_acl_rules = var.postgres_add_acl_rule ? (var.postgres_vpe_enabled == true ? concat(var.vpc_acl_rules, local.postgres_vpe_acl_rules) : concat(var.vpc_acl_rules, local.postgres_public_acl_rules)) : var.vpc_acl_rules
-  # final_acl_rules = var.postgres_vpe_enabled == true ? concat(var.vpc_acl_rules, local.postgres_vpe_acl_rules) : concat(var.vpc_acl_rules, local.postgres_public_acl_rules)
+  # if postgres_add_acl_rule is true, concatenate the appropriate postgres ACL rules to the VPC ACL rules
+  # if VPE connections is enabled (var.postgres_vpe_enabled flag true) and postgres_service_endpoints is "private", use the VPE ACL rules
+  # otherwise use the public ACL rules
+  final_acl_rules = var.postgres_add_acl_rule ? (
+    var.postgres_vpe_enabled == true && var.postgres_service_endpoints == "private" ?
+    concat(var.vpc_acl_rules, local.postgres_vpe_acl_rules) :
+    concat(var.vpc_acl_rules, local.postgres_public_acl_rules)
+  ) : var.vpc_acl_rules
 }
 
 module "ocp_vpc" {
