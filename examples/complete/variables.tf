@@ -239,7 +239,7 @@ variable "vpc_acl_rules" {
     {
       name        = "allow-https-inbound-for-images-zone-1"
       action      = "allow"
-      direction   = "outbound"
+      direction   = "inbound"
       source      = "0.0.0.0/0"
       destination = "10.10.10.0/24"
       tcp = {
@@ -252,7 +252,7 @@ variable "vpc_acl_rules" {
     {
       name        = "allow-https-inbound-for-images-zone-2"
       action      = "allow"
-      direction   = "outbound"
+      direction   = "inbound"
       source      = "0.0.0.0/0"
       destination = "10.20.10.0/24"
       tcp = {
@@ -265,7 +265,7 @@ variable "vpc_acl_rules" {
     {
       name        = "allow-https-inbound-for-images-zone-3"
       action      = "allow"
-      direction   = "outbound"
+      direction   = "inbound"
       source      = "0.0.0.0/0"
       destination = "10.30.10.0/24"
       tcp = {
