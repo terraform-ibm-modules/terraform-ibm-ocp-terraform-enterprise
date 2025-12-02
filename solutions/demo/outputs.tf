@@ -82,3 +82,8 @@ output "final_acl_rules" {
   description = "The final set of ACL rules applied to the VPC, including any rules added for Postgres connectivity."
   value       = module.tfe.final_acl_rules
 }
+
+output "redis_password_secret_crn" {
+  value       = module.tfe.redis_password_secret_crn
+  description = "The CRN of the secret containing the redis admin password"
+}

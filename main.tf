@@ -227,13 +227,32 @@ locals {
 # TFE
 ########################################################################################################################
 
+module "license" {
+  count   = var.tfe_license_secret_crn != null ? 1 : 0
+  source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
+  version = "1.1.0"
+  crn     = var.tfe_license_secret_crn
+}
+
+# retrieving secret about the arbitrary secret
+data "ibm_sm_arbitrary_secret" "tfe_license" {
+  count       = var.tfe_license_secret_crn != null ? 1 : 0
+  instance_id = module.license[0].service_instance
+  region      = module.license[0].region
+  secret_id   = module.license[0].resource
+}
+
+locals {
+  tfe_license = var.tfe_license_secret_crn != null ? data.ibm_sm_arbitrary_secret.tfe_license[0].payload : var.tfe_license
+}
+
 module "tfe_install" {
   depends_on                = [module.redis, module.icd_postgres_vpe]
   source                    = "./modules/tfe-install"
   cluster_id                = module.ocp_vpc.cluster_id
   cluster_resource_group_id = module.resource_group.resource_group_id
   namespace                 = var.tfe_namespace
-  tfe_license               = var.tfe_license
+  tfe_license               = local.tfe_license
   tfe_database_host         = "${module.icd_postgres.hostname}:${module.icd_postgres.port}"
   tfe_database_user         = module.icd_postgres.service_credentials_object.credentials["tfe"].username
   tfe_database_password     = module.icd_postgres.service_credentials_object.credentials["tfe"].password
@@ -284,4 +303,42 @@ resource "ibm_cm_account" "cm_account_instance" {
       }
     }
   }
+}
+
+########################################################################################################################
+# Store Credentials in Secrets Manager
+########################################################################################################################
+
+module "secrets_manager_crn" {
+  count   = var.secrets_manager_crn != null ? 1 : 0
+  source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
+  version = "1.3.0"
+  crn     = var.secrets_manager_crn
+}
+
+module "secrets_manager_secret_group" {
+  count                    = var.secrets_manager_crn != null && var.secrets_manager_secret_group_id == null ? 1 : 0
+  source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
+  version                  = "1.3.13"
+  secret_group_name        = var.prefix
+  secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
+  secrets_manager_guid     = module.secrets_manager_crn[0].service_instance
+  region                   = module.secrets_manager_crn[0].region
+}
+
+locals {
+  secret_group_id = var.secrets_manager_crn == null ? null : var.secrets_manager_secret_group_id != null ? var.secrets_manager_secret_group_id : module.secrets_manager_secret_group[0].secret_group_id
+}
+
+module "redis_password_secret" {
+  count                   = var.secrets_manager_crn != null ? 1 : 0
+  source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
+  version                 = "1.7.0"
+  region                  = module.secrets_manager_crn[0].region
+  secrets_manager_guid    = module.secrets_manager_crn[0].service_instance
+  secret_group_id         = local.secret_group_id
+  secret_name             = "${var.prefix}-terraform-enterprise-redis-password"
+  secret_description      = "Password for the Terraform Enterprise redis instance."
+  secret_type             = "arbitrary"
+  secret_payload_password = local.redis_pass_base64
 }
