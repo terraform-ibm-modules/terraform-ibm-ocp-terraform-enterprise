@@ -39,6 +39,7 @@ variable "instance_name" {
   type        = string
   description = "The name to use for TFE instance resources. If a prefix input variable is specified, the prefix is added to the name in the `<prefix>-<name>` format."
   default     = "tfeinstance"
+  nullable    = false
 }
 
 variable "region" {
