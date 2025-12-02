@@ -38,7 +38,7 @@ output "tfe_hostname" {
   description = "hostname of TFE"
 }
 
-output "tfe_token" {
-  value       = module.tfe.token
-  description = "token of TFE"
+output "redis_password_secret_crn" {
+  value       = module.tfe.redis_password_secret_crn
+  description = "The CRN of the secret containing the redis admin password"
 }

@@ -56,31 +56,33 @@ variable "resource_tags" {
 variable "tfe_license" {
   type        = string
   description = "The license key for TFE"
+  default     = null
   sensitive   = true
 }
 
 variable "admin_username" {
-  description = "The user name of the TFE admin user"
   type        = string
+  description = "The user name of the TFE admin user"
   default     = "admin"
 }
 
 variable "admin_email" {
-  description = "The email address of the TFE admin user"
   type        = string
+  description = "The email address of the TFE admin user"
   default     = "test@example.com"
 }
 
 variable "admin_password" {
-  description = "The password for the TFE admin user. 10 char minimum"
   type        = string
+  description = "The password for the TFE admin user. 10 char minimum"
   sensitive   = true
 }
 
 variable "tfe_organization_name" {
-  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
   type        = string
+  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
   default     = "default"
+
   validation {
     condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization_name))
     error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
@@ -94,7 +96,55 @@ variable "postgres_deletion_protection" {
 }
 
 variable "add_to_catalog" {
-  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
   type        = bool
+  description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
   default     = true
+}
+
+##############################################################################
+# Secrets Manager
+##############################################################################
+
+variable "secrets_manager_crn" {
+  type        = string
+  description = "The CRN of the existing Secrets Manager instance. If set, secrets will be stored in a Secrets Manager instance."
+  default     = null
+}
+
+variable "secrets_manager_secret_group_id" {
+  type        = string
+  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>` secret group."
+  default     = null
+
+  validation {
+    condition = (
+      !(var.secrets_manager_crn == null &&
+      var.secrets_manager_secret_group_id != null)
+    )
+    error_message = "`secrets_manager_secret_group_id` is not required when `secrets_manager_crn` is not specified."
+  }
+}
+
+variable "tfe_license_secret_crn" {
+  type        = string
+  description = "The CRN of the Secrets Manager arbitrary secret containing the license key for TFE"
+  default     = null
+
+  validation {
+    condition     = !(var.tfe_license == null && var.tfe_license_secret_crn == null)
+    error_message = "Exactly one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition     = !(var.tfe_license != null && var.tfe_license_secret_crn != null)
+    error_message = "Only one of `tfe_license_secret_crn` or `tfe_license` must be set"
+  }
+
+  validation {
+    condition = anytrue([
+      var.tfe_license_secret_crn == null,
+      can(regex("^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}:secret:[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$", var.tfe_license_secret_crn))
+    ])
+    error_message = "The value provided for 'tfe_license_secret_crn' is not valid."
+  }
 }
