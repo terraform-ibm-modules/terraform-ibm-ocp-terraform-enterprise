@@ -6,7 +6,7 @@
 provider "ibm" {
   ibmcloud_api_key = var.ibmcloud_api_key
   region           = var.region
-  visibility       = "public"
+  visibility       = var.ibmcloud_provider_visibility
 }
 
 # Download cluster config which is required to connect to cluster
