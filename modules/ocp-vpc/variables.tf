@@ -10,9 +10,8 @@ variable "resource_group_id" {
 
 variable "instance_name" {
   type        = string
-  nullable    = false
-  description = "The TFE instance name. The resources will be created starting from this, i.e. cluster will be named '[instance_name]_cluster'. Default set to tfe_instance"
-  default     = "tfe_instance"
+  description = "Prefix for name of all resource created by this example"
+
   validation {
     error_message = "instance_name must begin and end with a letter and contain only letters, numbers, and - characters."
     condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.instance_name))
@@ -50,13 +49,13 @@ variable "ocp_entitlement" {
 }
 
 variable "existing_vpc_id" {
-  description = "The ID of the existing vpc. If not set, a new VPC will be created."
   type        = string
+  description = "The ID of the existing vpc. If not set, a new VPC will be created."
   default     = null
 }
 
 variable "existing_cluster_id" {
-  description = "The CRN of the existing cluster. If not set, a new cluster will be created."
   type        = string
+  description = "The CRN of the existing cluster. If not set, a new cluster will be created."
   default     = null
 }
