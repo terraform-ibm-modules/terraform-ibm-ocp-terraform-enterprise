@@ -21,20 +21,8 @@ variable "prefix" {
       ])
     )
   }
-  default = ""
+  default = "tfe-complete"
 }
-
-variable "instance_name" {
-  type        = string
-  nullable    = false
-  description = "The TFE instance name. The resources will be created starting from this, i.e. cluster will be named '[instance_name]_cluster'. Default set to tfe_instance"
-  validation {
-    error_message = "var.instance_name must begin and end with a letter and contain only letters, numbers, and - characters."
-    condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.instance_name))
-  }
-  default = "tfeinstance"
-}
-
 
 variable "region" {
   type        = string
@@ -42,7 +30,7 @@ variable "region" {
   default     = "us-south"
 }
 
-variable "resource_group" {
+variable "existing_resource_group_name" {
   type        = string
   description = "An existing resource group name to provision resources in, if unset a new resource group will be created"
   default     = null

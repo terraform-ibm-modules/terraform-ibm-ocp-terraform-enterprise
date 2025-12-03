@@ -1,15 +1,3 @@
-########################################################################################################################
-# Resource Group
-########################################################################################################################
-
-module "resource_group" {
-  source  = "terraform-ibm-modules/resource-group/ibm"
-  version = "1.4.0"
-  # if an existing resource group is not set (null) create a new one using prefix
-  resource_group_name          = var.existing_resource_group_name == null ? "${var.instance_name}-rg" : null
-  existing_resource_group_name = var.existing_resource_group_name
-}
-
 ##############################################################################
 # Create Cloud Object Storage instance and a bucket
 ##############################################################################
@@ -17,13 +5,13 @@ module "resource_group" {
 module "cos" {
   source                   = "terraform-ibm-modules/cos/ibm"
   version                  = "10.7.0"
-  resource_group_id        = module.resource_group.resource_group_id
+  resource_group_id        = var.resource_group_id
   region                   = var.region
   create_cos_instance      = var.existing_cos_instance_id != null ? false : true
   existing_cos_instance_id = var.existing_cos_instance_id
-  cos_instance_name        = var.cos_instance_name != null ? var.cos_instance_name : "${var.instance_name}-cos"
+  cos_instance_name        = var.cos_instance_name
   cos_tags                 = var.resource_tags
-  bucket_name              = var.cos_bucket_name != null ? var.cos_bucket_name : "${var.instance_name}-bucket"
+  bucket_name              = var.cos_bucket_name
   add_bucket_name_suffix   = true
   create_cos_bucket        = true
   retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
@@ -43,15 +31,17 @@ module "cos" {
 ########################################################################################################################
 
 module "ocp_vpc" {
-  source            = "./modules/ocp-vpc"
-  region            = var.region
-  instance_name     = var.instance_name
-  resource_group_id = module.resource_group.resource_group_id
-  resource_tags     = var.resource_tags
-  access_tags       = var.access_tags
-  ocp_version       = var.ocp_version
-  ocp_entitlement   = var.ocp_entitlement
-  existing_vpc_id   = var.existing_vpc_id
+  source              = "./modules/ocp-vpc"
+  region              = var.region
+  resource_group_id   = var.resource_group_id
+  resource_tags       = var.resource_tags
+  access_tags         = var.access_tags
+  ocp_version         = var.ocp_version
+  ocp_entitlement     = var.ocp_entitlement
+  existing_vpc_id     = var.existing_vpc_id
+  existing_cluster_id = var.existing_cluster_id
+  vpc_name            = var.vpc_name
+  cluster_name        = var.cluster_name
 }
 
 ########################################################################################################################
@@ -61,8 +51,8 @@ module "ocp_vpc" {
 module "icd_postgres" {
   source             = "terraform-ibm-modules/icd-postgresql/ibm"
   version            = "4.4.0"
-  resource_group_id  = module.resource_group.resource_group_id
-  name               = var.postgres_instance_name != null ? var.postgres_instance_name : "${var.instance_name}-data-store"
+  resource_group_id  = var.resource_group_id
+  name               = var.postgres_instance_name
   postgresql_version = "16" # TFE supports up to Postgres 16 (not 17)
   region             = var.region
   service_endpoints  = "public-and-private"
@@ -78,13 +68,13 @@ module "icd_postgres" {
 ########################################################################################################################
 
 module "redis" {
-  count  = var.redis_host_name == null ? 1 : 0
+  count  = var.existing_redis_hostname == null ? 1 : 0
   source = "./modules/redis"
 }
 
 locals {
-  redis_host        = var.redis_host_name != null ? var.redis_host_name : module.redis[0].redis_host
-  redis_pass_base64 = var.redis_password_base64 != null ? var.redis_password_base64 : module.redis[0].redis_password_base64
+  redis_host        = var.existing_redis_hostname != null ? var.existing_redis_hostname : module.redis[0].redis_host
+  redis_pass_base64 = var.existing_redis_password_base64 != null ? var.existing_redis_password_base64 : module.redis[0].redis_password_base64
 }
 
 ########################################################################################################################
@@ -113,7 +103,7 @@ locals {
 module "tfe_install" {
   source                    = "./modules/tfe-install"
   cluster_id                = module.ocp_vpc.cluster_id
-  cluster_resource_group_id = module.resource_group.resource_group_id
+  cluster_resource_group_id = var.resource_group_id
   namespace                 = var.tfe_namespace
   tfe_license               = local.tfe_license
   tfe_database_host         = "${module.icd_postgres.hostname}:${module.icd_postgres.port}"
@@ -140,14 +130,10 @@ module "tfe_install" {
 # Connect to Catalog Management
 ########################################################################################################################
 
-locals {
-  terraform_enterprise_engine_name = var.terraform_enterprise_engine_name != null ? var.terraform_enterprise_engine_name : "${var.instance_name}-engine"
-}
-
 resource "ibm_cm_account" "cm_account_instance" {
   count = var.add_to_catalog ? 1 : 0
   terraform_engines {
-    name            = local.terraform_enterprise_engine_name
+    name            = var.terraform_enterprise_engine_name
     type            = "terraform-enterprise"
     public_endpoint = module.tfe_install.tfe_console_url
     # private_endpoint = "<private_endpoint>"
@@ -172,35 +158,35 @@ resource "ibm_cm_account" "cm_account_instance" {
 # Store Credentials in Secrets Manager
 ########################################################################################################################
 
-module "secrets_manager_crn" {
-  count   = var.secrets_manager_crn != null ? 1 : 0
+module "existing_secrets_manager_crn" {
+  count   = var.existing_secrets_manager_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
   version = "1.3.0"
-  crn     = var.secrets_manager_crn
+  crn     = var.existing_secrets_manager_crn
 }
 
 module "secrets_manager_secret_group" {
-  count                    = var.secrets_manager_crn != null && var.secrets_manager_secret_group_id == null ? 1 : 0
+  count                    = var.existing_secrets_manager_crn != null && var.existing_secrets_manager_secret_group_id == null ? 1 : 0
   source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
   version                  = "1.3.13"
-  secret_group_name        = "${var.instance_name}-sm"
+  secret_group_name        = var.secrets_manager_secret_group_name
   secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
-  secrets_manager_guid     = module.secrets_manager_crn[0].service_instance
-  region                   = module.secrets_manager_crn[0].region
+  secrets_manager_guid     = module.existing_secrets_manager_crn[0].service_instance
+  region                   = module.existing_secrets_manager_crn[0].region
 }
 
 locals {
-  secret_group_id = var.secrets_manager_crn == null ? null : var.secrets_manager_secret_group_id != null ? var.secrets_manager_secret_group_id : module.secrets_manager_secret_group[0].secret_group_id
+  secret_group_id = var.existing_secrets_manager_crn == null ? null : var.existing_secrets_manager_secret_group_id != null ? var.existing_secrets_manager_secret_group_id : module.secrets_manager_secret_group[0].secret_group_id
 }
 
 module "redis_password_secret" {
-  count                   = var.secrets_manager_crn != null ? 1 : 0
+  count                   = var.existing_secrets_manager_crn != null ? 1 : 0
   source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
   version                 = "1.7.0"
-  region                  = module.secrets_manager_crn[0].region
-  secrets_manager_guid    = module.secrets_manager_crn[0].service_instance
+  region                  = module.existing_secrets_manager_crn[0].region
+  secrets_manager_guid    = module.existing_secrets_manager_crn[0].service_instance
   secret_group_id         = local.secret_group_id
-  secret_name             = "${var.instance_name}-terraform-enterprise-redis-password"
+  secret_name             = var.redis_password_secret_name
   secret_description      = "Password for the Terraform Enterprise redis instance."
   secret_type             = "arbitrary"
   secret_payload_password = local.redis_pass_base64

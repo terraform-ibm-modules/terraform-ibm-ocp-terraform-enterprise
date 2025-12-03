@@ -9,7 +9,7 @@ module "vpc" {
   region            = var.region
   create_vpc        = var.existing_vpc_id == null ? true : false
   existing_vpc_id   = var.existing_vpc_id
-  name              = "${var.instance_name}-vpc"
+  name              = var.vpc_name
   tags              = []
   address_prefixes = {
     zone-1 = ["10.10.10.0/24"]
@@ -103,7 +103,7 @@ module "openshift" {
   count                               = var.existing_cluster_id == null ? 1 : 0
   source                              = "terraform-ibm-modules/base-ocp-vpc/ibm"
   version                             = "3.73.5"
-  cluster_name                        = "${var.instance_name}-cluster"
+  cluster_name                        = var.cluster_name
   resource_group_id                   = var.resource_group_id
   region                              = var.region
   force_delete_storage                = true

@@ -218,9 +218,6 @@
               "virtual": false
             },
             {
-              "key": "instance_name"
-            },
-            {
               "key": "region",
               "type": "string",
               "default_value": "us-south",
