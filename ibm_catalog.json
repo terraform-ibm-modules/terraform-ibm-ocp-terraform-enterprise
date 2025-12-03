@@ -2,7 +2,7 @@
   "products": [
     {
       "label": "[PoC] Terraform Enterprise on IBM Cloud",
-      "name": "terraform-enterprise-fullstack-demo",
+      "name": "deploy-arch-ibm-terraform-enterprise",
       "product_kind": "solution",
       "tags": [
         "ibm_created",
@@ -63,8 +63,8 @@
       "flavors": [
         {
           "label": "Click & Go",
-          "name": "quick-start",
-          "working_directory": "solutions/demo",
+          "name": "self-hosted",
+          "working_directory": "solutions/self-hosted",
           "licenses": [],
           "iam_permissions": [
             {
