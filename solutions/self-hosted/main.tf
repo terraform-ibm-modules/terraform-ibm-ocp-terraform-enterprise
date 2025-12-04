@@ -17,11 +17,11 @@ module "tfe" {
   region                                   = var.region
   resource_group_id                        = module.resource_group.resource_group_id
   resource_tags                            = var.resource_tags
-  vpc_name                                 = "${local.prefix}tfe-vpc"
-  cluster_name                             = "${local.prefix}tfe-cluster"
-  postgres_instance_name                   = "${local.prefix}tfe-data-store"
-  cos_instance_name                        = "${local.prefix}tfe-cos"
-  cos_bucket_name                          = "${local.prefix}tfe-cos-bucket"
+  vpc_name                                 = "${local.prefix}vpc"
+  cluster_name                             = "${local.prefix}cluster"
+  postgres_instance_name                   = "${local.prefix}data-store"
+  cos_instance_name                        = "${local.prefix}cos"
+  cos_bucket_name                          = "${local.prefix}cos-bucket"
   tfe_license                              = var.tfe_license
   tfe_license_secret_crn                   = var.tfe_license_secret_crn
   admin_username                           = var.admin_username
@@ -32,5 +32,6 @@ module "tfe" {
   add_to_catalog                           = var.add_to_catalog
   existing_secrets_manager_crn             = var.secrets_manager_crn
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id
-  secrets_manager_secret_group_name        = "${local.prefix}tfe-secrets-group"
+  secrets_manager_secret_group_name        = "${local.prefix}secrets-group"
+  redis_password_secret_name               = "${local.prefix}redis-password"
 }
