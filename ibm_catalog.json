@@ -1,7 +1,7 @@
 {
   "products": [
     {
-      "label": "[PoC] Terraform Enterprise on IBM Cloud",
+      "label": "Terraform Enterprise on IBM Cloud",
       "name": "deploy-arch-ibm-terraform-enterprise",
       "product_kind": "solution",
       "tags": [
