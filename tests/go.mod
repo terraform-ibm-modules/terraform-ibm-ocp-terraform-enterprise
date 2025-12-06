@@ -1,14 +1,12 @@
 module github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise
 
-go 1.24.0
-
-toolchain go1.25.4
+go 1.25.5
 
 require (
 	github.com/IBM/go-sdk-core/v5 v5.21.2
 	github.com/IBM/secrets-manager-go-sdk/v2 v2.0.18
 	github.com/stretchr/testify v1.11.1
-	github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper v1.60.34
+	github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper v1.61.3
 )
 
 require (
