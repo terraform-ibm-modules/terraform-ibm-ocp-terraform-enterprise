@@ -96,6 +96,7 @@ locals {
       operating_system  = "RHCOS"
       labels            = {}
       resource_group_id = var.resource_group_id
+      #boot_volume_encryption_kms_config = var.kms_config
     }
   ]
 }
