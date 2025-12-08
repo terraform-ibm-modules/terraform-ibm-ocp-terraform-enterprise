@@ -49,15 +49,13 @@ module "key_protect_all_inclusive" {
 }
 
 # Local setup for VSI disk encryption
-#locals {
-#  kms_config = {
-#    crk_id           = module.key_protect_all_inclusive.keys["terraformterraform-enterprise-vsi-volume-key"].
-#    instance_id      = module.key_protect_all_inclusive.guid
-#    private_endpoint = true
-#    account_id       = module.key_protect_all_inclusive.account_id
-#    wait_for_apply   = true
-#  }
-#}
+locals {
+  kms_config = {
+    crk             = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-vsi-volume-key"].key_id
+    kms_instance_id = module.key_protect_all_inclusive.kms_guid
+    kms_account_id  = module.key_protect_all_inclusive.kms_account_id
+  }
+}
 
 
 ##############################################################################
@@ -104,6 +102,7 @@ module "ocp_vpc" {
   ocp_version       = var.ocp_version
   ocp_entitlement   = var.ocp_entitlement
   existing_vpc_id   = var.existing_vpc_id
+  kms_config        = local.kms_config
 }
 
 ########################################################################################################################
