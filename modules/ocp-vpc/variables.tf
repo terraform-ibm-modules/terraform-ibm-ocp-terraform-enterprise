@@ -60,3 +60,13 @@ variable "existing_cluster_id" {
   description = "The CRN of the existing cluster. If not set, a new cluster will be created."
   default     = null
 }
+
+variable "kms_config" {
+  type = object({
+    crk             = string
+    kms_instance_id = string
+    kms_account_id  = optional(string) # To attach KMS instance from another account
+  })
+  description = "Use to attach a KMS instance to the cluster. If account_id is not provided, defaults to the account in use."
+  default     = null
+}
