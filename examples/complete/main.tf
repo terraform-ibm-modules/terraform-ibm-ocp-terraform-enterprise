@@ -9,37 +9,37 @@ locals {
   # leaving these here for documentation reference purposes
   # vpe punctual IPs for ACL rules
   # tflint-ignore: terraform_unused_declarations
-  postgres_vpe_acl_rules_strict = flatten([
-    for subnet, cidr in var.subnets_zones_cidr : [
-      for vpe in module.tfe.icd_postgres_vpe[0].vpe_ips : concat([
-        for vpe_ip_name, vpe_ip in vpe : {
-          name        = "allow-postgres-inbound-from-vpe-${vpe_ip_name}"
-          action      = "allow"
-          direction   = "inbound"
-          source      = vpe_ip.address
-          destination = cidr
-          tcp = {
-            source_port_max = module.tfe.icd_postgres_port
-            source_port_min = module.tfe.icd_postgres_port
-          }
-        }
-        ],
-        [
-          for vpe_ip_name, vpe_ip in vpe : {
-            name        = "allow-postgres-outbound-to-vpe-${vpe_ip_name}"
-            action      = "allow"
-            direction   = "outbound"
-            destination = vpe_ip.address
-            source      = cidr
-            tcp = {
-              source_port_max = module.tfe.icd_postgres_port
-              source_port_min = module.tfe.icd_postgres_port
-            }
-          }
-        ]
-      )
-    ]
-  ])
+  # postgres_vpe_acl_rules_strict = flatten([
+  #   for subnet, cidr in var.subnets_zones_cidr : [
+  #     for vpe in module.tfe.icd_postgres_vpe[0].vpe_ips : concat([
+  #       for vpe_ip_name, vpe_ip in vpe : {
+  #         name        = "allow-postgres-inbound-from-vpe-${vpe_ip_name}"
+  #         action      = "allow"
+  #         direction   = "inbound"
+  #         source      = vpe_ip.address
+  #         destination = cidr
+  #         tcp = {
+  #           source_port_max = module.tfe.icd_postgres_port
+  #           source_port_min = module.tfe.icd_postgres_port
+  #         }
+  #       }
+  #       ],
+  #       [
+  #         for vpe_ip_name, vpe_ip in vpe : {
+  #           name        = "allow-postgres-outbound-to-vpe-${vpe_ip_name}"
+  #           action      = "allow"
+  #           direction   = "outbound"
+  #           destination = vpe_ip.address
+  #           source      = cidr
+  #           tcp = {
+  #             source_port_max = module.tfe.icd_postgres_port
+  #             source_port_min = module.tfe.icd_postgres_port
+  #           }
+  #         }
+  #       ]
+  #     )
+  #   ]
+  # ])
 }
 
 module "tfe" {

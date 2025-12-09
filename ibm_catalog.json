@@ -367,13 +367,33 @@
               "key": "subnets_zones_cidr",
               "hidden": true,
               "required": false,
-              "virtual": false
+              "virtual": false,
+              "custom_config": {
+                "type": "code_editor",
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "config_constraints": {
+                  "supportedLanguages": [
+                    "hcl"
+                  ]
+                }
+              }
             },
             {
               "key": "vpc_acl_rules",
               "hidden": true,
               "required": false,
-              "virtual": false
+              "virtual": false,
+              "custom_config": {
+                "type": "code_editor",
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "config_constraints": {
+                  "supportedLanguages": [
+                    "hcl"
+                  ]
+                }
+              }
             },
             {
               "key": "secrets_manager_crn",
