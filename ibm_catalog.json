@@ -65,6 +65,7 @@
           "label": "Click & Go",
           "name": "self-hosted",
           "working_directory": "solutions/self-hosted",
+          "short_description": "Creates a 3-tier multi-zone resilient web application infrastructure to self host Terraform Enterprise on a VPC network",
           "licenses": [],
           "iam_permissions": [
             {

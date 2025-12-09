@@ -84,7 +84,7 @@ locals {
 module "license" {
   count   = var.tfe_license_secret_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.1.0"
+  version = "1.3.3"
   crn     = var.tfe_license_secret_crn
 }
 
@@ -161,14 +161,14 @@ resource "ibm_cm_account" "cm_account_instance" {
 module "existing_secrets_manager_crn" {
   count   = var.existing_secrets_manager_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.3.0"
+  version = "1.3.3"
   crn     = var.existing_secrets_manager_crn
 }
 
 module "secrets_manager_secret_group" {
   count                    = var.existing_secrets_manager_crn != null && var.existing_secrets_manager_secret_group_id == null ? 1 : 0
   source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
-  version                  = "1.3.13"
+  version                  = "1.3.25"
   secret_group_name        = var.secrets_manager_secret_group_name
   secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
   secrets_manager_guid     = module.existing_secrets_manager_crn[0].service_instance
@@ -182,7 +182,7 @@ locals {
 module "redis_password_secret" {
   count                   = var.existing_secrets_manager_crn != null ? 1 : 0
   source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
-  version                 = "1.7.0"
+  version                 = "1.9.1"
   region                  = module.existing_secrets_manager_crn[0].region
   secrets_manager_guid    = module.existing_secrets_manager_crn[0].service_instance
   secret_group_id         = local.secret_group_id
