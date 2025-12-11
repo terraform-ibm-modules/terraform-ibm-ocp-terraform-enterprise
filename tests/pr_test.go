@@ -17,7 +17,7 @@ import (
 )
 
 // Use existing resource group
-const resourceGroup = "geretain-test-resources"
+const resourceGroup = "geretain-test-tfe"
 
 // Ensure every example directory has a corresponding test
 const completeExampleDir = "examples/complete"
@@ -65,15 +65,17 @@ func TestMain(m *testing.M) {
 
 func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptions {
 	options := testhelper.TestOptionsDefaultWithVars(&testhelper.TestOptions{
-		Testing:            t,
-		TerraformDir:       dir,
-		Prefix:             prefix,
-		ResourceGroup:      resourceGroup,
+		Testing:      t,
+		TerraformDir: dir,
+		Prefix:       prefix,
+		// ResourceGroup:      resourceGroup,
 		BestRegionYAMLPath: regionSelectionPath,
 		TerraformVars: map[string]interface{}{
+			"existing_resource_group_name": resourceGroup,
 			"add_to_catalog":               false,
 			"postgres_deletion_protection": false,
 			"tfe_license_secret_crn":       permanentResources["terraform_enterprise_license_secret_crn"],
+			"secrets_manager_crn":          permanentResources["secretsManagerCRN"],
 		},
 		IgnoreUpdates: testhelper.Exemptions{ // Ignore for consistency check
 			List: []string{
