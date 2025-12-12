@@ -7,6 +7,13 @@ resource "kubernetes_namespace" "tfe" {
   metadata {
     name = var.namespace
   }
+
+  # Ignore annotations that TFE may add to namespace
+  lifecycle {
+    ignore_changes = [
+      metadata["annotations"],
+    ]
+  }
 }
 
 resource "kubernetes_secret" "tfe_pull_secret" {
@@ -393,8 +400,15 @@ resource "kubernetes_secret" "tfe_admin_token" {
     )
   }
   type = "Opaque"
-}
 
+  # Ignore data token, if it exists, the data.kubernetes_secret is unknown at apply
+  # It has just be read from the secret... so no need to write it.
+  lifecycle {
+    ignore_changes = [
+      data["token"],
+    ]
+  }
+}
 
 # Use scrupt to create TFE organization
 # This is a workaround to avoid using the TFE provider which attempt to evaluate the token and host before the deployment is created
