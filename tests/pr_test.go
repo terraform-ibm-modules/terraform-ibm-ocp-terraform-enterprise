@@ -83,6 +83,8 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 			"existing_resource_group_name": resourceGroup,
 			"add_to_catalog":               false,
 			"postgres_deletion_protection": false,
+			"postgres_vpe_enabled":         true,
+			"postgres_service_endpoints":   "private",
 			"secrets_manager_crn":          permanentResources["secretsManagerCRN"],
 		},
 		IgnoreUpdates: testhelper.Exemptions{ // Ignore for consistency check
