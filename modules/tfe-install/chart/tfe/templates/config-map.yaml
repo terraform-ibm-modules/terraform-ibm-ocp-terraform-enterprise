@@ -24,6 +24,12 @@ data:
   TFE_HTTPS_PORT: "{{ .Values.tfe.privateHttpsPort }}"
   TFE_TLS_CERT_FILE: "{{ .Values.tls.certMountPath }}"
   TFE_TLS_KEY_FILE:  "{{ .Values.tls.keyMountPath }}"
+  {{- if .Values.tlsSecondary }}
+  {{- if and .Values.tlsSecondary.certMountPath .Values.tlsSecondary.keyMountPath }}
+  TFE_TLS_CERT_FILE_SECONDARY: "{{ .Values.tlsSecondary.certMountPath }}"
+  TFE_TLS_KEY_FILE_SECONDARY:  "{{ .Values.tlsSecondary.keyMountPath }}"
+  {{- end }}
+  {{- end }}
   {{- if .Values.tls.caCertData }}
   TFE_TLS_CA_BUNDLE_FILE: {{ include "cacert.path" . }}
   {{- end }}

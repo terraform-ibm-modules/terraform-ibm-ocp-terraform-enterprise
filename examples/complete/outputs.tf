@@ -42,3 +42,8 @@ output "redis_password_secret_crn" {
   value       = module.tfe.redis_password_secret_crn
   description = "The CRN of the secret containing the redis admin password"
 }
+
+output "tfe_custom_domain" {
+  description = "The full custom hostname if created"
+  value       = var.tfe_custom_hostname != null ? module.tfe.tfe_custom_domain : null
+}

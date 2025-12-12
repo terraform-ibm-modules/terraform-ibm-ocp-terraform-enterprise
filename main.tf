@@ -25,7 +25,6 @@ module "cos" {
   ]
 }
 
-
 ########################################################################################################################
 # VPC
 ########################################################################################################################
@@ -124,6 +123,12 @@ module "tfe_install" {
   admin_email    = var.admin_email
 
   tfe_organization = var.tfe_organization
+
+  # custom domain management
+  tfe_custom_hostname           = local.tfe_custom_domain
+  tfe_custom_domain_secret_name = var.tfe_custom_domain_secret_name
+  tfe_custom_domain_certificate = var.tfe_custom_domain_existing_secret_crn != null ? "${data.ibm_sm_public_certificate.tfe_custom_domain_certificate[0].certificate}${data.ibm_sm_public_certificate.tfe_custom_domain_certificate[0].intermediate}" : null
+  tfe_custom_domain_key         = var.tfe_custom_domain_existing_secret_crn != null ? data.ibm_sm_public_certificate.tfe_custom_domain_certificate[0].private_key : null
 }
 
 ########################################################################################################################
@@ -190,4 +195,56 @@ module "redis_password_secret" {
   secret_description      = "Password for the Terraform Enterprise redis instance."
   secret_type             = "arbitrary"
   secret_payload_password = local.redis_pass_base64
+}
+
+
+########################################################################################################################
+# IBM Cloud Internet Service instance management for custom domain
+########################################################################################################################
+
+data "ibm_cis" "existing_cis_instance" {
+  count             = var.existing_cis_instance_name != null && var.existing_cis_instance_resource_group_id != null ? 1 : 0
+  name              = var.existing_cis_instance_name
+  resource_group_id = var.existing_cis_instance_resource_group_id
+}
+
+data "ibm_cis_domain" "existing_cis_instance_domain" {
+  count  = var.existing_cis_instance_name != null && var.existing_cis_instance_domain != null ? 1 : 0
+  domain = var.existing_cis_instance_domain
+  cis_id = data.ibm_cis.existing_cis_instance[0].id
+}
+
+# concatenating custom hostname with the domain configured on CIS
+locals {
+  tfe_custom_domain = var.tfe_custom_hostname != null && var.existing_cis_instance_domain != null ? "${var.tfe_custom_hostname}.${var.existing_cis_instance_domain}" : null
+}
+
+module "tfe_dns_record" {
+  count           = var.existing_cis_instance_name != null && var.existing_cis_instance_domain != null && var.create_tfe_custom_hostname_on_cis ? 1 : 0
+  source          = "terraform-ibm-modules/cis/ibm//modules/dns"
+  version         = "2.2.4"
+  cis_instance_id = data.ibm_cis.existing_cis_instance[0].id
+  domain_id       = data.ibm_cis_domain.existing_cis_instance_domain[0].domain_id
+  dns_record_set = [
+    {
+      type    = "CNAME"
+      name    = "${var.tfe_custom_hostname}.${var.existing_cis_instance_domain}"
+      content = module.tfe_install.tfe_hostname
+      ttl     = 900
+    }
+  ]
+}
+
+module "crn_parser_secrets_manager" {
+  count   = var.tfe_custom_domain_existing_secret_crn != null ? 1 : 0
+  source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
+  version = "1.3.0"
+  crn     = var.tfe_custom_domain_existing_secret_crn
+}
+
+data "ibm_sm_public_certificate" "tfe_custom_domain_certificate" {
+  count       = var.tfe_custom_domain_existing_secret_crn != null ? 1 : 0
+  instance_id = module.crn_parser_secrets_manager[0].service_instance
+  region      = module.crn_parser_secrets_manager[0].region
+  secret_id   = module.crn_parser_secrets_manager[0].resource
 }
