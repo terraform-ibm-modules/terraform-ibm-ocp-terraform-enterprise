@@ -157,3 +157,53 @@ variable "tfe_license_secret_crn" {
     error_message = "The value provided for 'tfe_license_secret_crn' is not valid."
   }
 }
+
+##############################################################################
+# Custom domain support
+##############################################################################
+
+variable "existing_cis_instance_name" {
+  description = "Existing IBM Cloud Internet Service instance providing the support for the base domain of custom hostname to use for Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+  type        = string
+  default     = null
+}
+
+variable "existing_cis_instance_resource_group_id" {
+  description = "Existing Resource Group ID for the existing IBM Cloud Internet Service instance. It is required to configure a custom hostname. Default to null."
+  type        = string
+  default     = null
+}
+
+variable "existing_cis_instance_domain" {
+  description = "The base domain configured on existing IBM Cloud Internet Service instance for the custom hostname to use for Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+  type        = string
+  default     = null
+}
+
+variable "tfe_custom_hostname" {
+  description = "The custom hostname to use with the base domain for the Terraform Enterprise instance. Default to null."
+  type        = string
+  default     = null
+  validation {
+    condition     = var.tfe_custom_hostname == null || (var.tfe_custom_hostname != null && var.existing_cis_instance_name != null && var.existing_cis_instance_resource_group_id != null && var.existing_cis_instance_domain != null && var.tfe_custom_domain_existing_secret_crn != null)
+    error_message = "If var.tfe_custom_hostname all the inputs var.existing_cis_instance_name var.existing_cis_instance_resource_group_id var.existing_cis_instance_domain and var.tfe_custom_domain_existing_secret_crn must be not null."
+  }
+}
+
+variable "create_tfe_custom_hostname_on_cis" {
+  description = "Flag to create the custom hostname entry on existing IBM Cloud Internet Service instance for the base domain selected. If enabled a CNAME entry will be created on the DNS configuration towards the default Terraform Enterprise instance route. Default to false."
+  type        = bool
+  default     = false
+}
+
+variable "tfe_custom_domain_existing_secret_crn" {
+  description = "CRN of the existing secret storing the TLS certificate for the custom hostname of the Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+  type        = string
+  default     = null
+}
+
+variable "tfe_custom_domain_secret_name" {
+  description = "The secret name to be used to store the TLS certificate on the OCP cluster for the custom hostname. Default to null. If null and a custom domain is used the secret is named 'terraform-enterprise-certificates-secondary'."
+  type        = string
+  default     = null
+}

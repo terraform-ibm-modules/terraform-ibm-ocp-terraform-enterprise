@@ -145,3 +145,31 @@ variable "tfe_redis_password" {
   default     = ""
   sensitive   = true
 }
+
+variable "tfe_custom_hostname" {
+  description = "The custom hostname to use with the base domain for the Terraform Enterprise instance. Default to null."
+  type        = string
+  default     = null
+  validation {
+    condition     = var.tfe_custom_hostname == null || (var.tfe_custom_hostname != null && var.tfe_custom_domain_certificate != null && var.tfe_custom_domain_key != null)
+    error_message = "If var.tfe_custom_hostname the inputs parameters var.tfe_custom_domain_certificate and var.tfe_custom_domain_key cannot be null."
+  }
+}
+
+variable "tfe_custom_domain_certificate" {
+  description = "The TLS certificate for the custom hostname of the Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+  type        = string
+  default     = null
+}
+
+variable "tfe_custom_domain_key" {
+  description = "The TLS certificate private key for the custom hostname of the Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+  type        = string
+  default     = null
+}
+
+variable "tfe_custom_domain_secret_name" {
+  description = "The secret name to be used to store the TLS certificate on the OCP cluster for the custom hostname. Default to 'terraform-enterprise-certificates-secondary'."
+  type        = string
+  default     = "terraform-enterprise-certificates-secondary"
+}

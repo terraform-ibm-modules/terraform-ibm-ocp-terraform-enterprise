@@ -70,6 +70,13 @@ spec:
         - name: certificates
           secret:
             secretName: {{ .Values.tls.certificateSecret }}
+        {{- if .Values.tlsSecondary }}
+        {{- if or (and .Values.tlsSecondary.certData .Values.tlsSecondary.keyData) .Values.tlsSecondary.certificateSecret }}
+        - name: certificates-secondary
+          secret:
+            secretName: {{ .Values.tlsSecondary.certificateSecret | default "terraform-enterprise-certificates-secondary" }}
+        {{- end }}
+        {{- end }}
         {{- if .Values.tls.caCertData }}
         - name: ca-certificates
           secret:
@@ -157,6 +164,16 @@ spec:
           - name: certificates
             mountPath: {{ .Values.tls.keyMountPath }}
             subPath: tls.key
+          {{- if .Values.tlsSecondary }}
+          {{- if or (and .Values.tlsSecondary.certData .Values.tlsSecondary.keyData) .Values.tlsSecondary.certificateSecret }}
+          - name: certificates-secondary
+            mountPath: {{ .Values.tlsSecondary.certMountPath }}
+            subPath: tls.crt
+          - name: certificates-secondary
+            mountPath: {{ .Values.tlsSecondary.keyMountPath }}
+            subPath: tls.key
+          {{- end }}
+          {{- end }}
           {{- if .Values.tls.caCertData }}
           - name: ca-certificates
             mountPath: {{ include "cacert.path" . }}
