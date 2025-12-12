@@ -6,51 +6,9 @@ locals {
 # Loading existing resource group
 ########################################################################################################################
 
-
-locals {
-  # these ACLs would enable traffic to/from the ICD postgres instance only from/to the VPE punctual IPs
-  # as these ACLs are depending on VCP creation must be attached to the VPC after both VPC and VPE are created
-  # leaving these here for documentation reference purposes
-  # vpe punctual IPs for ACL rules
-  # tflint-ignore: terraform_unused_declarations
-  # postgres_vpe_acl_rules_strict = flatten([
-  #   for subnet, cidr in var.subnets_zones_cidr : [
-  #     for vpe in module.tfe.icd_postgres_vpe[0].vpe_ips : concat([
-  #       for vpe_ip_name, vpe_ip in vpe : {
-  #         name        = "allow-postgres-inbound-from-vpe-${vpe_ip_name}"
-  #         action      = "allow"
-  #         direction   = "inbound"
-  #         source      = vpe_ip.address
-  #         destination = cidr
-  #         tcp = {
-  #           source_port_max = module.tfe.icd_postgres_port
-  #           source_port_min = module.tfe.icd_postgres_port
-  #         }
-  #       }
-  #       ],
-  #       [
-  #         for vpe_ip_name, vpe_ip in vpe : {
-  #           name        = "allow-postgres-outbound-to-vpe-${vpe_ip_name}"
-  #           action      = "allow"
-  #           direction   = "outbound"
-  #           destination = vpe_ip.address
-  #           source      = cidr
-  #           tcp = {
-  #             source_port_max = module.tfe.icd_postgres_port
-  #             source_port_min = module.tfe.icd_postgres_port
-  #           }
-  #         }
-  #       ]
-  #     )
-  #   ]
-  # ])
-}
-
 module "resource_group" {
-  source  = "terraform-ibm-modules/resource-group/ibm"
-  version = "1.4.0"
-  # if an existing resource group is not set (null) create a new one using prefix
-  resource_group_name          = var.existing_resource_group_name == null ? "${var.prefix}-resource-group" : null
+  source                       = "terraform-ibm-modules/resource-group/ibm"
+  version                      = "1.4.0"
   existing_resource_group_name = var.existing_resource_group_name
 }
 
@@ -79,6 +37,6 @@ module "tfe" {
   add_to_catalog                           = var.add_to_catalog
   existing_secrets_manager_crn             = var.secrets_manager_crn
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id
-  redis_password_secret_name               = "${local.prefix}redis-password"
   secrets_manager_secret_group_name        = "${local.prefix}secrets-group"
+  redis_password_secret_name               = "${local.prefix}redis-password"
 }

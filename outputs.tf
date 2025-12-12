@@ -3,7 +3,7 @@
 ########################################################################################################################
 
 output "resource_group_id" {
-  value       = module.resource_group.resource_group_id
+  value       = var.resource_group_id
   description = "The ID of the provisioned resource group."
 }
 
@@ -59,8 +59,8 @@ output "redis_host" {
 }
 
 output "redis_password" {
-  value       = var.secrets_manager_crn == null ? local.redis_pass_base64 : null
-  description = "password to redis instance, this is set to null when a value for `secrets_manager_crn` is provided"
+  value       = var.existing_secrets_manager_crn == null ? local.redis_pass_base64 : null
+  description = "password to redis instance, this is set to null when a value for `existing_secrets_manager_crn` is provided"
   sensitive   = true
 }
 
@@ -75,7 +75,7 @@ output "tfe_hostname" {
 }
 
 output "redis_password_secret_crn" {
-  value       = var.secrets_manager_crn != null ? module.redis_password_secret[0].secret_crn : null
+  value       = var.existing_secrets_manager_crn != null ? module.redis_password_secret[0].secret_crn : null
   description = "The CRN of the secret containing the redis admin password"
 }
 

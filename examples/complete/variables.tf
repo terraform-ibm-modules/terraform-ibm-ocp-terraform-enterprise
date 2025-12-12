@@ -19,10 +19,15 @@ variable "prefix" {
   description = "Prefix for name of all resource created by this example"
 
   validation {
-    error_message = "Prefix must begin and end with a letter and contain only letters, numbers, and - characters."
-    condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.prefix))
+    error_message = "var.prefix must begin and end with a letter and contain only letters, numbers, and - characters."
+    condition = (var.prefix == null || var.prefix == "" ? true :
+      alltrue([
+        can(regex("^[a-z][-a-z0-9]*[a-z0-9]$", var.prefix)),
+        length(regexall("--", var.prefix)) == 0
+      ])
+    )
   }
-  default = "tfe"
+  default = "tfe-complete"
 }
 
 variable "region" {
@@ -31,7 +36,7 @@ variable "region" {
   default     = "us-south"
 }
 
-variable "resource_group" {
+variable "existing_resource_group_name" {
   type        = string
   description = "An existing resource group name to provision resources in, if unset a new resource group will be created"
   default     = null

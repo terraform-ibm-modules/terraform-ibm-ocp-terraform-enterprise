@@ -319,7 +319,7 @@ variable "secrets_manager_crn" {
 
 variable "secrets_manager_secret_group_id" {
   type        = string
-  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>` secret group."
+  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>-tfe-secrets-group` secret group."
   default     = null
 
   validation {
@@ -328,6 +328,15 @@ variable "secrets_manager_secret_group_id" {
       var.secrets_manager_secret_group_id != null)
     )
     error_message = "`secrets_manager_secret_group_id` is not required when `secrets_manager_crn` is not specified."
+  }
+
+  validation {
+    condition = anytrue([
+      var.secrets_manager_secret_group_id == null,
+      var.secrets_manager_secret_group_id == "default",
+      can(regex("^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", var.secrets_manager_secret_group_id))
+    ])
+    error_message = "The value provided for 'secrets_manager_secret_group_id' is not valid."
   }
 }
 
