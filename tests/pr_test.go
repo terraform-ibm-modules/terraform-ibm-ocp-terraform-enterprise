@@ -21,7 +21,7 @@ const resourceGroup = "geretain-test-tfe"
 
 // Ensure every example directory has a corresponding test
 const completeExampleDir = "examples/complete"
-const solutionTerraformDir = "solutions/demo"
+const solutionTerraformDir = "solutions/self-hosted"
 
 // Define a struct with fields that match the structure of the YAML data
 const yamlLocation = "../common-dev-assets/common-go-assets/common-permanent-resources.yaml"
@@ -53,13 +53,6 @@ func TestMain(m *testing.M) {
 		log.Fatal(setPassEnvErr)
 	}
 
-	// NOTE: SHOULD REMOVE THIS WHEN PROJECT IS MORE STABLE
-	// While in Alpha phase we want to debug failures
-	setDoNotDestroyErr := os.Setenv("DO_NOT_DESTROY_ON_FAILURE", "true")
-	if setDoNotDestroyErr != nil {
-		log.Fatal(setDoNotDestroyErr)
-	}
-
 	os.Exit(m.Run())
 }
 
@@ -77,22 +70,10 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 			"tfe_license_secret_crn":       permanentResources["terraform_enterprise_license_secret_crn"],
 			"secrets_manager_crn":          permanentResources["secretsManagerCRN"],
 		},
-		IgnoreUpdates: testhelper.Exemptions{ // Ignore for consistency check
-			List: []string{
-				"module.tfe.module.tfe_install.helm_release.tfe_install",
-				"module.tfe.module.tfe_install.kubernetes_namespace.tfe",
-				"module.tfe.module.tfe_install.kubernetes_secret.tfe_admin_token",
-			},
-		},
 	})
 
 	// NOTE ON INPUT VARS:
 	// the inputs for password are added in TestMain in the ENV.
-
-	// NOTE ON IGNORE UPDATES:
-	// In early Alpha state the helm chart and other kubernetes resources are going to
-	// report update-in-place on each run. Ignoring for now, should investigate before an
-	// official GA release.
 
 	return options
 }
@@ -145,19 +126,7 @@ func TestRunSelfHostedSchematics(t *testing.T) {
 		ResourceGroup:          resourceGroup,
 		DeleteWorkspaceOnFail:  false,
 		WaitJobCompleteMinutes: 120,
-		IgnoreUpdates: testhelper.Exemptions{ // Ignore for consistency check
-			List: []string{
-				"module.tfe.module.tfe_install.helm_release.tfe_install",
-				"module.tfe.module.tfe_install.kubernetes_namespace.tfe",
-				"module.tfe.module.tfe_install.kubernetes_secret.tfe_admin_token",
-			},
-		},
 	})
-
-	// NOTE ON IGNORE UPDATES:
-	// In early Alpha state the helm chart and other kubernetes resources are going to
-	// report update-in-place on each run. Ignoring for now, should investigate before an
-	// official GA release.
 
 	// generate a random password, fail if error
 	password, passwordErr := getRandomAdminPassword()
