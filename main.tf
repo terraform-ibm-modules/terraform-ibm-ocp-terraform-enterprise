@@ -4,7 +4,7 @@
 
 module "cos" {
   source                   = "terraform-ibm-modules/cos/ibm"
-  version                  = "10.7.0"
+  version                  = "10.7.2"
   resource_group_id        = var.resource_group_id
   region                   = var.region
   create_cos_instance      = var.existing_cos_instance_id != null ? false : true
@@ -50,7 +50,7 @@ module "ocp_vpc" {
 
 module "icd_postgres" {
   source             = "terraform-ibm-modules/icd-postgresql/ibm"
-  version            = "4.4.0"
+  version            = "4.4.2"
   resource_group_id  = var.resource_group_id
   name               = var.postgres_instance_name
   postgresql_version = "16" # TFE supports up to Postgres 16 (not 17)
@@ -84,7 +84,7 @@ locals {
 module "license" {
   count   = var.tfe_license_secret_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.3.3"
+  version = "1.3.5"
   crn     = var.tfe_license_secret_crn
 }
 
@@ -161,14 +161,14 @@ resource "ibm_cm_account" "cm_account_instance" {
 module "existing_secrets_manager_crn" {
   count   = var.existing_secrets_manager_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.3.3"
+  version = "1.3.5"
   crn     = var.existing_secrets_manager_crn
 }
 
 module "secrets_manager_secret_group" {
   count                    = var.existing_secrets_manager_crn != null && var.existing_secrets_manager_secret_group_id == null ? 1 : 0
   source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
-  version                  = "1.3.25"
+  version                  = "1.3.27"
   secret_group_name        = var.secrets_manager_secret_group_name
   secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
   secrets_manager_guid     = module.existing_secrets_manager_crn[0].service_instance
