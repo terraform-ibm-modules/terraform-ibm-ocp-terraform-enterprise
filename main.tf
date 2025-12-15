@@ -5,7 +5,7 @@
 module "key_protect_all_inclusive" {
   source                    = "terraform-ibm-modules/kms-all-inclusive/ibm"
   version                   = "4.19.2"
-  resource_group_id         = module.resource_group.resource_group_id
+  resource_group_id         = var.resource_group_id
   key_protect_instance_name = var.kms_instance_name
   region                    = var.region
   resource_tags             = var.resource_tags
