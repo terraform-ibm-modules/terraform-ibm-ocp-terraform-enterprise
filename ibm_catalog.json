@@ -1,8 +1,8 @@
 {
   "products": [
     {
-      "label": "[PoC] Terraform Enterprise on IBM Cloud",
-      "name": "terraform-enterprise-fullstack-demo",
+      "label": "Terraform Enterprise on IBM Cloud",
+      "name": "deploy-arch-ibm-terraform-enterprise",
       "product_kind": "solution",
       "tags": [
         "ibm_created",
@@ -63,8 +63,9 @@
       "flavors": [
         {
           "label": "Click & Go",
-          "name": "quick-start",
-          "working_directory": "solutions/demo",
+          "name": "self-hosted",
+          "working_directory": "solutions/self-hosted",
+          "short_description": "Creates a 3-tier multi-zone resilient web application infrastructure to self host Terraform Enterprise on a VPC network",
           "licenses": [],
           "iam_permissions": [
             {
@@ -161,7 +162,7 @@
             "features": [
               {
                 "title": "Minimal Inputs Required",
-                "description": "Just provide a few key values—like region, admin credentials, and a name prefix—and the automation takes care of the rest."
+                "description": "Just provide a few key values—like region, admin credentials, and a name for the instance the automation takes care of the rest."
               },
               {
                 "title": "Lightweight OpenShift Cluster",
@@ -211,7 +212,7 @@
               "value_constraints": [
                 {
                   "type": "regex",
-                  "description": "Prefix must begin with a lowercase letter and may contain only lowercase letters, digits, and hyphens '-'. It must not end with a hyphen('-'), and cannot contain consecutive hyphens ('--'). It should not exceed 16 characters.",
+                  "description": "prefix must begin with a lowercase letter and may contain only lowercase letters, digits, and hyphens '-'. It must not end with a hyphen('-'), and cannot contain consecutive hyphens ('--'). It should not exceed 16 characters.",
                   "value": "^$|^__NULL__$|^[a-z](?!.*--)(?:[a-z0-9-]{0,14}[a-z0-9])?$"
                 }
               ],

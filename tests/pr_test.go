@@ -10,17 +10,18 @@ import (
 	"testing"
 
 	"github.com/IBM/go-sdk-core/v5/core"
-	"github.com/IBM/secrets-manager-go-sdk/v2/secretsmanagerv2"
 	"github.com/stretchr/testify/assert"
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/common"
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/testhelper"
+	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/testschematic"
 )
 
 // Use existing resource group
-const resourceGroup = "geretain-test-resources"
+const resourceGroup = "geretain-test-tfe"
 
 // Ensure every example directory has a corresponding test
 const completeExampleDir = "examples/complete"
+const solutionTerraformDir = "solutions/self-hosted"
 
 // Define a struct with fields that match the structure of the YAML data
 const yamlLocation = "../common-dev-assets/common-go-assets/common-permanent-resources.yaml"
@@ -39,12 +40,6 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	// get the license from a secrets manager, fail test if error
-	license, licenseErr := getLicenseString()
-	if licenseErr != nil {
-		log.Fatal(licenseErr)
-	}
-
 	// generate a random password, fail if error
 	pass, passErr := getRandomAdminPassword()
 	if passErr != nil {
@@ -53,20 +48,9 @@ func TestMain(m *testing.M) {
 
 	// ADD SENSITIVE VALS TO ENV
 	// not adding to regular vars so not to leak the values
-	setLicenseEnvErr := os.Setenv("TF_VAR_tfe_license", *license)
-	if setLicenseEnvErr != nil {
-		log.Fatal(setLicenseEnvErr)
-	}
 	setPassEnvErr := os.Setenv("TF_VAR_admin_password", *pass)
 	if setPassEnvErr != nil {
 		log.Fatal(setPassEnvErr)
-	}
-
-	// NOTE: SHOULD REMOVE THIS WHEN PROJECT IS MORE STABLE
-	// While in Alpha phase we want to debug failures
-	setDoNotDestroyErr := os.Setenv("DO_NOT_DESTROY_ON_FAILURE", "true")
-	if setDoNotDestroyErr != nil {
-		log.Fatal(setDoNotDestroyErr)
 	}
 
 	os.Exit(m.Run())
@@ -74,31 +58,22 @@ func TestMain(m *testing.M) {
 
 func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptions {
 	options := testhelper.TestOptionsDefaultWithVars(&testhelper.TestOptions{
-		Testing:            t,
-		TerraformDir:       dir,
-		Prefix:             prefix,
-		ResourceGroup:      resourceGroup,
+		Testing:      t,
+		TerraformDir: dir,
+		Prefix:       prefix,
+		// ResourceGroup:      resourceGroup,
 		BestRegionYAMLPath: regionSelectionPath,
 		TerraformVars: map[string]interface{}{
+			"existing_resource_group_name": resourceGroup,
 			"add_to_catalog":               false,
 			"postgres_deletion_protection": false,
-		},
-		IgnoreUpdates: testhelper.Exemptions{ // Ignore for consistency check
-			List: []string{
-				"module.tfe.module.tfe_install.helm_release.tfe_install",
-				"module.tfe.module.tfe_install.kubernetes_namespace.tfe",
-				"module.tfe.module.tfe_install.kubernetes_secret.tfe_admin_token",
-			},
+			"tfe_license_secret_crn":       permanentResources["terraform_enterprise_license_secret_crn"],
+			"secrets_manager_crn":          permanentResources["secretsManagerCRN"],
 		},
 	})
 
 	// NOTE ON INPUT VARS:
-	// the inputs for license and password are added in TestMain in the ENV.
-
-	// NOTE ON IGNORE UPDATES:
-	// In early Alpha state the helm chart and other kubernetes resources are going to
-	// report update-in-place on each run. Ignoring for now, should investigate before an
-	// official GA release.
+	// the inputs for password are added in TestMain in the ENV.
 
 	return options
 }
@@ -114,12 +89,11 @@ func TestRunCompleteExample(t *testing.T) {
 	assert.NotNil(t, output, "Expected some output")
 }
 
-// Upgrade test (using complete example)
+// Upgrade test using complete example
 func TestRunUpgradeExample(t *testing.T) {
 	t.Parallel()
-	t.Skip("Skip upgrade test while in Alpha release stage - resume upon official release")
 
-	options := setupOptions(t, "tfe-complete-upg", completeExampleDir)
+	options := setupOptions(t, "tfe-upg", completeExampleDir)
 
 	output, err := options.RunTestUpgrade()
 	if !options.UpgradeTestSkipped {
@@ -128,33 +102,51 @@ func TestRunUpgradeExample(t *testing.T) {
 	}
 }
 
-func getLicenseString() (*string, error) {
-	secMgrId := permanentResources["secretsManagerGuid"].(string)
-	secMgrRegion := permanentResources["secretsManagerRegion"].(string)
-	licenseSecretId := permanentResources["terraform_enterprise_license_secret_id"].(string)
+// Schematics test using solution
+func TestRunSelfHostedSchematics(t *testing.T) {
+	t.Parallel()
 
-	secretSvc, secretSvcErr := secretsmanagerv2.NewSecretsManagerV2(&secretsmanagerv2.SecretsManagerV2Options{
-		URL: fmt.Sprintf("https://%s.%s.secrets-manager.appdomain.cloud", secMgrId, secMgrRegion),
-		Authenticator: &core.IamAuthenticator{
-			ApiKey: os.Getenv("TF_VAR_ibmcloud_api_key"),
+	options := testschematic.TestSchematicOptionsDefault(&testschematic.TestSchematicOptions{
+		Testing: t,
+		TarIncludePatterns: []string{
+			"*.tf",
+			fmt.Sprintf("%s/*.tf", solutionTerraformDir),
+			fmt.Sprintf("%s/kubeconfig/README.md", solutionTerraformDir),
+			fmt.Sprintf("%s/*.tf", "modules/ocp-vpc"),
+			fmt.Sprintf("%s/*.tf", "modules/redis"),
+			fmt.Sprintf("%s/*.tf", "modules/tfe-install"),
+			fmt.Sprintf("%s/*.*", "modules/tfe-install/chart/tfe"),
+			fmt.Sprintf("%s/*.tpl", "modules/tfe-install/chart/tfe/templates"),
+			fmt.Sprintf("%s/*.yaml", "modules/tfe-install/chart/tfe/templates"),
+			fmt.Sprintf("%s/*.sh", "modules/tfe-install/scripts"),
 		},
+		TemplateFolder:         solutionTerraformDir,
+		BestRegionYAMLPath:     regionSelectionPath,
+		Prefix:                 "tfe-da",
+		ResourceGroup:          resourceGroup,
+		DeleteWorkspaceOnFail:  false,
+		WaitJobCompleteMinutes: 120,
 	})
 
-	if secretSvcErr != nil {
-		return nil, secretSvcErr
+	// generate a random password, fail if error
+	password, passwordErr := getRandomAdminPassword()
+	if passwordErr != nil {
+		log.Fatal(passwordErr)
 	}
 
-	licenseSecret, _, getLicenseErr := secretSvc.GetSecret(&secretsmanagerv2.GetSecretOptions{
-		ID: core.StringPtr(licenseSecretId),
-	})
-
-	if getLicenseErr != nil {
-		return nil, getLicenseErr
+	options.TerraformVars = []testschematic.TestSchematicTerraformVar{
+		{Name: "prefix", Value: options.Prefix, DataType: "string"},
+		{Name: "ibmcloud_api_key", Value: options.RequiredEnvironmentVars["TF_VAR_ibmcloud_api_key"], DataType: "string", Secure: true},
+		{Name: "add_to_catalog", Value: false, DataType: "bool"},
+		{Name: "admin_password", Value: password, DataType: "string"},
+		{Name: "postgres_deletion_protection", Value: false, DataType: "bool"},
+		{Name: "tfe_license_secret_crn", Value: permanentResources["terraform_enterprise_license_secret_crn"], DataType: "string"},
 	}
 
-	license := licenseSecret.(*secretsmanagerv2.ArbitrarySecret).Payload
-
-	return license, nil
+	err := options.RunSchematicTest()
+	if !options.UpgradeTestSkipped {
+		assert.NoError(t, err, "Schematic Test had an unexpected error")
+	}
 }
 
 func getRandomAdminPassword() (*string, error) {

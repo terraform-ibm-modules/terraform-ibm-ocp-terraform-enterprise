@@ -8,17 +8,6 @@ variable "resource_group_id" {
   default     = null
 }
 
-variable "prefix" {
-  type        = string
-  description = "Prefix for name of all resource created by this example"
-
-  validation {
-    error_message = "Prefix must begin and end with a letter and contain only letters, numbers, and - characters."
-    condition     = can(regex("^([A-z]|[a-z][-a-z0-9]*[a-z0-9])$", var.prefix))
-  }
-  default = "tfe"
-}
-
 variable "region" {
   type        = string
   description = "Region where resources are created"
@@ -67,6 +56,27 @@ variable "kms_config" {
     kms_instance_id = string
     kms_account_id  = optional(string) # To attach KMS instance from another account
   })
-  description = "Use to attach a KMS instance to the cluster. If account_id is not provided, defaults to the account in use."
+  description = "Use to attach a KMS instance to the cluster. If kms_account_id is not provided, defaults to the account in use."
   default     = null
+}
+
+variable "vpc_name" {
+  type        = string
+  description = "Name of the VPC to create. Default to tfe-vpc. If var.existing_vpc_id is not null this value is ignored. Null allowed only if var.existing_vpc_id is not null."
+  default     = "tfe-vpc"
+  validation {
+    condition     = var.existing_vpc_id == null && var.vpc_name == null ? false : true
+    error_message = "var.existing_vpc_id and var.vpc_name cannot be both null."
+  }
+}
+
+variable "cluster_name" {
+  type        = string
+  description = "Name of the OCP cluster to create. Default to tfe-cluster. If var.existing_cluster_id is not null this value is ignored. Null allowed only if var.existing_cluster_id is not null."
+  default     = "tfe-cluster"
+  nullable    = false
+  validation {
+    condition     = var.existing_cluster_id == null && var.cluster_name == null ? false : true
+    error_message = "var.existing_cluster_id and var.cluster_name cannot be both null."
+  }
 }

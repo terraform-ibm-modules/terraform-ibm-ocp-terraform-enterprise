@@ -2,48 +2,14 @@
 # Input Variables
 ########################################################################################################################
 
-# variable "ibmcloud_api_key" {
-#   type        = string
-#   description = "The IBM Cloud api key"
-#   sensitive   = true
-# }
-
-variable "prefix" {
-  type        = string
-  nullable    = true
-  description = "The prefix to add to all resources that this solution creates (e.g `prod`, `test`, `dev`). To skip using a prefix, set this value to null or an empty string. [Learn more](https://terraform-ibm-modules.github.io/documentation/#/prefix.md)."
-
-  validation {
-    # - null and empty string is allowed
-    # - Must not contain consecutive hyphens (--): length(regexall("--", var.prefix)) == 0
-    # - Starts with a lowercase letter: [a-z]
-    # - Contains only lowercase letters (a–z), digits (0–9), and hyphens (-)
-    # - Must not end with a hyphen (-): [a-z0-9]
-    condition = (var.prefix == null || var.prefix == "" ? true :
-      alltrue([
-        can(regex("^[a-z][-a-z0-9]*[a-z0-9]$", var.prefix)),
-        length(regexall("--", var.prefix)) == 0
-      ])
-    )
-    error_message = "Prefix must begin with a lowercase letter and may contain only lowercase letters, digits, and hyphens '-'. It must not end with a hyphen('-'), and cannot contain consecutive hyphens ('--')."
-  }
-
-  validation {
-    # must not exceed 16 characters in length
-    condition     = var.prefix == null || var.prefix == "" ? true : length(var.prefix) <= 16
-    error_message = "Prefix must not exceed 16 characters."
-  }
-}
-
 variable "region" {
   type        = string
   description = "Region where resources are created"
 }
 
-variable "existing_resource_group_name" {
+variable "resource_group_id" {
   type        = string
-  description = "An existing resource group name to provision resources in, if unset a new resource group will be created"
-  default     = null
+  description = "The ID of the resource group to use for the creation of the Terraform Enterprise instance and the related resources."
 }
 
 variable "resource_tags" {
@@ -126,7 +92,6 @@ variable "tfe_organization" {
   }
 }
 
-
 variable "add_to_catalog" {
   type        = bool
   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
@@ -135,8 +100,13 @@ variable "add_to_catalog" {
 
 variable "terraform_enterprise_engine_name" {
   type        = string
-  description = "Name to give to the Terraform Enterprise engine in account catalog settings. Defaults to '{prefix}-tfe' if not set."
-  default     = null
+  description = "Name to give to the Terraform Enterprise engine in account catalog settings. Defaults to 'tfe-engine' if not set."
+  nullable    = false
+  default     = "tfe-engine"
+  validation {
+    condition     = var.terraform_enterprise_engine_name != ""
+    error_message = "var.terraform_enterprise_engine_name cannot be set to an empty string."
+  }
 }
 
 variable "enable_automatic_deployable_architecture_creation" {
@@ -188,19 +158,20 @@ variable "existing_cos_instance_id" {
 
 variable "cos_instance_name" {
   type        = string
-  description = "Name of COS instance to create. If set to `null`, name will be `{prefix}-tfe`"
-  default     = null
+  description = "Name of COS instance to create. Default to tfe-cos. If var.existing_cos_instance_id is not null this value is ignored. Null allowed only if var.existing_cos_instance_id is not null."
+  default     = "tfe-cos"
 
   validation {
-    condition     = var.cos_instance_name == null || var.existing_cos_instance_id == null
-    error_message = "If var.existing_cos_instance_id is set, a new COS instance will not be created."
+    condition     = var.existing_cos_instance_id == null && var.cos_instance_name == null ? false : true
+    error_message = "var.existing_cos_instance_id and var.cos_instance_name cannot be both null."
   }
 }
 
 variable "cos_bucket_name" {
   type        = string
-  description = "Name of the bucket to create in COS instance. If set to `null`, name will be `{prefix}-tfe-bucket`"
-  default     = null
+  nullable    = false
+  description = "Name of the bucket to create in COS instance. Default to tfe-cos-bucket"
+  default     = "tfe-cos-bucket"
 }
 
 variable "cos_retention" {
@@ -215,8 +186,8 @@ variable "cos_retention" {
 
 variable "postgres_instance_name" {
   type        = string
-  description = "Name of postgres instance to create. If set to `null`, name will be `{prefix}-data-store`"
-  default     = null
+  description = "Name of postgres instance to create. Default set to be `tfe-data-store`"
+  default     = "tfe-data-store"
 }
 
 variable "postgres_deletion_protection" {
@@ -229,21 +200,31 @@ variable "postgres_deletion_protection" {
 # Redis
 ##############################################################################
 
-variable "redis_host_name" {
+variable "existing_redis_hostname" {
   type        = string
-  description = "Hostname of redis instance on cluster. If set to `null`, a new redis instance will be provisioned"
+  description = "Hostname of the existing redis instance to integrate with the Terraform Enterprise instance. If set to null a new redis instance is deployed in the cluster. Default to null."
   default     = null
 }
 
-variable "redis_password_base64" {
+variable "existing_redis_password_base64" {
   type        = string
-  description = "password for redis instance (base64 encoded)"
+  description = "Base64 encoded password for the existing redis instance. Default to null."
   default     = null
   sensitive   = true
 
   validation {
-    condition     = var.redis_host_name != null ? var.redis_password_base64 != null : true
-    error_message = "If var.redis_host_name is set, var.redis_password_base64 must also be set."
+    condition     = var.existing_redis_hostname != null ? var.existing_redis_password_base64 != null : true
+    error_message = "If var.existing_redis_hostname is set, var.existing_redis_password_base64 must also be set."
+  }
+}
+
+variable "redis_password_secret_name" {
+  type        = string
+  description = "The name of the Secrets Manager secret to store the redis password if var.existing_secrets_manager_crn is not null. Default to tfe_redis_password."
+  default     = "tfe_redis_password"
+  validation {
+    condition     = var.existing_secrets_manager_crn == null ? true : (var.redis_password_secret_name != null && var.redis_password_secret_name != "" ? true : false)
+    error_message = "If var.existing_secrets_manager_crn is not null var.redis_password_secret_name cannot be null or empty string."
   }
 }
 
@@ -255,6 +236,33 @@ variable "existing_vpc_id" {
   type        = string
   description = "The ID of the existing vpc. If not set, a new VPC will be created."
   default     = null
+}
+
+variable "existing_cluster_id" {
+  type        = string
+  description = "The ID of the existing cluster. If not set, a new cluster will be created."
+  default     = null
+}
+
+variable "vpc_name" {
+  type        = string
+  description = "Name of the VPC to create. Default to tfe-vpc. If var.existing_vpc_id is not null this value is ignored. Null allowed only if var.existing_vpc_id is not null."
+  default     = "tfe-vpc"
+  validation {
+    condition     = var.existing_vpc_id == null && var.vpc_name == null ? false : true
+    error_message = "var.existing_vpc_id and var.vpc_name cannot be both null."
+  }
+}
+
+variable "cluster_name" {
+  type        = string
+  description = "Name of the OCP cluster to create. Default to tfe-cluster. If var.existing_cluster_id is not null this value is ignored. Null allowed only if var.existing_cluster_id is not null."
+  default     = "tfe-cluster"
+  nullable    = false
+  validation {
+    condition     = var.existing_cluster_id == null && var.cluster_name == null ? false : true
+    error_message = "var.existing_cluster_id and var.cluster_name cannot be both null."
+  }
 }
 
 variable "ocp_version" {
@@ -273,39 +281,49 @@ variable "ocp_entitlement" {
 # Secrets Manager
 ##############################################################################
 
-variable "secrets_manager_crn" {
+variable "existing_secrets_manager_crn" {
   type        = string
   description = "The CRN of the existing Secrets Manager instance. If not set, secrets will not be stored in a Secrets Manager instance."
   default     = null
 
   validation {
     condition = anytrue([
-      var.secrets_manager_crn == null,
-      can(regex("^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}::$", var.secrets_manager_crn))
+      var.existing_secrets_manager_crn == null,
+      can(regex("^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}::$", var.existing_secrets_manager_crn))
     ])
-    error_message = "The value provided for 'secrets_manager_crn' is not valid."
+    error_message = "The value provided for 'existing_secrets_manager_crn' is not valid."
   }
 }
 
-variable "secrets_manager_secret_group_id" {
+variable "existing_secrets_manager_secret_group_id" {
   type        = string
-  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `<var.prefix>` secret group."
+  description = "The existing secrets group ID to store secrets in. If not set, secrets will be stored in `var.secrets_manager_secret_group_name` secret group."
   default     = null
 
   validation {
-    condition = anytrue([
-      var.secrets_manager_secret_group_id == null,
-      var.secrets_manager_secret_group_id == "default",
-      can(regex("^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", var.secrets_manager_secret_group_id))
-    ])
-    error_message = "The value provided for 'secrets_manager_secret_group_id' is not valid."
+    condition = (
+      !(var.existing_secrets_manager_crn == null &&
+      var.existing_secrets_manager_secret_group_id != null)
+    )
+    error_message = "`secrets_manager_secret_group_id` is not required when `secrets_manager_crn` is not specified."
   }
 
   validation {
-    condition = (
-      !(var.secrets_manager_crn == null &&
-      var.secrets_manager_secret_group_id != null)
-    )
-    error_message = "`secrets_manager_secret_group_id` is not required when `secrets_manager_crn` is not specified."
+    condition = anytrue([
+      var.existing_secrets_manager_secret_group_id == null,
+      var.existing_secrets_manager_secret_group_id == "default",
+      can(regex("^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", var.existing_secrets_manager_secret_group_id))
+    ])
+    error_message = "The value provided for 'existing_secrets_manager_secret_group_id' is not valid."
+  }
+}
+
+variable "secrets_manager_secret_group_name" {
+  type        = string
+  description = "The secrets group name to create to store secrets in var.existing_secrets_manager_crn if var.existing_secrets_manager_secret_group_id is null."
+  default     = "tfe-secrets-group"
+  validation {
+    condition     = var.existing_secrets_manager_secret_group_id != null || var.secrets_manager_secret_group_name != null
+    error_message = "var.secrets_manager_secret_group_name and var.existing_secrets_manager_secret_group_id cannot be both null."
   }
 }

@@ -7,13 +7,10 @@ locals {
 ########################################################################################################################
 
 module "resource_group" {
-  source  = "terraform-ibm-modules/resource-group/ibm"
-  version = "1.4.0"
-  # if an existing resource group is not set (null) create a new one using prefix
-  resource_group_name          = var.existing_resource_group_name == null ? "${var.prefix}-resource-group" : null
+  source                       = "terraform-ibm-modules/resource-group/ibm"
+  version                      = "1.4.0"
   existing_resource_group_name = var.existing_resource_group_name
 }
-
 
 module "tfe" {
   source                                   = "../.."
@@ -35,6 +32,6 @@ module "tfe" {
   add_to_catalog                           = var.add_to_catalog
   existing_secrets_manager_crn             = var.secrets_manager_crn
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id
-  redis_password_secret_name               = "${local.prefix}redis-password"
   secrets_manager_secret_group_name        = "${local.prefix}secrets-group"
+  redis_password_secret_name               = "${local.prefix}redis-password"
 }
