@@ -156,6 +156,14 @@
                 "crn:v1:bluemix:public:iam::::role:Editor"
               ],
               "notes": "[Optional] Required if you are consuming Observability deployable architecture which sets up Activity Tracker Event Routing."
+            },
+            {
+              "service_name": "internet-svcs",
+              "role_crns": [
+                "crn:v1:bluemix:public:iam::::serviceRole:Writer",
+                "crn:v1:bluemix:public:iam::::role:Editor"
+              ],
+              "notes": "[Optional] Required if you are creating a secondary hostname for Terraform Enterprise instance from an existing domain on Cloud Internet Service."
             }
           ],
           "architecture": {
@@ -371,6 +379,45 @@
                   "value": "^__NULL__$|^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}:secret:[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$"
                 }
               ]
+            },
+            {
+              "key": "existing_cis_instance_name"
+            },
+            {
+              "key": "existing_cis_instance_resource_group_id",
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "description": "The value provided for 'existing_cis_instance_resource_group_id' is not valid.",
+                  "value": "^default$|^__NULL__$|^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$"
+                }
+              ]
+            },
+            {
+              "key": "existing_cis_instance_domain"
+            },
+            {
+              "key": "tfe_secondary_host"
+            },
+            {
+              "key": "create_tfe_secondary_host_on_cis",
+              "type": "boolean",
+              "default_value": false,
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "tfe_secondary_hostname_existing_secret_crn",
+              "value_constraints": [
+                {
+                  "type": "regex",
+                  "description": "The value provider for `tfe_secondary_hostname_existing_secret_crn` is not valid.",
+                  "value": "^__NULL__$|^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}:secret:[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$"
+                }
+              ]
+            },
+            {
+              "key": "tfe_secondary_hostname_secret_name"
             }
           ],
           "terraform_version": "1.12.2",
