@@ -25,7 +25,7 @@ You need the following permissions to run this module:
 - IBM Cloud Databases for PostgreSQL/Redis: `Manager` or equivalent access
 - Ability to create and manage Kubernetes resources in the target OpenShift namespace
 - IBM Cloud Internet Service: `Reader` or `Writer` access to read domain details or to create a CNAME entry for the DNS
-- IBM Cloud Secrets Manager: `Reader` and `Writer` access to read and write secrets
+- IBM Cloud Secrets Manager: `Reader`, `SecretsReader` and `Writer` access to read and write secrets
 
 ## Contributing
 
