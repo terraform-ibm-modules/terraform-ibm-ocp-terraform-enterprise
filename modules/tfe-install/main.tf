@@ -42,26 +42,9 @@ resource "kubernetes_secret" "tfe_pull_secret" {
 locals {
   route_name   = "tfe"
   tfe_hostname = "${local.route_name}-${var.namespace}.${data.ibm_container_vpc_cluster.cluster.ingress_hostname}" # Compute the TFE hostname based on the namespace and cluster ingress hostname. Not putting a dependency on the route resource here, as it is created after the helm release.
-}
 
-
-# ########################################################################################################################
-# # Terraform Enterprise Helm Chart
-# ########################################################################################################################
-resource "helm_release" "tfe_install" {
-  depends_on = [kubernetes_secret.tfe_pull_secret]
-
-  name             = "terraform-enterprise"
-  chart            = "${path.module}/chart/tfe"
-  namespace        = kubernetes_namespace.tfe.metadata[0].name
-  create_namespace = false
-  timeout          = 1200
-  wait             = true
-  recreate_pods    = true
-  force_update     = true
-  reset_values     = true
-
-  set = [
+  # building the list of values to configure in the helm release
+  set_values_list = [
     {
       name  = "image.tag"
       value = var.tfe_image_tag
@@ -73,6 +56,14 @@ resource "helm_release" "tfe_install" {
     {
       name  = "env.variables.TFE_HOSTNAME"
       value = local.tfe_hostname
+    },
+    {
+      name  = "env.variables.TFE_TLS_CERT_FILE"
+      value = "/etc/ssl/private/terraform-enterprise/tls.crt"
+    },
+    {
+      name  = "env.variables.TFE_TLS_KEY_FILE"
+      value = "/etc/ssl/private/terraform-enterprise/tls.key"
     },
     {
       name  = "env.variables.TFE_LICENSE_REPORTING_OPT_OUT"
@@ -107,10 +98,6 @@ resource "helm_release" "tfe_install" {
       value = "kubernetes"
     },
     {
-      name  = "env.variables.TFE_TLS_CERT_FILE"
-      value = "/etc/ssl/private/terraform-enterprise/tls.crt"
-    },
-    {
       name  = "env.variables.TFE_VAULT_DISABLE_MLOCK"
       value = true
     },
@@ -121,10 +108,6 @@ resource "helm_release" "tfe_install" {
     {
       name  = "env.variables.TFE_HTTP_PORT"
       value = "8080"
-    },
-    {
-      name  = "env.variables.TFE_TLS_KEY_FILE"
-      value = "/etc/ssl/private/terraform-enterprise/tls.key"
     },
     {
       name  = "env.variables.TFE_REDIS_USE_AUTH"
@@ -188,7 +171,39 @@ resource "helm_release" "tfe_install" {
     }
   ]
 
-  set_sensitive = [
+  # adding values to helm release if a secondary TFE hostname is to be configured
+  set_values_list_secondary_hostname = var.tfe_secondary_hostname_fqdn != null ? [
+    {
+      name  = "env.variables.TFE_HOSTNAME_SECONDARY"
+      value = var.tfe_secondary_hostname_fqdn
+    },
+    {
+      name  = "env.variables.TFE_TLS_KEY_FILE_SECONDARY"
+      value = "/etc/ssl/private/terraform-enterprise/ext_key.pem"
+    },
+    {
+      name  = "env.variables.TFE_TLS_CERT_FILE_SECONDARY"
+      value = "/etc/ssl/private/terraform-enterprise/ext_cert.pem"
+    },
+    {
+      name  = "tlsSecondary.certMountPath"
+      value = "/etc/ssl/private/terraform-enterprise/ext_cert.pem"
+    },
+    {
+      name  = "tlsSecondary.keyMountPath"
+      value = "/etc/ssl/private/terraform-enterprise/ext_key.pem"
+    },
+    {
+      name  = "tlsSecondary.certificateSecret"
+      value = var.tfe_secondary_hostname_secret_name
+    }
+  ] : []
+
+  # concatenating values for the final list
+  set_values_list_final = concat(local.set_values_list, local.set_values_list_secondary_hostname)
+
+  # building the list of sensitive values
+  set_sensitive_values_list = [
     {
       name  = "env.secrets.TFE_LICENSE"
       value = var.tfe_license
@@ -220,8 +235,44 @@ resource "helm_release" "tfe_install" {
     {
       name  = "env.secrets.TFE_IACT_TOKEN"
       value = random_string.iact_token.result
-    }
+    },
   ]
+
+  # building the list of sensitive values if a secondary TFE hostname is to be configured
+  set_sensitive_values_list_secondary_hostname = var.tfe_secondary_hostname_certificate != null && var.tfe_secondary_hostname_key != null ? [
+    {
+      name  = "tlsSecondary.certData"
+      value = base64encode(var.tfe_secondary_hostname_certificate)
+    },
+    {
+      name  = "tlsSecondary.keyData"
+      value = base64encode(var.tfe_secondary_hostname_key)
+  }] : []
+
+  # concatenating sensitive values for the final list
+  set_sensitive_values_list_final = concat(local.set_sensitive_values_list, local.set_sensitive_values_list_secondary_hostname)
+}
+
+# ########################################################################################################################
+# # Terraform Enterprise Helm Chart
+# ########################################################################################################################
+
+resource "helm_release" "tfe_install" {
+  depends_on = [kubernetes_secret.tfe_pull_secret]
+
+  name             = "terraform-enterprise"
+  chart            = "${path.module}/chart/tfe"
+  namespace        = kubernetes_namespace.tfe.metadata[0].name
+  create_namespace = false
+  timeout          = 1200
+  wait             = true
+  recreate_pods    = true
+  force_update     = true
+  reset_values     = true
+
+  set = local.set_values_list_final
+
+  set_sensitive = local.set_sensitive_values_list_final
 
   values = [<<-EOF
     container:
@@ -235,13 +286,6 @@ resource "random_string" "iact_token" {
   length  = 10
   special = false
 }
-
-# resource "kubernetes_service_account" "tfe" {
-#   metadata {
-#     name      = "tfe"
-#     namespace = kubernetes_namespace.tfe.metadata[0].name
-#   }
-# }
 
 resource "kubernetes_role_binding" "tfe_admin" {
 
@@ -282,6 +326,30 @@ resource "kubectl_manifest" "tfe_route" {
         termination: reencrypt
         insecureEdgeTerminationPolicy: None
   YAML
+}
+
+resource "kubectl_manifest" "tfe_secondary_route" {
+  depends_on = [helm_release.tfe_install]
+  count      = var.tfe_secondary_hostname_fqdn != null ? 1 : 0
+
+  yaml_body = <<-YAML
+    apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: "tfe-secondary-route"
+      namespace: ${kubernetes_namespace.tfe.metadata[0].name}
+    spec:
+      host: ${var.tfe_secondary_hostname_fqdn}
+      to:
+        kind: Service
+        name: terraform-enterprise
+      port:
+        targetPort: https-port
+      tls:
+        termination: passthrough
+        insecureEdgeTerminationPolicy: None
+  YAML
+
 }
 
 data "external" "admin_user_token" {

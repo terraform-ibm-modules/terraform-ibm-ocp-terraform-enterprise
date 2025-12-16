@@ -35,15 +35,20 @@ output "redis_password" {
 
 output "tfe_console_url" {
   value       = module.tfe_install.tfe_console_url
-  description = "url to access TFE."
+  description = "url to access Terraform Enterprise."
 }
 
 output "tfe_hostname" {
   value       = module.tfe_install.tfe_hostname
-  description = "The hostname for TFE instance"
+  description = "The hostname for Terraform Enterprise instance"
 }
 
 output "redis_password_secret_crn" {
   value       = var.existing_secrets_manager_crn != null ? module.redis_password_secret[0].secret_crn : null
   description = "The CRN of the secret containing the redis admin password"
+}
+
+output "tfe_secondary_hostname_fqdn" {
+  description = "The FQDN for the Terraform Enterprise secondary hostname. Null if no secondary hostname is created"
+  value       = var.tfe_secondary_host != null ? "https://${local.tfe_secondary_hostname_fqdn}" : null
 }
