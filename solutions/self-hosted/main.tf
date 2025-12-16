@@ -19,7 +19,7 @@ module "tfe" {
   resource_tags                            = var.resource_tags
   vpc_name                                 = "${local.prefix}vpc"
   cluster_name                             = "${local.prefix}cluster"
-  kms_instance_name                        = local.prefix
+  kms_instance_name                        = "${local.prefix}kms"
   postgres_instance_name                   = "${local.prefix}data-store"
   cos_instance_name                        = "${local.prefix}cos"
   cos_bucket_name                          = "${local.prefix}cos-bucket"
