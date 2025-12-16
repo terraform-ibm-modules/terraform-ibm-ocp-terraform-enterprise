@@ -42,7 +42,6 @@ To set up your local development environment, see [Local development setup](http
 
 The module integrates with IBM Cloud Secret Manager service. This integration takes two forms. If an optional IBM Cloud Secrets Manager instance CRN and secret group ID are provided, then the Redis admin user password and Terraform Enterprise admin token will be stored in Secrets Manager and the new secret CRNs will be returned instead of the secret values. If an optional Terraform Enterprise license secret CRN is provided, then the license will be retrieved from Secrets Manager, avoiding the need to pass the license key as a string.
 
-
 ## Known issues
 
 Tear down will fail at the Postgresql instance when delete protection is enabled. Set the delete protection flag to false and run `terraform apply --target 'module.<top level module name>.module.icd_postgres.ibm_database.postgresql_db'` before running the destroy to complete the tear down.
