@@ -19,6 +19,7 @@ module "tfe" {
   resource_tags                            = var.resource_tags
   vpc_name                                 = "${local.prefix}vpc"
   cluster_name                             = "${local.prefix}cluster"
+  kms_instance_name                        = local.prefix
   postgres_instance_name                   = "${local.prefix}data-store"
   cos_instance_name                        = "${local.prefix}cos"
   cos_bucket_name                          = "${local.prefix}cos-bucket"
@@ -28,6 +29,7 @@ module "tfe" {
   admin_password                           = var.admin_password
   admin_email                              = var.admin_email
   tfe_organization                         = var.tfe_organization_name
+  kms_key_deletion_protection              = var.kms_key_deletion_protection
   postgres_deletion_protection             = var.postgres_deletion_protection
   add_to_catalog                           = var.add_to_catalog
   existing_secrets_manager_crn             = var.secrets_manager_crn

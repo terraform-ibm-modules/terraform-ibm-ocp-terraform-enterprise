@@ -2,6 +2,10 @@
 # Create Key Protect KMS instance and keys
 ##############################################################################
 
+locals {
+  force_delete = var.kms_key_deletion_protection ? false : true
+}
+
 module "key_protect_all_inclusive" {
   source                    = "terraform-ibm-modules/kms-all-inclusive/ibm"
   version                   = "4.19.2"
@@ -17,19 +21,19 @@ module "key_protect_all_inclusive" {
       keys = [
         {
           key_name     = "terraform-enterprise-cos"
-          force_delete = true # Setting it to true for testing purpose
+          force_delete = local.force_delete
         },
         {
           key_name     = "terraform-enterprise-postgresql"
-          force_delete = true
+          force_delete = local.force_delete
         },
         {
           key_name     = "terraform-enterprise-postgresql-backup"
-          force_delete = true
+          force_delete = local.force_delete
         },
         {
           key_name     = "terraform-enterprise-vsi-volume-key"
-          force_delete = true
+          force_delete = local.force_delete
         }
       ]
     }

@@ -146,6 +146,12 @@ variable "kms_instance_name" {
   default     = "tfe-kms-kp"
 }
 
+variable "kms_key_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection within terraform. The KMS keys can not be force deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
+  default     = true
+}
+
 ##############################################################################
 # COS
 ##############################################################################
