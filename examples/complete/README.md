@@ -10,7 +10,7 @@
 ## Overview
 
 This repository provides a top-level Terraform module for deploying and managing HashiCorp Terraform Enterprise (TFE) on IBM Cloud Red Hat OpenShift clusters. The module automates the setup of namespaces, secrets, Helm releases, OpenShift routes, and supporting resources required for a production-grade TFE installation.
-It provides also the option to setup a custom hostname from an existing domain registered on an existing instance of IBM Cloud Internet Service.
+It provides also the option to setup a secondary hostname for the Terraform Enterprise instance from an existing domain registered on an existing instance of IBM Cloud Internet Service.
 
 **Status:** This module is working but still incubating (alpha version). Interfaces and behaviors may change. Early adopters are encouraged to try it and provide feedback.
 
@@ -25,7 +25,7 @@ You need the following permissions to run this module:
 - IBM Cloud Databases for PostgreSQL/Redis: `Manager` or equivalent access
 - Ability to create and manage Kubernetes resources in the target OpenShift namespace
 - IBM Cloud Internet Service: `Reader` or `Writer` access to read domain details or to create a CNAME entry for the DNS
-- IBM Cloud Secrets Manager: `Reader` and `Writed` access to read and write secrets
+- IBM Cloud Secrets Manager: `Reader` and `Writer` access to read and write secrets
 
 ## Contributing
 

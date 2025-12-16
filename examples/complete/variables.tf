@@ -44,37 +44,37 @@ variable "resource_tags" {
 
 variable "tfe_license" {
   type        = string
-  description = "The license key for TFE"
+  description = "The license key for Terraform Enterprise"
   default     = null
   sensitive   = true
 }
 
 variable "admin_username" {
   type        = string
-  description = "The user name of the TFE admin user"
+  description = "The user name of the Terraform Enterprise admin user"
   default     = "admin"
 }
 
 variable "admin_email" {
   type        = string
-  description = "The email address of the TFE admin user"
+  description = "The email address of the Terraform Enterprise admin user"
   default     = "test@example.com"
 }
 
 variable "admin_password" {
   type        = string
-  description = "The password for the TFE admin user. 10 char minimum"
+  description = "The password for the Terraform Enterprise admin user. 10 char minimum"
   sensitive   = true
 }
 
 variable "tfe_organization_name" {
   type        = string
-  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
+  description = "If set, the name of the Terraform Enterprise organization to create. If not set, the module will not create an organization."
   default     = "default"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization_name))
-    error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
+    error_message = "The Terraform Enterprise organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
   }
 }
 
@@ -108,56 +108,60 @@ variable "secrets_manager_secret_group_id" {
 
 variable "tfe_license_secret_crn" {
   type        = string
-  description = "The CRN of the Secrets Manager secret containing the license key for TFE"
+  description = "The CRN of the Secrets Manager secret containing the license key for Terraform Enterprise"
   default     = null
 }
 
 ##############################################################################
-# Custom domain support
+# Terraform Enterprise secondary hostname support
 ##############################################################################
 
 variable "existing_cis_instance_name" {
-  description = "Existing IBM Cloud Internet Service instance providing the support for the base domain of custom hostname to use for Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
   type        = string
+  description = "Existing IBM Cloud Internet Service instance name providing the support for the base domain of Terraform Enterprise instance secondary hostname. It is required to configure a Terraform Enterprise instance secondary hostname. Default to null."
   default     = null
 }
 
 variable "existing_cis_instance_resource_group_id" {
-  description = "Existing Resource Group ID for the existing IBM Cloud Internet Service instance. It is required to configure a custom hostname. Default to null."
+  description = "Existing Resource Group ID for the existing IBM Cloud Internet Service instance. It is required to configure a Terraform Enterprise instance secondary hostname. Default to null."
   type        = string
   default     = null
 }
 
 variable "existing_cis_instance_domain" {
-  description = "The base domain configured on existing IBM Cloud Internet Service instance for the custom hostname to use for Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+  description = "The base domain configured on existing IBM Cloud Internet Service instance to use as domain for the Terraform Enterprise instance secondary hostname FQDN. It is required to configure the Terraform Enterprise instance secondary hostname. Default to null."
   type        = string
   default     = null
 }
 
-variable "tfe_custom_hostname" {
-  description = "The custom hostname to use with the base domain for the Terraform Enterprise instance. Default to null."
+variable "tfe_secondary_host" {
+  description = "The Terraform Enterprise secondary host name to concatenate with the var.existing_cis_instance_domain for the Terraform Enterprise instance secondary hostname FQDN. Default to null."
   type        = string
   default     = null
   validation {
-    condition     = var.tfe_custom_hostname == null || (var.tfe_custom_hostname != null && var.existing_cis_instance_name != null && var.existing_cis_instance_resource_group_id != null && var.existing_cis_instance_domain != null && var.tfe_custom_domain_existing_secret_crn != null)
-    error_message = "If var.tfe_custom_hostname all the inputs var.existing_cis_instance_name var.existing_cis_instance_resource_group_id var.existing_cis_instance_domain and var.tfe_custom_domain_existing_secret_crn must be not null."
+    condition     = var.tfe_secondary_host == null || (var.tfe_secondary_host != null && var.existing_cis_instance_name != null && var.existing_cis_instance_resource_group_id != null && var.existing_cis_instance_domain != null && var.tfe_secondary_hostname_existing_secret_crn != null)
+    error_message = "If var.tfe_secondary_host all the inputs var.existing_cis_instance_name var.existing_cis_instance_resource_group_id var.existing_cis_instance_domain and var.tfe_secondary_hostname_existing_secret_crn must be not null."
   }
 }
 
-variable "create_tfe_custom_hostname_on_cis" {
-  description = "Flag to create the custom hostname entry on existing IBM Cloud Internet Service instance for the base domain selected. If enabled a CNAME entry will be created on the DNS configuration towards the default Terraform Enterprise instance route. Default to false."
+variable "create_tfe_secondary_host_on_cis" {
+  description = "Flag to create the host entry for the Terraform Enterprise secondary hostname on existing IBM Cloud Internet Service instance for the base domain provided through var.existing_cis_instance_domain. If enabled a CNAME entry is created on the DNS configuration mapping the default Terraform Enterprise instance route. Default to false."
   type        = bool
   default     = false
+  validation {
+    condition     = (var.create_tfe_secondary_host_on_cis == true && var.tfe_secondary_host != null) || var.create_tfe_secondary_host_on_cis == false
+    error_message = "If var.create_tfe_secondary_host_on_cis is true the value of var.tfe_secondary_host cannot be null."
+  }
 }
 
-variable "tfe_custom_domain_existing_secret_crn" {
-  description = "CRN of the existing secret storing the TLS certificate for the custom hostname of the Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+variable "tfe_secondary_hostname_existing_secret_crn" {
+  description = "CRN of the existing secret storing the TLS certificate for the secondary hostname FQDN of the Terraform Enterprise instance. It is required to configure the Terraform Enterprise secondary hostname. Default to null."
   type        = string
   default     = null
 }
 
-variable "tfe_custom_domain_secret_name" {
-  description = "The secret name to be used to store the TLS certificate on the OCP cluster for the custom hostname. Default to null. If null and a custom domain is used the secret is named 'terraform-enterprise-certificates-secondary'."
+variable "tfe_secondary_hostname_secret_name" {
+  description = "The secret name to be used to store the TLS certificate on the OCP cluster for the secondary hostname FQDN of the Terraform Enterprise instance. Default to null. If null and the secondary Terraform Enterprise hostname is provided the secret is named 'terraform-enterprise-certificates-secondary'."
   type        = string
   default     = null
 }

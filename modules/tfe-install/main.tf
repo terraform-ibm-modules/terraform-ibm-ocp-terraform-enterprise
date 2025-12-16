@@ -164,11 +164,11 @@ locals {
     }
   ]
 
-  # adding values to helm release if a custom hostname is to be configured
-  set_values_list_secondary_domain = var.tfe_custom_hostname != null ? [
+  # adding values to helm release if a secondary TFE hostname is to be configured
+  set_values_list_secondary_hostname = var.tfe_secondary_hostname_fqdn != null ? [
     {
       name  = "env.variables.TFE_HOSTNAME_SECONDARY"
-      value = var.tfe_custom_hostname # "mycustdomain.goldeneye.dev.cloud.ibm.com"
+      value = var.tfe_secondary_hostname_fqdn
     },
     {
       name  = "env.variables.TFE_TLS_KEY_FILE_SECONDARY"
@@ -188,12 +188,12 @@ locals {
     },
     {
       name  = "tlsSecondary.certificateSecret"
-      value = var.tfe_custom_domain_secret_name
+      value = var.tfe_secondary_hostname_secret_name
     }
   ] : []
 
   # concatenating values for the final list
-  set_values_list_final = concat(local.set_values_list, local.set_values_list_secondary_domain)
+  set_values_list_final = concat(local.set_values_list, local.set_values_list_secondary_hostname)
 
   # building the list of sensitive values
   set_sensitive_values_list = [
@@ -231,19 +231,19 @@ locals {
     },
   ]
 
-  # building the list of sensitive values if a custom hostname is to be configured
-  set_sensitive_values_list_secondary_domain = var.tfe_custom_domain_certificate != null && var.tfe_custom_domain_key != null ? [
+  # building the list of sensitive values if a secondary TFE hostname is to be configured
+  set_sensitive_values_list_secondary_hostname = var.tfe_secondary_hostname_certificate != null && var.tfe_secondary_hostname_key != null ? [
     {
       name  = "tlsSecondary.certData"
-      value = base64encode(var.tfe_custom_domain_certificate)
+      value = base64encode(var.tfe_secondary_hostname_certificate)
     },
     {
       name  = "tlsSecondary.keyData"
-      value = base64encode(var.tfe_custom_domain_key)
+      value = base64encode(var.tfe_secondary_hostname_key)
   }] : []
 
   # concatenating sensitive values for the final list
-  set_sensitive_values_list_final = concat(local.set_sensitive_values_list, local.set_sensitive_values_list_secondary_domain)
+  set_sensitive_values_list_final = concat(local.set_sensitive_values_list, local.set_sensitive_values_list_secondary_hostname)
 }
 
 # ########################################################################################################################
@@ -321,18 +321,18 @@ resource "kubectl_manifest" "tfe_route" {
   YAML
 }
 
-resource "kubectl_manifest" "tfe_route_custom" {
+resource "kubectl_manifest" "tfe_secondary_route" {
   depends_on = [helm_release.tfe_install]
-  count      = var.tfe_custom_hostname != null ? 1 : 0
+  count      = var.tfe_secondary_hostname_fqdn != null ? 1 : 0
 
   yaml_body = <<-YAML
     apiVersion: route.openshift.io/v1
     kind: Route
     metadata:
-      name: "tfe-custom"
+      name: "tfe-secondary-route"
       namespace: ${kubernetes_namespace.tfe.metadata[0].name}
     spec:
-      host: ${var.tfe_custom_hostname}
+      host: ${var.tfe_secondary_hostname_fqdn}
       to:
         kind: Service
         name: terraform-enterprise

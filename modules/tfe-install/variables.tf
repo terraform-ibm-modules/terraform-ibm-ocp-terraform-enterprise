@@ -4,7 +4,7 @@
 
 variable "cluster_id" {
   type        = string
-  description = "The ID of the cluster you wish to deploy TFE to"
+  description = "The ID of the cluster you wish to deploy Terraform Enterprise to"
 }
 
 variable "cluster_resource_group_id" {
@@ -13,22 +13,22 @@ variable "cluster_resource_group_id" {
 }
 
 variable "namespace" {
-  description = "The namespace to deploy TFE to. This namespace will be created if it does not exist."
+  description = "The namespace to deploy Terraform Enterprise to. This namespace will be created if it does not exist."
   type        = string
   default     = "tfe"
 }
 
 #################################################################################
-# Initialize TFE instance variables
+# Initialize Terraform Enterprise instance variables
 #################################################################################
 
 variable "admin_username" {
-  description = "The user name of the TFE admin user"
+  description = "The user name of the Terraform Enterprise admin user"
   type        = string
 }
 
 variable "admin_email" {
-  description = "The email address of the TFE admin user"
+  description = "The email address of the Terraform Enterprise admin user"
   type        = string
 
   validation {
@@ -38,7 +38,7 @@ variable "admin_email" {
 }
 
 variable "admin_password" {
-  description = "The password for the TFE admin user"
+  description = "The password for the Terraform Enterprise admin user"
   type        = string
 
   validation {
@@ -49,63 +49,63 @@ variable "admin_password" {
 }
 
 variable "tfe_organization" {
-  description = "If set, the name of the TFE organization to create. If not set, the module will not create an organization."
+  description = "If set, the name of the Terraform Enterprise organization to create. If not set, the module will not create an organization."
   type        = string
   default     = "default"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9_-]{1,63}$", var.tfe_organization))
-    error_message = "The TFE organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
+    error_message = "The Terraform Enterprise organization name must only contain letters, numbers, underscores (_), and hyphens (-), and must not exceed 63 characters."
   }
 }
 
 ##############################################################################
-# TFE Installation variables
+# Terraform Enterprise Installation variables
 ##############################################################################
 
 variable "tfe_license" {
-  description = "The license key for TFE"
+  description = "The license key for Terraform Enterprise"
   type        = string
   sensitive   = true
 }
 
 variable "tfe_image_tag" {
-  description = "The version tag of the TFE image to use"
+  description = "The version tag of the Terraform Enterprise image to use"
   type        = string
   default     = "v202504-1"
 }
 
 variable "tfe_encryption_password" {
-  description = "The encryption password for TFE"
+  description = "The encryption password for Terraform Enterprise"
   type        = string
   default     = "vincent"
   sensitive   = true
 }
 
 variable "tfe_database_host" {
-  description = "The host of the database for TFE, including the port - e.g. 'hostname:port'"
+  description = "The host of the database for Terraform Enterprise, including the port - e.g. 'hostname:port'"
   type        = string
 }
 
 variable "tfe_database_user" {
-  description = "The database user for TFE"
+  description = "The database user for Terraform Enterprise"
   type        = string
 }
 
 variable "tfe_database_password" {
-  description = "The database password for TFE"
+  description = "The database password for Terraform Enterprise"
   type        = string
   sensitive   = true
 }
 
 variable "tfe_database_name" {
-  description = "The name of the database for TFE"
+  description = "The name of the database for Terraform Enterprise"
   type        = string
   default     = "ibmclouddb"
 }
 
 variable "tfe_s3_bucket" {
-  description = "The S3 bucket name for TFE object storage"
+  description = "The S3 bucket name for Terraform Enterprise object storage"
   type        = string
   default     = "tfe-bucket-vincent"
 }
@@ -135,41 +135,41 @@ variable "tfe_s3_endpoint" {
 }
 
 variable "tfe_redis_host" {
-  description = "The Redis host for TFE"
+  description = "The Redis host for Terraform Enterprise"
   type        = string
 }
 
 variable "tfe_redis_password" {
-  description = "The Redis password for TFE"
+  description = "The Redis password for Terraform Enterprise"
   type        = string
   default     = ""
   sensitive   = true
 }
 
-variable "tfe_custom_hostname" {
-  description = "The custom hostname to use with the base domain for the Terraform Enterprise instance. Default to null."
+variable "tfe_secondary_hostname_fqdn" {
+  description = "The FQDN for the Terraform Enterprise secondary instance hostname. Default to null."
   type        = string
   default     = null
   validation {
-    condition     = var.tfe_custom_hostname == null || (var.tfe_custom_hostname != null && var.tfe_custom_domain_certificate != null && var.tfe_custom_domain_key != null)
-    error_message = "If var.tfe_custom_hostname the inputs parameters var.tfe_custom_domain_certificate and var.tfe_custom_domain_key cannot be null."
+    condition     = var.tfe_secondary_hostname_fqdn == null || (var.tfe_secondary_hostname_fqdn != null && var.tfe_secondary_hostname_certificate != null && var.tfe_secondary_hostname_key != null)
+    error_message = "If var.tfe_secondary_hostname_fqdn the inputs parameters var.tfe_secondary_hostname_certificate and var.tfe_secondary_hostname_key cannot be null."
   }
 }
 
-variable "tfe_custom_domain_certificate" {
-  description = "The TLS certificate for the custom hostname of the Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+variable "tfe_secondary_hostname_certificate" {
+  description = "The TLS certificate for the Terraform Enterprise instance secondary hostname. It is required to configure the Terraform Enterprise secondary hostname. Default to null."
   type        = string
   default     = null
 }
 
-variable "tfe_custom_domain_key" {
-  description = "The TLS certificate private key for the custom hostname of the Terraform Enterprise instance. It is required to configure a custom hostname. Default to null."
+variable "tfe_secondary_hostname_key" {
+  description = "The TLS certificate private key for the Terraform Enterprise instance secondary hostname. It is required to configure a Terraform Enterprise secondary hostname. Default to null."
   type        = string
   default     = null
 }
 
-variable "tfe_custom_domain_secret_name" {
-  description = "The secret name to be used to store the TLS certificate on the OCP cluster for the custom hostname. Default to 'terraform-enterprise-certificates-secondary'."
+variable "tfe_secondary_hostname_secret_name" {
+  description = "The secret name to be used to store the TLS certificate on the OCP cluster for the Terraform Enterprise instance secondary hostname. Default to 'terraform-enterprise-certificates-secondary'."
   type        = string
   default     = "terraform-enterprise-certificates-secondary"
 }
