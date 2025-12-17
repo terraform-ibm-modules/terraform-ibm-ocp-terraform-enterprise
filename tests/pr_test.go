@@ -52,7 +52,6 @@ func TestMain(m *testing.M) {
 	if setPassEnvErr != nil {
 		log.Fatal(setPassEnvErr)
 	}
-
 	os.Exit(m.Run())
 }
 
