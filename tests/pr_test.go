@@ -67,9 +67,10 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 			"add_to_catalog":               false,
 			"postgres_vpe_enabled":         true,
 			"postgres_service_endpoints":   "private",
-			// "kms_key_deletion_protection":  false,
-			"tfe_license_secret_crn": permanentResources["terraform_enterprise_license_secret_crn"],
-			"secrets_manager_crn":    permanentResources["secretsManagerCRN"],
+			"postgres_deletion_protection": false,
+			"kms_key_deletion_protection":  false,
+			"tfe_license_secret_crn":       permanentResources["terraform_enterprise_license_secret_crn"],
+			"secrets_manager_crn":          permanentResources["secretsManagerCRN"],
 		},
 	})
 
