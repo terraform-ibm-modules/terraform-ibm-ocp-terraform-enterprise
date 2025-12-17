@@ -66,7 +66,6 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 		TerraformVars: map[string]interface{}{
 			"existing_resource_group_name": resourceGroup,
 			"add_to_catalog":               false,
-			"postgres_deletion_protection": false,
 			"postgres_vpe_enabled":         true,
 			"postgres_service_endpoints":   "private",
 			"kms_key_deletion_protection":  false,
