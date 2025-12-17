@@ -13,6 +13,12 @@ This repository provides a top-level Terraform module for deploying and managing
 
 **Status:** This module deploys a functional TFE infrastructure on IBM Cloud. However, it does not yet implement all production-ready requirements such as network isolation, security hardening, and compliance controls. The module interfaces and behaviors may change as these capabilities are added. Early adopters are encouraged to try it and provide feedback.
 
+### TFE Secondary hostname
+
+This module supports to configure the TFE instance with a [secondary hostname](https://developer.hashicorp.com/terraform/enterprise/deploy/reference/configuration#tfe_hostname_secondary) by:
+- integrating it with an existing IBM Cloud Internet Services instance providing an already configured domain (i.e. `example.com`) for the DNS support
+- providing the host to add to the existing domain DNS configuration (i.e. `tfe-host`) and to configure the route for the final secondary Fully Qualified Domain Name (FQDN) on the OCP cluster (i.e. `tfe-host.example.com`)
+- integrating it with an existing secret on IBM Secrets Manager instance to pull the TLS certificate to configure for the OpenShift route that serves the secondary FQDN.
 
 ## Required access policies
 
@@ -35,7 +41,6 @@ To set up your local development environment, see [Local development setup](http
 ## Notes
 
 The module integrates with IBM Cloud Secret Manager service. This integration takes two forms. If an optional IBM Cloud Secrets Manager instance CRN and secret group ID are provided, then the Redis admin user password and Terraform Enterprise admin token will be stored in Secrets Manager and the new secret CRNs will be returned instead of the secret values. If an optional Terraform Enterprise license secret CRN is provided, then the license will be retrieved from Secrets Manager, avoiding the need to pass the license key as a string.
-
 
 ## Known issues
 

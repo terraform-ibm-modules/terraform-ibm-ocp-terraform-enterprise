@@ -81,4 +81,12 @@ module "tfe" {
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id
   redis_password_secret_name               = "${local.prefix}redis-password"
   secrets_manager_secret_group_name        = "${local.prefix}secrets-group"
+  # TFE secondary hostname management
+  tfe_secondary_host                         = var.tfe_secondary_host
+  existing_cis_instance_name                 = var.existing_cis_instance_name
+  existing_cis_instance_resource_group_id    = var.existing_cis_instance_resource_group_id
+  existing_cis_instance_domain               = var.existing_cis_instance_domain
+  create_tfe_secondary_host_on_cis           = var.create_tfe_secondary_host_on_cis
+  tfe_secondary_hostname_existing_secret_crn = var.tfe_secondary_hostname_existing_secret_crn
+  tfe_secondary_hostname_secret_name         = var.tfe_secondary_hostname_secret_name
 }
