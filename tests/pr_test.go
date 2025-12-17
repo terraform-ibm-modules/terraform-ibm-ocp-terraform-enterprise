@@ -67,6 +67,7 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 			"existing_resource_group_name": resourceGroup,
 			"add_to_catalog":               false,
 			"postgres_deletion_protection": false,
+			"kms_key_deletion_protection":  false,
 			"tfe_license_secret_crn":       permanentResources["terraform_enterprise_license_secret_crn"],
 			"secrets_manager_crn":          permanentResources["secretsManagerCRN"],
 		},
@@ -140,6 +141,7 @@ func TestRunSelfHostedSchematics(t *testing.T) {
 		{Name: "add_to_catalog", Value: false, DataType: "bool"},
 		{Name: "admin_password", Value: password, DataType: "string"},
 		{Name: "postgres_deletion_protection", Value: false, DataType: "bool"},
+		{Name: "kms_key_deletion_protection", Value: false, DataType: "bool"},
 		{Name: "tfe_license_secret_crn", Value: permanentResources["terraform_enterprise_license_secret_crn"], DataType: "string"},
 	}
 

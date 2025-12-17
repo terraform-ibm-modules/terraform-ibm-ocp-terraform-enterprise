@@ -95,6 +95,12 @@ variable "postgres_deletion_protection" {
   default     = true
 }
 
+variable "kms_key_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection within terraform. The KMS keys can not be force deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
+  default     = true
+}
+
 variable "add_to_catalog" {
   type        = bool
   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."

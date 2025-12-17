@@ -1,21 +1,75 @@
 ##############################################################################
+# Create Key Protect KMS instance and keys
+##############################################################################
+
+locals {
+  force_delete = var.kms_key_deletion_protection ? false : true
+}
+
+module "key_protect_all_inclusive" {
+  source                    = "terraform-ibm-modules/kms-all-inclusive/ibm"
+  version                   = "4.19.2"
+  resource_group_id         = var.resource_group_id
+  key_protect_instance_name = var.kms_instance_name
+  region                    = var.region
+  resource_tags             = var.resource_tags
+  access_tags               = var.access_tags
+  keys = [
+    # Create one new Key Ring with multiple new Keys in it
+    {
+      key_ring_name = "terraform-enterprise"
+      keys = [
+        {
+          key_name     = "terraform-enterprise-cos"
+          force_delete = local.force_delete
+        },
+        {
+          key_name     = "terraform-enterprise-postgresql"
+          force_delete = local.force_delete
+        },
+        {
+          key_name     = "terraform-enterprise-postgresql-backup"
+          force_delete = local.force_delete
+        },
+        {
+          key_name     = "terraform-enterprise-vsi-volume-key"
+          force_delete = local.force_delete
+        }
+      ]
+    }
+  ]
+}
+
+# Local setup for VSI disk encryption
+locals {
+  kms_config = {
+    crk             = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-vsi-volume-key"].key_id
+    kms_instance_id = module.key_protect_all_inclusive.kms_guid
+    kms_account_id  = module.key_protect_all_inclusive.kms_account_id
+  }
+}
+
+
+##############################################################################
 # Create Cloud Object Storage instance and a bucket
 ##############################################################################
 
 module "cos" {
-  source                   = "terraform-ibm-modules/cos/ibm"
-  version                  = "10.7.0"
-  resource_group_id        = var.resource_group_id
-  region                   = var.region
-  create_cos_instance      = var.existing_cos_instance_id != null ? false : true
-  existing_cos_instance_id = var.existing_cos_instance_id
-  cos_instance_name        = var.cos_instance_name
-  cos_tags                 = var.resource_tags
-  bucket_name              = var.cos_bucket_name
-  add_bucket_name_suffix   = true
-  create_cos_bucket        = true
-  retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
-  kms_encryption_enabled   = false
+  source                     = "terraform-ibm-modules/cos/ibm"
+  version                    = "10.7.0"
+  resource_group_id          = var.resource_group_id
+  region                     = var.region
+  create_cos_instance        = var.existing_cos_instance_id != null ? false : true
+  existing_cos_instance_id   = var.existing_cos_instance_id
+  cos_instance_name          = var.cos_instance_name
+  cos_tags                   = var.resource_tags
+  bucket_name                = var.cos_bucket_name
+  add_bucket_name_suffix     = true
+  create_cos_bucket          = true
+  retention_enabled          = var.cos_retention # disable retention for test environments - enable for stage/prod
+  kms_encryption_enabled     = true
+  existing_kms_instance_guid = module.key_protect_all_inclusive.kms_guid
+  kms_key_crn                = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-cos"].crn
   resource_keys = [
     {
       name                      = "tfe-credentials"
@@ -41,6 +95,7 @@ module "ocp_vpc" {
   existing_cluster_id = var.existing_cluster_id
   vpc_name            = var.vpc_name
   cluster_name        = var.cluster_name
+  kms_config          = local.kms_config
 }
 
 ########################################################################################################################
@@ -48,14 +103,18 @@ module "ocp_vpc" {
 ########################################################################################################################
 
 module "icd_postgres" {
-  source             = "terraform-ibm-modules/icd-postgresql/ibm"
-  version            = "4.4.0"
-  resource_group_id  = var.resource_group_id
-  name               = var.postgres_instance_name
-  postgresql_version = "16" # TFE supports up to Postgres 16 (not 17)
-  region             = var.region
-  service_endpoints  = "public-and-private"
-  member_host_flavor = "multitenant"
+  source                       = "terraform-ibm-modules/icd-postgresql/ibm"
+  version                      = "4.4.0"
+  resource_group_id            = var.resource_group_id
+  name                         = var.postgres_instance_name
+  postgresql_version           = "16" # TFE supports up to Postgres 16 (not 17)
+  region                       = var.region
+  service_endpoints            = "public-and-private"
+  use_ibm_owned_encryption_key = false
+  use_same_kms_key_for_backups = false
+  kms_key_crn                  = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql"].crn
+  backup_encryption_key_crn    = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql-backup"].crn
+  member_host_flavor           = "multitenant"
   service_credential_names = {
     "tfe" : "Operator"
   }
