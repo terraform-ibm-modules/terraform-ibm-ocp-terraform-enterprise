@@ -5,6 +5,5 @@
   "tfe_license": $TFE_LICENSE,
   "admin_email": "validation@example.com",
   "admin_password": $RAND_PASSWORD,
-  "postgres_deletion_protection": false,
   "add_to_catalog": false
 }

@@ -29,8 +29,8 @@ module "tfe" {
   admin_password                           = var.admin_password
   admin_email                              = var.admin_email
   tfe_organization                         = var.tfe_organization_name
-  kms_key_deletion_protection              = var.kms_key_deletion_protection
-  postgres_deletion_protection             = var.postgres_deletion_protection
+  kms_key_deletion_protection              = false
+  postgres_deletion_protection             = false
   postgres_vpe_enabled                     = var.postgres_vpe_enabled
   postgres_service_endpoints               = var.postgres_service_endpoints
   postgres_vpe_service_endpoints           = var.postgres_vpe_service_endpoints
