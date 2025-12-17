@@ -50,7 +50,7 @@ module "resource_group" {
   source  = "terraform-ibm-modules/resource-group/ibm"
   version = "1.4.0"
   # if an existing resource group is not set (null) create a new one using prefix
-  resource_group_name          = var.existing_resource_group_name == null ? "${var.prefix}-resource-group" : null
+  resource_group_name          = var.existing_resource_group_name == null ? "${local.prefix}resource-group" : null
   existing_resource_group_name = var.existing_resource_group_name
 }
 
@@ -76,6 +76,7 @@ module "tfe" {
   subnets_zones_cidr                       = var.subnets_zones_cidr
   vpc_acl_rules                            = var.vpc_acl_rules
   postgres_add_acl_rule                    = var.postgres_add_acl_rule
+  kms_key_deletion_protection              = var.kms_key_deletion_protection
   add_to_catalog                           = var.add_to_catalog
   existing_secrets_manager_crn             = var.secrets_manager_crn
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id

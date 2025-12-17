@@ -65,13 +65,14 @@ locals {
 
   worker_pools = [
     {
-      subnet_prefix     = "default"
-      pool_name         = "default"  # ibm_container_vpc_cluster automatically names default pool "default" (See https://github.com/IBM-Cloud/terraform-provider-ibm/issues/2849)
-      machine_type      = "bx2.4x16" # smallest machine type available in VPC
-      workers_per_zone  = 2
-      operating_system  = "RHCOS"
-      labels            = {}
-      resource_group_id = var.resource_group_id
+      subnet_prefix                     = "default"
+      pool_name                         = "default"  # ibm_container_vpc_cluster automatically names default pool "default" (See https://github.com/IBM-Cloud/terraform-provider-ibm/issues/2849)
+      machine_type                      = "bx2.4x16" # smallest machine type available in VPC
+      workers_per_zone                  = 2
+      operating_system                  = "RHCOS"
+      labels                            = {}
+      resource_group_id                 = var.resource_group_id
+      boot_volume_encryption_kms_config = var.kms_config
     }
   ]
 }

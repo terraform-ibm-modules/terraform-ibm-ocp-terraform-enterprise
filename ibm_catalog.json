@@ -65,7 +65,7 @@
           "label": "Click & Go",
           "name": "self-hosted",
           "working_directory": "solutions/self-hosted",
-          "short_description": "Creates a 3-tier multi-zone resilient web application infrastructure to self host Terraform Enterprise on a VPC network",
+          "short_description": "Ideal for users who want to self host Terraform Enterprise in a multi-zone reslient virtual private cloud",
           "licenses": [],
           "iam_permissions": [
             {
@@ -230,50 +230,16 @@
               "key": "region",
               "type": "string",
               "default_value": "us-south",
-              "description": "Region where resources are created",
+              "description": "Region in which all the resources will be deployed. [Learn More](https://terraform-ibm-modules.github.io/documentation/#/region).",
               "required": true,
-              "options": [
-                {
-                  "displayname": "Osaka (jp-osa)",
-                  "value": "jp-osa"
+              "custom_config": {
+                "config_constraints": {
+                  "generationType": "2"
                 },
-                {
-                  "displayname": "Sydney (au-syd)",
-                  "value": "au-syd"
-                },
-                {
-                  "displayname": "Tokyo (jp-tok)",
-                  "value": "jp-tok"
-                },
-                {
-                  "displayname": "Frankfurt (eu-de)",
-                  "value": "eu-de"
-                },
-                {
-                  "displayname": "London (eu-gb)",
-                  "value": "eu-gb"
-                },
-                {
-                  "displayname": "Madrid (eu-es)",
-                  "value": "eu-es"
-                },
-                {
-                  "displayname": "Dallas (us-south)",
-                  "value": "us-south"
-                },
-                {
-                  "displayname": "Toronto (ca-tor)",
-                  "value": "ca-tor"
-                },
-                {
-                  "displayname": "Washington DC (us-east)",
-                  "value": "us-east"
-                },
-                {
-                  "displayname": "Sao Paulo (br-sao)",
-                  "value": "br-sao"
-                }
-              ],
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "type": "vpc_region"
+              },
               "virtual": false
             },
             {
@@ -333,6 +299,14 @@
               "type": "string",
               "default_value": "default",
               "description": "If set, the name of the TFE organization to create. If not set, the module will not create an organization.",
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "kms_key_deletion_protection",
+              "type": "boolean",
+              "default_value": true,
+              "description": "Enable deletion protection within terraform. The KMS keys can not be force deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'.",
               "required": false,
               "virtual": false
             },

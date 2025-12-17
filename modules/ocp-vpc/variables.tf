@@ -106,6 +106,16 @@ variable "subnets_zones_cidr" {
   }
 }
 
+variable "kms_config" {
+  type = object({
+    crk             = string
+    kms_instance_id = string
+    kms_account_id  = optional(string) # To attach KMS instance from another account
+  })
+  description = "Use to attach a KMS instance to the cluster. If kms_account_id is not provided, defaults to the account in use."
+  default     = null
+}
+
 variable "vpc_name" {
   type        = string
   description = "Name of the VPC to create. Default to tfe-vpc. If var.existing_vpc_id is not null this value is ignored. Null allowed only if var.existing_vpc_id is not null."
