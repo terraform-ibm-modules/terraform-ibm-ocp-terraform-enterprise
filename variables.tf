@@ -7,16 +7,6 @@ variable "region" {
   description = "Region where resources are created"
 }
 
-variable "service_endpoints" {
-  type        = string
-  description = "Service endpoints to use to create resources"
-  default     = "public"
-  validation {
-    condition     = contains(["public", "private"], var.service_endpoints)
-    error_message = "The value of var.service_endpoints can be only public or private"
-  }
-}
-
 variable "resource_group_id" {
   type        = string
   description = "The ID of the resource group to use for the creation of the Terraform Enterprise instance and the related resources."
@@ -202,7 +192,7 @@ variable "cos_retention" {
 
 variable "postgres_instance_name" {
   type        = string
-  description = "Name of postgres instance to create. Default set to be `tfe-data-store`"
+  description = "Name of PostgreSQL instance to create. Default set to be `tfe-data-store`"
   default     = "tfe-data-store"
 }
 
@@ -213,15 +203,29 @@ variable "postgres_deletion_protection" {
 }
 
 variable "postgres_service_endpoints" {
-  description = "Service endpoints for the postgres instance to deploy. Default is `public-and-private`"
+  description = "Service endpoints for the PostgreSQL instance to deploy. Default is `public-and-private`"
   default     = "public-and-private"
   type        = string
+  validation {
+    condition     = contains(["public", "private", "public-and-private"], var.postgres_service_endpoints)
+    error_message = "Allowed values for var.postgres_service_endpoints are 'public', 'private' and 'public-and-private'"
+  }
 }
 
 variable "postgres_vpe_enabled" {
   type        = bool
   description = "Enable VPE connection for the Postgres instance. Default is `false`. If true, a VPE gateway is created to the Postgres instance on its private endpoint. TFE is configured to connect to Postgres via the VPE on the private endpoint only if var.postgres_service_endpoints is set to \"private\"."
   default     = false
+}
+
+variable "postgres_vpe_service_endpoints" {
+  type        = string
+  description = "Service endpoints to use to create endpoint gateway to PostgreSQL instance."
+  default     = "public"
+  validation {
+    condition     = contains(["public", "private"], var.postgres_vpe_service_endpoints)
+    error_message = "The value of var.postgres_vpe_service_endpoints can be only public or private"
+  }
 }
 
 variable "postgres_add_acl_rule" {

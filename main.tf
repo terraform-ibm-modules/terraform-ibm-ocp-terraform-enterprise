@@ -213,7 +213,7 @@ locals {
   sleep_before_creating_vpe = "300s"
 }
 
-# in order to avoit to fail as service is not found we need to sleep for 5 minutes before creating the VPE
+# in order to avoid to fail as service is not found we need to sleep for 5 minutes before creating the VPE
 resource "time_sleep" "wait_before_creating_vpe" {
   depends_on      = [module.ocp_vpc]
   count           = var.postgres_vpe_enabled == true ? 1 : 0
@@ -232,7 +232,7 @@ module "icd_postgres_vpe" {
       service_name = "postgresql"
     }
   ]
-  service_endpoints = var.service_endpoints
+  service_endpoints = var.postgres_vpe_service_endpoints
   vpc_name          = module.ocp_vpc.vpc_name
   vpc_id            = module.ocp_vpc.vpc_id
   subnet_zone_list  = module.ocp_vpc.vpc_subnet_zone_list
@@ -345,8 +345,7 @@ resource "ibm_cm_account" "cm_account_instance" {
     name            = var.terraform_enterprise_engine_name
     type            = "terraform-enterprise"
     public_endpoint = module.tfe_install.tfe_console_url
-    # private_endpoint = "<private_endpoint>"
-    api_token = module.tfe_install.token
+    api_token       = module.tfe_install.token
     da_creation {
       enabled                    = var.enable_automatic_deployable_architecture_creation
       default_private_catalog_id = var.default_private_catalog_id

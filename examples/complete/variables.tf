@@ -97,15 +97,29 @@ variable "postgres_deletion_protection" {
 }
 
 variable "postgres_service_endpoints" {
-  description = "Service endpoints for the Postgres instance to deploy. Default is `public-and-private`"
+  description = "Service endpoints for the PostgreSQL instance to deploy. Default is `public-and-private`"
   default     = "public-and-private"
   type        = string
+  validation {
+    condition     = contains(["public", "private", "public-and-private"], var.postgres_service_endpoints)
+    error_message = "Allowed values for var.postgres_service_endpoints are 'public', 'private' and 'public-and-private'"
+  }
 }
 
 variable "postgres_vpe_enabled" {
   type        = bool
   description = "Enable VPE connection for the Postgres instance. Default is `false`. If true, a VPE gateway is created to the Postgres instance and TFE is configured with the VPE endpoint."
   default     = false
+}
+
+variable "postgres_vpe_service_endpoints" {
+  type        = string
+  description = "Service endpoints to use to create endpoint gateway to PostgreSQL instance. Default to 'public'."
+  default     = "public"
+  validation {
+    condition     = contains(["public", "private"], var.postgres_vpe_service_endpoints)
+    error_message = "Allowed values for var.postgres_vpe_service_endpoints are 'public' and 'private'"
+  }
 }
 
 variable "kms_key_deletion_protection" {

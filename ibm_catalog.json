@@ -346,6 +346,13 @@
               "virtual": false
             },
             {
+              "key": "postgres_vpe_service_endpoints",
+              "type": "string",
+              "default_value": "public",
+              "required": false,
+              "virtual": false
+            },
+            {
               "key": "subnets_zones_cidr",
               "hidden": true,
               "required": false,
