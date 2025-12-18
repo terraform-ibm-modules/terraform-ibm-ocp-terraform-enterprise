@@ -87,7 +87,7 @@ variable "tfe_organization_name" {
 variable "add_to_catalog" {
   type        = bool
   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
-  default     = true
+  default     = false
 }
 
 variable "postgres_deletion_protection" {

@@ -95,7 +95,7 @@ variable "tfe_organization" {
 variable "add_to_catalog" {
   type        = bool
   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
-  default     = true
+  default     = false
 }
 
 variable "terraform_enterprise_engine_name" {
