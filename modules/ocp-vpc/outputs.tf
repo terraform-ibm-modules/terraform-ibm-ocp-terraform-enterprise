@@ -16,3 +16,33 @@ output "ingress_hostname" {
   value       = local.ingress_hostname
   description = "The hostname of the cluster's ingress controller."
 }
+
+output "vpc_id" {
+  value       = local.vpc_id
+  description = "The ID of the VPC used by the cluster."
+}
+
+output "vpc_name" {
+  value       = local.vpc_name
+  description = "The ID of the VPC used by the cluster."
+}
+
+output "vpc_subnet_zone_list" {
+  value       = module.vpc.subnet_zone_list
+  description = "The list of subnets created for the VPC."
+}
+
+output "security_group_details" {
+  value       = module.vpc.security_group_details
+  description = "The details of security group added to the VPC."
+}
+
+output "kube_cluster_sg" {
+  description = "The ID of the default security group representing the cluster nodes."
+  value       = data.ibm_is_security_group.kube_cluster_sg
+}
+
+output "vpc_default_security_group" {
+  description = "The ID of the VPC default security group."
+  value       = data.ibm_is_vpc.vpc.default_security_group
+}

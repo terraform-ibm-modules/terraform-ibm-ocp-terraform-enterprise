@@ -95,6 +95,8 @@ module "ocp_vpc" {
   existing_cluster_id = var.existing_cluster_id
   vpc_name            = var.vpc_name
   cluster_name        = var.cluster_name
+  vpc_acl_rules       = local.final_acl_rules
+  subnets_zones_cidr  = var.subnets_zones_cidr
   kms_config          = local.kms_config
 }
 
@@ -109,12 +111,12 @@ module "icd_postgres" {
   name                         = var.postgres_instance_name
   postgresql_version           = "16" # TFE supports up to Postgres 16 (not 17)
   region                       = var.region
-  service_endpoints            = "public-and-private"
+  service_endpoints            = var.postgres_service_endpoints
+  member_host_flavor           = "multitenant"
   use_ibm_owned_encryption_key = false
   use_same_kms_key_for_backups = false
   kms_key_crn                  = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql"].crn
   backup_encryption_key_crn    = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql-backup"].crn
-  member_host_flavor           = "multitenant"
   service_credential_names = {
     "tfe" : "Operator"
   }
@@ -122,12 +124,151 @@ module "icd_postgres" {
 }
 
 ########################################################################################################################
+# VPC
+########################################################################################################################
+
+# defining ACL rules to allow traffic to/from the ICD Postgres instance based on the selected service endpoints and VPE configuration
+locals {
+
+  postgres_public_acl_rules = flatten([
+    for subnet, cidr in var.subnets_zones_cidr :
+    concat(
+      [
+        {
+          name        = "allow-postgres-outbound-${subnet}"
+          action      = "allow"
+          direction   = "outbound"
+          source      = cidr
+          destination = "0.0.0.0/0"
+          tcp = {
+            source_port_max = 65535
+            source_port_min = 1
+            port_min        = module.icd_postgres.port
+            port_max        = module.icd_postgres.port
+          }
+        }
+      ],
+      [
+        {
+          name        = "allow-postgres-inbound-${subnet}"
+          action      = "allow"
+          direction   = "inbound"
+          source      = "0.0.0.0/0"
+          destination = cidr
+          tcp = {
+            source_port_max = module.icd_postgres.port
+            source_port_min = module.icd_postgres.port
+            port_max        = 65535
+            port_min        = 1
+          }
+        }
+      ]
+    )
+    ]
+  )
+
+  # ACL rules allowing traffic from/to the subnet CIDRs when VPE is enabled
+  postgres_vpe_acl_rules = flatten([
+    for subnet, cidr in var.subnets_zones_cidr : [
+      {
+        name        = "allow-postgres-outbound-to-vpe-${subnet}"
+        action      = "allow"
+        direction   = "outbound"
+        source      = cidr
+        destination = cidr
+        tcp = {
+          source_port_max = 65535
+          source_port_min = 1
+          port_min        = module.icd_postgres.port
+          port_max        = module.icd_postgres.port
+        }
+      },
+      {
+        name        = "allow-postgres-inbound-from-vpe-${subnet}"
+        action      = "allow"
+        direction   = "inbound"
+        source      = cidr
+        destination = cidr
+        tcp = {
+          source_port_max = module.icd_postgres.port
+          source_port_min = module.icd_postgres.port
+          port_max        = 65535
+          port_min        = 1
+        }
+      }
+    ]
+  ])
+
+  # if postgres_add_acl_rule is true, concatenate the appropriate postgres ACL rules to the VPC ACL rules
+  # if VPE connections is enabled (var.postgres_vpe_enabled flag true) and postgres_service_endpoints is "private", use the VPE ACL rules
+  # otherwise use the public ACL rules
+  final_acl_rules = var.postgres_add_acl_rule ? (
+    var.postgres_vpe_enabled == true && var.postgres_service_endpoints == "private" ?
+    concat(var.vpc_acl_rules, local.postgres_vpe_acl_rules) :
+    concat(var.vpc_acl_rules, local.postgres_public_acl_rules)
+  ) : var.vpc_acl_rules
+}
+
+locals {
+  sleep_before_creating_vpe = "300s"
+}
+
+# in order to avoid to fail as service is not found we need to sleep for 5 minutes before creating the VPE
+resource "time_sleep" "wait_before_creating_vpe" {
+  depends_on      = [module.ocp_vpc]
+  count           = var.postgres_vpe_enabled == true ? 1 : 0
+  create_duration = local.sleep_before_creating_vpe
+}
+
+module "icd_postgres_vpe" {
+  depends_on = [time_sleep.wait_before_creating_vpe]
+  count      = var.postgres_vpe_enabled ? 1 : 0
+  source     = "terraform-ibm-modules/vpe-gateway/ibm"
+  version    = "4.8.4"
+  region     = var.region
+  cloud_service_by_crn = [
+    {
+      crn          = (module.icd_postgres.crn)
+      service_name = "postgresql"
+    }
+  ]
+  service_endpoints = var.postgres_vpe_service_endpoints
+  vpc_name          = module.ocp_vpc.vpc_name
+  vpc_id            = module.ocp_vpc.vpc_id
+  subnet_zone_list  = module.ocp_vpc.vpc_subnet_zone_list
+  resource_group_id = var.resource_group_id
+}
+
+
+# attach rules to the VPC default security group to enable traffic from the OCP cluster's workers to the ICD Postgres instance
+# if the VPE gateway to postgres is enabled, restrict access to the subnet CIDRs, otherwise allow from anywhere
+resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
+  for_each = {
+    for subnet in module.ocp_vpc.vpc_subnet_zone_list :
+    "${subnet.name}_${subnet.zone}" => {
+      id   = subnet.id
+      zone = subnet.zone
+      cidr = subnet.cidr
+    }
+  }
+  group     = module.ocp_vpc.vpc_default_security_group
+  direction = "inbound"
+  local     = var.postgres_vpe_enabled == true ? each.value.cidr : "0.0.0.0/0"
+  remote    = module.ocp_vpc.kube_cluster_sg.id
+  tcp {
+    port_min = module.icd_postgres.port
+    port_max = module.icd_postgres.port
+  }
+}
+
+########################################################################################################################
 # Redis
 ########################################################################################################################
 
 module "redis" {
-  count  = var.existing_redis_hostname == null ? 1 : 0
-  source = "./modules/redis"
+  depends_on = [module.ocp_vpc]
+  count      = var.existing_redis_hostname == null ? 1 : 0
+  source     = "./modules/redis"
 }
 
 locals {
@@ -162,6 +303,7 @@ locals {
 }
 
 module "tfe_install" {
+  depends_on                = [module.redis, module.icd_postgres_vpe]
   source                    = "./modules/tfe-install"
   cluster_id                = module.ocp_vpc.cluster_id
   cluster_resource_group_id = var.resource_group_id
@@ -203,8 +345,7 @@ resource "ibm_cm_account" "cm_account_instance" {
     name            = var.terraform_enterprise_engine_name
     type            = "terraform-enterprise"
     public_endpoint = module.tfe_install.tfe_console_url
-    # private_endpoint = "<private_endpoint>"
-    api_token = module.tfe_install.token
+    api_token       = module.tfe_install.token
     da_creation {
       enabled                    = var.enable_automatic_deployable_architecture_creation
       default_private_catalog_id = var.default_private_catalog_id

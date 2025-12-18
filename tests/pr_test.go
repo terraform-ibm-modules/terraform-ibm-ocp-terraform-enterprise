@@ -52,7 +52,6 @@ func TestMain(m *testing.M) {
 	if setPassEnvErr != nil {
 		log.Fatal(setPassEnvErr)
 	}
-
 	os.Exit(m.Run())
 }
 
@@ -66,6 +65,8 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 		TerraformVars: map[string]interface{}{
 			"existing_resource_group_name": resourceGroup,
 			"add_to_catalog":               false,
+			"postgres_vpe_enabled":         true,
+			"postgres_service_endpoints":   "private",
 			"postgres_deletion_protection": false,
 			"kms_key_deletion_protection":  false,
 			"tfe_license_secret_crn":       permanentResources["terraform_enterprise_license_secret_crn"],
@@ -140,8 +141,8 @@ func TestRunSelfHostedSchematics(t *testing.T) {
 		{Name: "ibmcloud_api_key", Value: options.RequiredEnvironmentVars["TF_VAR_ibmcloud_api_key"], DataType: "string", Secure: true},
 		{Name: "add_to_catalog", Value: false, DataType: "bool"},
 		{Name: "admin_password", Value: password, DataType: "string"},
-		{Name: "postgres_deletion_protection", Value: false, DataType: "bool"},
-		{Name: "kms_key_deletion_protection", Value: false, DataType: "bool"},
+		// {Name: "postgres_deletion_protection", Value: false, DataType: "bool"},
+		// {Name: "kms_key_deletion_protection", Value: false, DataType: "bool"},
 		{Name: "tfe_license_secret_crn", Value: permanentResources["terraform_enterprise_license_secret_crn"], DataType: "string"},
 	}
 

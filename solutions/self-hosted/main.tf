@@ -29,8 +29,14 @@ module "tfe" {
   admin_password                           = var.admin_password
   admin_email                              = var.admin_email
   tfe_organization                         = var.tfe_organization_name
-  kms_key_deletion_protection              = var.kms_key_deletion_protection
-  postgres_deletion_protection             = var.postgres_deletion_protection
+  kms_key_deletion_protection              = false
+  postgres_deletion_protection             = false
+  postgres_vpe_enabled                     = var.postgres_vpe_enabled
+  postgres_service_endpoints               = var.postgres_service_endpoints
+  postgres_vpe_service_endpoints           = var.postgres_vpe_service_endpoints
+  subnets_zones_cidr                       = var.subnets_zones_cidr
+  vpc_acl_rules                            = var.vpc_acl_rules
+  postgres_add_acl_rule                    = var.postgres_add_acl_rule
   add_to_catalog                           = var.add_to_catalog
   existing_secrets_manager_crn             = var.secrets_manager_crn
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id

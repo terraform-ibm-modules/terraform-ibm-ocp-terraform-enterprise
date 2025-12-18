@@ -12,8 +12,8 @@ module "vpc" {
   name              = var.vpc_name
   tags              = []
   address_prefixes = {
-    zone-1 = ["10.10.10.0/24"]
-    zone-2 = ["10.20.10.0/24"]
+    for zone, cidr in var.subnets_zones_cidr :
+    zone => [cidr]
   }
   clean_default_sg_acl = true
   network_acls = [
@@ -22,22 +22,7 @@ module "vpc" {
       add_ibm_cloud_internal_rules = true
       add_vpc_connectivity_rules   = true
       prepend_ibm_rules            = true
-      rules = [
-        {
-          name        = "allow-all-inbound"
-          action      = "allow"
-          direction   = "inbound"
-          source      = "0.0.0.0/0"
-          destination = "0.0.0.0/0"
-        },
-        {
-          name        = "allow-all-outbound"
-          action      = "allow"
-          direction   = "outbound"
-          source      = "0.0.0.0/0"
-          destination = "0.0.0.0/0"
-        }
-      ]
+      rules                        = var.vpc_acl_rules
     }
   ]
   enable_vpc_flow_logs                   = false
@@ -46,27 +31,19 @@ module "vpc" {
   security_group_rules = []
   #existing_cos_instance_guid             = module.cos_fscloud.cos_instance_guid
   subnets = {
-    zone-1 = [
+    for zone, cidr in var.subnets_zones_cidr :
+    zone => [
       {
         acl_name       = "vpc-acl"
-        name           = "zone-1"
-        cidr           = "10.10.10.0/24"
-        public_gateway = true
-      }
-    ],
-    zone-2 = [
-      {
-        acl_name       = "vpc-acl"
-        name           = "zone-2"
-        cidr           = "10.20.10.0/24"
+        name           = zone
+        cidr           = cidr
         public_gateway = true
       }
     ]
   }
   use_public_gateways = {
-    zone-1 = true
-    zone-2 = true
-    zone-3 = false
+    for zone, cidr in var.subnets_zones_cidr :
+    zone => true
   }
 }
 
@@ -129,4 +106,23 @@ locals {
   cluster_name     = var.existing_cluster_id != null ? data.ibm_container_vpc_cluster.cluster[0].name : module.openshift[0].cluster_name
   cluster_id       = var.existing_cluster_id != null ? data.ibm_container_vpc_cluster.cluster[0].id : module.openshift[0].cluster_id
   ingress_hostname = var.existing_cluster_id != null ? data.ibm_container_vpc_cluster.cluster[0].ingress_hostname : module.openshift[0].ingress_hostname
+  vpc_id           = module.vpc.vpc_id
+  vpc_name         = module.vpc.vpc_name
+}
+
+locals {
+  cluster_security_group = [for group in data.ibm_is_security_groups.vpc_security_groups.security_groups : group if group.name == "kube-${local.cluster_id}"][0]
+}
+
+data "ibm_is_security_groups" "vpc_security_groups" {
+  vpc_id = var.existing_cluster_id != null ? module.vpc.id : module.openshift[0].vpc_id
+}
+
+# Kube-<vpc id> Security Group
+data "ibm_is_security_group" "kube_cluster_sg" {
+  name = local.cluster_security_group.name
+}
+
+data "ibm_is_vpc" "vpc" {
+  identifier = local.vpc_id
 }

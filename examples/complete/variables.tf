@@ -8,6 +8,12 @@ variable "ibmcloud_api_key" {
   sensitive   = true
 }
 
+variable "ibmcloud_provider_visibility" {
+  type        = string
+  description = "The IBM Cloud provider visibility setting"
+  default     = "public"
+}
+
 variable "prefix" {
   type        = string
   description = "Prefix for name of all resource created by this example"
@@ -90,10 +96,230 @@ variable "postgres_deletion_protection" {
   default     = true
 }
 
+variable "postgres_service_endpoints" {
+  description = "Service endpoints for the PostgreSQL instance to deploy. Default is `public-and-private`"
+  default     = "public-and-private"
+  type        = string
+  validation {
+    condition     = contains(["public", "private", "public-and-private"], var.postgres_service_endpoints)
+    error_message = "Allowed values for var.postgres_service_endpoints are 'public', 'private' and 'public-and-private'"
+  }
+}
+
+variable "postgres_vpe_enabled" {
+  type        = bool
+  description = "Enable VPE connection for the Postgres instance. Default is `false`. If true, a VPE gateway is created to the Postgres instance and TFE is configured with the VPE endpoint."
+  default     = false
+}
+
+variable "postgres_vpe_service_endpoints" {
+  type        = string
+  description = "Service endpoints to use to create endpoint gateway to PostgreSQL instance. Default to 'public'."
+  default     = "public"
+  validation {
+    condition     = contains(["public", "private"], var.postgres_vpe_service_endpoints)
+    error_message = "Allowed values for var.postgres_vpe_service_endpoints are 'public' and 'private'"
+  }
+}
+
 variable "kms_key_deletion_protection" {
   type        = bool
   description = "Enable deletion protection within terraform. The KMS keys can not be force deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
   default     = true
+}
+
+variable "vpc_acl_rules" {
+  description = "Custom ACLs rules to attach to the VPC ones. Default opens HTTPs traffic to VPC subnets."
+  type = list(object({
+    action      = string
+    before      = optional(string, null)
+    destination = string
+    direction   = string
+    name        = string
+    source      = string
+    tcp = object({
+      port_max        = optional(number, 65535)
+      port_min        = optional(number, 1)
+      source_port_max = optional(number, 65535)
+      source_port_min = optional(number, 1)
+    })
+  }))
+  default = [
+    # rules needed to access tfe dashboard on public route
+    {
+      name        = "allow-https-inbound-zone-1"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.10.10.0/24"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-zone-1"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.10.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-zone-2"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.10.20.0/24"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-zone-2"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.20.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-zone-3"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.30.10.0/24"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-zone-3"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.30.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    # rules currently needed to pull images for redis into the cluster
+    {
+      name        = "allow-https-outbound-for-images-zone-1"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.10.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-for-images-zone-2"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.20.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-outbound-for-images-zone-3"
+      action      = "allow"
+      direction   = "outbound"
+      source      = "10.30.10.0/24"
+      destination = "0.0.0.0/0"
+      tcp = {
+        source_port_max = 65535
+        source_port_min = 1
+        port_max        = 443
+        port_min        = 443
+      }
+    },
+    {
+      name        = "allow-https-inbound-for-images-zone-1"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.10.10.0/24"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-for-images-zone-2"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.20.10.0/24"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    },
+    {
+      name        = "allow-https-inbound-for-images-zone-3"
+      action      = "allow"
+      direction   = "inbound"
+      source      = "0.0.0.0/0"
+      destination = "10.30.10.0/24"
+      tcp = {
+        source_port_max = 443
+        source_port_min = 443
+        port_max        = 65535
+        port_min        = 1
+      }
+    }
+  ]
+}
+
+variable "postgres_add_acl_rule" {
+  type        = bool
+  default     = true
+  description = "Concatenate two rules to enable traffic to/from Postgres instance port to the VPC ACLs. If postgres_vpe_enabled is enabled the ACL rules will be configured VPC subnets CIDR as source and target, if postgres_vpe_enabled is disabled the ACL rules will use 0.0.0.0/0 as CIDR of Postgres instance references. Default true."
+}
+
+variable "subnets_zones_cidr" {
+  description = "Map of zone name (key) and cidr to use in the zone (value)"
+  type        = map(string)
+  default = {
+    "zone-1" = "10.10.10.0/24"
+    "zone-2" = "10.20.10.0/24"
+    "zone-3" = "10.30.10.0/24"
+  }
 }
 
 ##############################################################################
