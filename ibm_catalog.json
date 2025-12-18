@@ -10,7 +10,6 @@
         "terraform",
         "solution",
         "enterprise_app",
-        "ibm_beta",
         "compliance_management",
         "security_resiliency",
         "application_modernization",
@@ -23,7 +22,7 @@
         "tfe"
       ],
       "short_description": "Automate Terraform HashiCorp Enterprise deployment with supporting IBM Cloud services.",
-      "long_description": "**This is a working proof of concept. It is not productized or available in any public catalog. Please refrain from using, sharing, or demonstrating it without first discussing it with vincent.burckhardt@ie.ibm.com and ldharrel@us.ibm.com.** \n\nLeverage [Terraform IBM Modules](https://github.com/terraform-ibm-modules) to shape and scale your solutions. You can integrate Terraform IBM Modules (TIM) to extend functionality and design a solution tailored to your environment and operations needs. These modules offer reusable, customizable elements that follow IBM Cloud's recommended practices. You can access the [source code and documentation](https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise) and use it to extend your current architecture or create new solutions.\n\nThis solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
+      "long_description": "Leverage [Terraform IBM Modules](https://github.com/terraform-ibm-modules) to shape and scale your solutions. You can integrate Terraform IBM Modules (TIM) to extend functionality and design a solution tailored to your environment and operations needs. These modules offer reusable, customizable elements that follow IBM Cloud's recommended practices. You can access the [source code and documentation](https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise) and use it to extend your current architecture or create new solutions.\n\nThis solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
       "offering_docs_url": "https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/blob/main/README.md",
       "offering_icon_url": "https://cdn.worldvectorlogo.com/logos/terraform-enterprise.svg",
       "features": [
@@ -205,8 +204,6 @@
           "configuration": [
             {
               "key": "ibmcloud_api_key",
-              "type": "password",
-              "description": "The IBM Cloud api key",
               "required": true,
               "virtual": false
             },
@@ -228,8 +225,6 @@
             },
             {
               "key": "region",
-              "type": "string",
-              "default_value": "us-south",
               "description": "Region in which all the resources will be deployed. [Learn More](https://terraform-ibm-modules.github.io/documentation/#/region).",
               "required": true,
               "custom_config": {
@@ -244,39 +239,26 @@
             },
             {
               "key": "resource_tags",
-              "type": "array",
-              "default_value": "[]",
-              "description": "Optional list of tags to be added to created resources",
               "required": false,
               "virtual": false
             },
             {
               "key": "tfe_license",
-              "type": "password",
-              "description": "The license key for TFE",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_username",
-              "type": "string",
-              "default_value": "admin",
-              "description": "The user name of the TFE admin user",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_email",
-              "type": "string",
-              "default_value": "test@example.com",
-              "description": "The email address of the TFE admin user",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_password",
-              "type": "password",
-              "description": "The password for the TFE admin user. 10 char minimum",
               "required": true,
               "virtual": false
             },
@@ -291,14 +273,10 @@
                   "identifier": "rg_name"
                 }
               },
-              "default_value": "Default",
-              "description": "The name of an existing resource group to provision the resources."
+              "default_value": "Default"
             },
             {
               "key": "tfe_organization_name",
-              "type": "string",
-              "default_value": "default",
-              "description": "If set, the name of the TFE organization to create. If not set, the module will not create an organization.",
               "required": false,
               "virtual": false
             },
@@ -310,31 +288,43 @@
             },
             {
               "key": "postgres_add_acl_rule",
-              "type": "boolean",
-              "default_value": true,
               "required": false,
               "virtual": false
             },
             {
               "key": "postgres_service_endpoints",
-              "type": "string",
-              "default_value": "public",
               "required": false,
-              "virtual": false
+              "virtual": false,
+              "options": [
+                {
+                  "displayname": "Private",
+                  "value": "private"
+                },
+                {
+                  "displayname": "Public and private",
+                  "value": "public-and-private"
+                }
+              ]
             },
             {
               "key": "postgres_vpe_enabled",
-              "type": "boolean",
-              "default_value": false,
               "required": false,
               "virtual": false
             },
             {
               "key": "postgres_vpe_service_endpoints",
-              "type": "string",
-              "default_value": "public",
               "required": false,
-              "virtual": false
+              "virtual": false,
+              "options": [
+                {
+                  "displayname": "Private",
+                  "value": "private"
+                },
+                {
+                  "displayname": "Public",
+                  "value": "public"
+                }
+              ]
             },
             {
               "key": "subnets_zones_cidr",
@@ -376,7 +366,17 @@
                   "description": "The value provided for 'secrets_manager_instance_crn' is not valid.",
                   "value": "^__NULL__$|^crn:v\\d:(.*:){2}secrets-manager:(.*:)([aos]\\/[\\w_\\-]+):[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}::$"
                 }
-              ]
+              ],
+              "custom_config": {
+                "type": "platform_resource",
+                "grouping": "deployment",
+                "original_grouping": "deployment",
+                "config_constraints": {
+                  "resourceType": "secrets-manager",
+                  "selection": "single_select",
+                  "valueType": "crn"
+                }
+              }
             },
             {
               "key": "secrets_manager_secret_group_id",
@@ -419,8 +419,6 @@
             },
             {
               "key": "create_tfe_secondary_host_on_cis",
-              "type": "boolean",
-              "default_value": false,
               "required": false,
               "virtual": false
             },
@@ -441,32 +439,46 @@
           "terraform_version": "1.12.2",
           "outputs": [
             {
-              "key": "tfe_console_url",
-              "description": "url to access TFE."
+              "key": "tfe_console_url"
             },
             {
-              "key": "tfe_hostname",
-              "description": "hostname of TFE"
+              "key": "tfe_hostname"
             },
             {
-              "key": "cos_instance_id",
-              "description": "The name of the provisioned cos instance."
+              "key": "cos_instance_id"
             },
             {
-              "key": "cluster_id",
-              "description": "The name of the provisioned cluster."
+              "key": "cluster_id"
             },
             {
-              "key": "postgres_crn",
-              "description": "The crm of the provisioned postgres instance."
+              "key": "postgres_crn"
             },
             {
-              "key": "redis_host",
-              "description": "The name of the provisioned redis host."
+              "key": "redis_host"
             },
             {
-              "key": "redis_password",
-              "description": "password to redis instance"
+              "key": "redis_password"
+            },
+            {
+              "key": "vpc_subnets"
+            },
+            {
+              "key": "kube_cluster_sg"
+            },
+            {
+              "key": "vpc_default_security_group"
+            },
+            {
+              "key": "vpc_kubecluster_sg_rule"
+            },
+            {
+              "key": "final_acl_rules"
+            },
+            {
+              "key": "redis_password_secret_crn"
+            },
+            {
+              "key": "tfe_secondary_hostname_fqdn"
             }
           ],
           "install_type": "fullstack",

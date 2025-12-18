@@ -87,7 +87,7 @@ variable "tfe_organization_name" {
 variable "add_to_catalog" {
   type        = bool
   description = "Whether to add this instance as an engine to your account's catalog settings. Defaults to true. MAY CONFLICT WITH EXISTING INSTANCES YOUR IN CATALOG SETTINGS."
-  default     = true
+  default     = false
 }
 
 variable "postgres_deletion_protection" {
@@ -101,8 +101,8 @@ variable "postgres_service_endpoints" {
   default     = "public-and-private"
   type        = string
   validation {
-    condition     = contains(["public", "private", "public-and-private"], var.postgres_service_endpoints)
-    error_message = "Allowed values for var.postgres_service_endpoints are 'public', 'private' and 'public-and-private'"
+    condition     = contains(["private", "public-and-private"], var.postgres_service_endpoints)
+    error_message = "Allowed values for var.postgres_service_endpoints are 'private' and 'public-and-private'"
   }
 }
 
