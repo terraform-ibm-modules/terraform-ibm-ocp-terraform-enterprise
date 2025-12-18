@@ -205,7 +205,6 @@
             {
               "key": "ibmcloud_api_key",
               "type": "password",
-              "description": "The IBM Cloud api key",
               "required": true,
               "virtual": false
             },
@@ -228,7 +227,6 @@
             {
               "key": "region",
               "type": "string",
-              "default_value": "us-south",
               "description": "Region in which all the resources will be deployed. [Learn More](https://terraform-ibm-modules.github.io/documentation/#/region).",
               "required": true,
               "custom_config": {
@@ -244,38 +242,30 @@
             {
               "key": "resource_tags",
               "type": "array",
-              "default_value": "[]",
-              "description": "Optional list of tags to be added to created resources",
               "required": false,
               "virtual": false
             },
             {
               "key": "tfe_license",
               "type": "password",
-              "description": "The license key for TFE",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_username",
               "type": "string",
-              "default_value": "admin",
-              "description": "The user name of the TFE admin user",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_email",
               "type": "string",
-              "default_value": "test@example.com",
-              "description": "The email address of the TFE admin user",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_password",
               "type": "password",
-              "description": "The password for the TFE admin user. 10 char minimum",
               "required": true,
               "virtual": false
             },
@@ -290,14 +280,11 @@
                   "identifier": "rg_name"
                 }
               },
-              "default_value": "Default",
-              "description": "The name of an existing resource group to provision the resources."
+              "default_value": "Default"
             },
             {
               "key": "tfe_organization_name",
               "type": "string",
-              "default_value": "default",
-              "description": "If set, the name of the TFE organization to create. If not set, the module will not create an organization.",
               "required": false,
               "virtual": false
             },
@@ -310,7 +297,6 @@
             {
               "key": "postgres_add_acl_rule",
               "type": "boolean",
-              "default_value": true,
               "required": false,
               "virtual": false
             },
@@ -435,8 +421,6 @@
             },
             {
               "key": "create_tfe_secondary_host_on_cis",
-              "type": "boolean",
-              "default_value": false,
               "required": false,
               "virtual": false
             },
@@ -458,15 +442,15 @@
           "outputs": [
             {
               "key": "tfe_console_url",
-              "description": "url to access TFE."
+              "description": "URL to access Terraform Enterprise instance."
             },
             {
               "key": "tfe_hostname",
-              "description": "hostname of TFE"
+              "description": "Hostname of Terraform Enterprise instance"
             },
             {
               "key": "cos_instance_id",
-              "description": "The name of the provisioned cos instance."
+              "description": "The name of the provisioned COS instance."
             },
             {
               "key": "cluster_id",
