@@ -44,18 +44,18 @@ output "redis_host" {
 
 output "redis_password" {
   value       = module.tfe.redis_password
-  description = "password to redis instance"
+  description = "The password to redis instance"
   sensitive   = true
 }
 
 output "tfe_console_url" {
   value       = module.tfe.tfe_console_url
-  description = "url to access Terraform Enterprise."
+  description = "The URL to access Terraform Enterprise instance."
 }
 
 output "tfe_hostname" {
   value       = module.tfe.tfe_hostname
-  description = "hostname of Terraform Enterprise"
+  description = "The hostname of Terraform Enterprise instance."
 }
 
 output "vpc_subnets" {

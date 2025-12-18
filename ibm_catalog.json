@@ -204,7 +204,6 @@
           "configuration": [
             {
               "key": "ibmcloud_api_key",
-              "type": "password",
               "required": true,
               "virtual": false
             },
@@ -226,7 +225,6 @@
             },
             {
               "key": "region",
-              "type": "string",
               "description": "Region in which all the resources will be deployed. [Learn More](https://terraform-ibm-modules.github.io/documentation/#/region).",
               "required": true,
               "custom_config": {
@@ -241,31 +239,26 @@
             },
             {
               "key": "resource_tags",
-              "type": "array",
               "required": false,
               "virtual": false
             },
             {
               "key": "tfe_license",
-              "type": "password",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_username",
-              "type": "string",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_email",
-              "type": "string",
               "required": true,
               "virtual": false
             },
             {
               "key": "admin_password",
-              "type": "password",
               "required": true,
               "virtual": false
             },
@@ -284,7 +277,6 @@
             },
             {
               "key": "tfe_organization_name",
-              "type": "string",
               "required": false,
               "virtual": false
             },
@@ -296,13 +288,11 @@
             },
             {
               "key": "postgres_add_acl_rule",
-              "type": "boolean",
               "required": false,
               "virtual": false
             },
             {
               "key": "postgres_service_endpoints",
-              "type": "string",
               "required": false,
               "virtual": false,
               "options": [
@@ -318,13 +308,11 @@
             },
             {
               "key": "postgres_vpe_enabled",
-              "type": "boolean",
               "required": false,
               "virtual": false
             },
             {
               "key": "postgres_vpe_service_endpoints",
-              "type": "string",
               "required": false,
               "virtual": false,
               "options": [
@@ -451,32 +439,46 @@
           "terraform_version": "1.12.2",
           "outputs": [
             {
-              "key": "tfe_console_url",
-              "description": "URL to access Terraform Enterprise instance."
+              "key": "tfe_console_url"
             },
             {
-              "key": "tfe_hostname",
-              "description": "Hostname of Terraform Enterprise instance"
+              "key": "tfe_hostname"
             },
             {
-              "key": "cos_instance_id",
-              "description": "The name of the provisioned COS instance."
+              "key": "cos_instance_id"
             },
             {
-              "key": "cluster_id",
-              "description": "The name of the provisioned cluster."
+              "key": "cluster_id"
             },
             {
-              "key": "postgres_crn",
-              "description": "The crm of the provisioned postgres instance."
+              "key": "postgres_crn"
             },
             {
-              "key": "redis_host",
-              "description": "The name of the provisioned redis host."
+              "key": "redis_host"
             },
             {
-              "key": "redis_password",
-              "description": "password to redis instance"
+              "key": "redis_password"
+            },
+            {
+              "key": "vpc_subnets"
+            },
+            {
+              "key": "kube_cluster_sg"
+            },
+            {
+              "key": "vpc_default_security_group"
+            },
+            {
+              "key": "vpc_kubecluster_sg_rule"
+            },
+            {
+              "key": "final_acl_rules"
+            },
+            {
+              "key": "redis_password_secret_crn"
+            },
+            {
+              "key": "tfe_secondary_hostname_fqdn"
             }
           ],
           "install_type": "fullstack",
