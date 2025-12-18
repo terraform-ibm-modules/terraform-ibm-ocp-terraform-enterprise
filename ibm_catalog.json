@@ -317,7 +317,6 @@
             {
               "key": "postgres_service_endpoints",
               "type": "string",
-              "default_value": "public-and-private",
               "required": false,
               "virtual": false,
               "options": [
@@ -326,7 +325,7 @@
                   "value": "private"
                 },
                 {
-                  "displayname": "Public-and-Private",
+                  "displayname": "Public and private",
                   "value": "public-and-private"
                 }
               ]
@@ -334,14 +333,12 @@
             {
               "key": "postgres_vpe_enabled",
               "type": "boolean",
-              "default_value": false,
               "required": false,
               "virtual": false
             },
             {
               "key": "postgres_vpe_service_endpoints",
               "type": "string",
-              "default_value": "public",
               "required": false,
               "virtual": false,
               "options": [
