@@ -28,23 +28,23 @@
       "features": [
         {
           "title": "End-to-End Automation",
-          "description": "Deploys a complete TFE environment with minimal manual input."
+          "description": "Deploys a complete Terraform Enterprise environment with minimal manual input."
         },
         {
           "title": "Cloud Object Storage Integration",
-          "description": "Automatically creates and configures a COS instance and bucket for TFE state storage."
+          "description": "Automatically creates and configures a COS instance and bucket for Terraform Enterprise state storage."
         },
         {
           "title": "Secure PostgreSQL Backend",
-          "description": "Provisions a managed PostgreSQL instance with service credentials for TFE."
+          "description": "Provisions a managed PostgreSQL instance with service credentials for Terraform Enterprise."
         },
         {
           "title": "Redis Caching Layer",
-          "description": "Deploys Redis for TFE session and queue management."
+          "description": "Deploys Redis for Terraform Enterprise session and queue management."
         },
         {
           "title": "OpenShift VPC Integration",
-          "description": "Sets up a VPC tailored for OpenShift clusters, supporting TFE deployment."
+          "description": "Sets up a VPC tailored for OpenShift clusters, supporting Terraform Enterprise deployment."
         },
         {
           "title": "Customizable and Reusable",
@@ -118,43 +118,12 @@
               ]
             },
             {
-              "service_name": "hs-crypto",
+              "service_name": "secrets-manager",
               "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-                "crn:v1:bluemix:public:iam::::role:Editor"
+                "crn:v1:bluemix:public:secrets-manager::::serviceRole:SecretsReader",
+                "crn:v1:bluemix:public:iam::::serviceRole:Writer"
               ],
-              "notes": "[Optional] Required if KMS encryption is enabled and IBM Hyper Protect Crypto Services is used to encrypt the Kubernetes Secrets and Object Storage bucket."
-            },
-            {
-              "service_name": "sysdig-monitor",
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-                "crn:v1:bluemix:public:iam::::role:Editor"
-              ],
-              "notes": "[Optional] Required if you are consuming Observability deployable architecture which sets up Cloud monitoring."
-            },
-            {
-              "service_name": "logs",
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager",
-                "crn:v1:bluemix:public:iam::::role:Editor"
-              ],
-              "notes": "[Optional] Required if you are consuming Observability deployable architecture which sets up Cloud logs."
-            },
-            {
-              "service_name": "logs-router",
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Manager"
-              ],
-              "notes": "[Optional] Required if you are consuming Observability deployable architecture which sets up Logs Routing."
-            },
-            {
-              "service_name": "atracker",
-              "role_crns": [
-                "crn:v1:bluemix:public:iam::::serviceRole:Writer",
-                "crn:v1:bluemix:public:iam::::role:Editor"
-              ],
-              "notes": "[Optional] Required if you are consuming Observability deployable architecture which sets up Activity Tracker Event Routing."
+              "notes": "[Optional] Required if sensitive values are passed via IBM Secrets Manager secret CRNs or generated sensitive values are stored in IBM Secrets Manager."
             },
             {
               "service_name": "internet-svcs",
@@ -204,8 +173,7 @@
           "configuration": [
             {
               "key": "ibmcloud_api_key",
-              "required": true,
-              "virtual": false
+              "required": true
             },
             {
               "key": "prefix",
@@ -220,8 +188,7 @@
                   "description": "prefix must begin with a lowercase letter and may contain only lowercase letters, digits, and hyphens '-'. It must not end with a hyphen('-'), and cannot contain consecutive hyphens ('--'). It should not exceed 16 characters.",
                   "value": "^$|^__NULL__$|^[a-z](?!.*--)(?:[a-z0-9-]{0,14}[a-z0-9])?$"
                 }
-              ],
-              "virtual": false
+              ]
             },
             {
               "key": "region",
@@ -234,33 +201,26 @@
                 "grouping": "deployment",
                 "original_grouping": "deployment",
                 "type": "vpc_region"
-              },
-              "virtual": false
+              }
             },
             {
-              "key": "resource_tags",
-              "required": false,
-              "virtual": false
+              "key": "resource_tags"
             },
             {
               "key": "tfe_license",
-              "required": true,
-              "virtual": false
+              "required": true
             },
             {
               "key": "admin_username",
-              "required": true,
-              "virtual": false
+              "required": true
             },
             {
               "key": "admin_email",
-              "required": true,
-              "virtual": false
+              "required": true
             },
             {
               "key": "admin_password",
-              "required": true,
-              "virtual": false
+              "required": true
             },
             {
               "key": "existing_resource_group_name",
@@ -276,25 +236,18 @@
               "default_value": "Default"
             },
             {
-              "key": "tfe_organization_name",
-              "required": false,
-              "virtual": false
+              "key": "tfe_organization_name"
             },
             {
               "key": "add_to_catalog",
               "hidden": true,
-              "required": false,
-              "virtual": false
+              "required": false
             },
             {
-              "key": "postgres_add_acl_rule",
-              "required": false,
-              "virtual": false
+              "key": "postgres_add_acl_rule"
             },
             {
               "key": "postgres_service_endpoints",
-              "required": false,
-              "virtual": false,
               "options": [
                 {
                   "displayname": "Private",
@@ -307,14 +260,10 @@
               ]
             },
             {
-              "key": "postgres_vpe_enabled",
-              "required": false,
-              "virtual": false
+              "key": "postgres_vpe_enabled"
             },
             {
               "key": "postgres_vpe_service_endpoints",
-              "required": false,
-              "virtual": false,
               "options": [
                 {
                   "displayname": "Private",
@@ -330,7 +279,6 @@
               "key": "subnets_zones_cidr",
               "hidden": true,
               "required": false,
-              "virtual": false,
               "custom_config": {
                 "type": "code_editor",
                 "grouping": "deployment",
@@ -346,7 +294,6 @@
               "key": "vpc_acl_rules",
               "hidden": true,
               "required": false,
-              "virtual": false,
               "custom_config": {
                 "type": "code_editor",
                 "grouping": "deployment",
@@ -420,9 +367,7 @@
               "key": "tfe_secondary_host"
             },
             {
-              "key": "create_tfe_secondary_host_on_cis",
-              "required": false,
-              "virtual": false
+              "key": "create_tfe_secondary_host_on_cis"
             },
             {
               "key": "tfe_secondary_hostname_existing_secret_crn",
