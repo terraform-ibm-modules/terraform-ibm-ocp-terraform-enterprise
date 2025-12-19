@@ -28,8 +28,8 @@ You need the following permissions to run this module:
 - IBM Cloud OpenShift: `Editor` or `Administrator` access to the cluster
 - IBM Cloud Object Storage: `Manager` or `Writer` access for the S3 bucket
 - IBM Cloud Databases for PostgreSQL/Redis: `Manager` or equivalent access
-- IBM Cloud Secrets Manager: `Writer` access if the generated secrets are to be stored in Secrets Manager
-- IBM Cloud Secrets Manager: `SecretsReader` access if the Terraform Enterprise license key is in Secrets Manager
+- IBM Cloud Secrets Manager: `Writer` access if the generated sensitive values are stored in Secrets Manager
+- IBM Cloud Secrets Manager: `SecretsReader` access if the sensitive values are read from Secrets Manager
 - Ability to create and manage Kubernetes resources in the target OpenShift namespace
 
 ## Contributing
