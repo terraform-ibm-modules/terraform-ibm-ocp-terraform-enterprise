@@ -390,6 +390,8 @@
             },
             {
               "key": "tfe_license_secret_crn",
+              "hidden": true,
+              "required": false,
               "value_constraints": [
                 {
                   "type": "regex",

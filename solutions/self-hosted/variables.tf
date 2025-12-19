@@ -56,7 +56,6 @@ variable "resource_tags" {
 variable "tfe_license" {
   type        = string
   description = "The license key for Terraform Enterprise"
-  default     = null
   sensitive   = true
 }
 
