@@ -141,8 +141,7 @@ func TestRunSelfHostedSchematics(t *testing.T) {
 		{Name: "ibmcloud_api_key", Value: options.RequiredEnvironmentVars["TF_VAR_ibmcloud_api_key"], DataType: "string", Secure: true},
 		{Name: "add_to_catalog", Value: false, DataType: "bool"},
 		{Name: "admin_password", Value: password, DataType: "string"},
-		// {Name: "postgres_deletion_protection", Value: false, DataType: "bool"},
-		// {Name: "kms_key_deletion_protection", Value: false, DataType: "bool"},
+		{Name: "tfe_license", Value: "__NULL__", DataType: "string"},
 		{Name: "tfe_license_secret_crn", Value: permanentResources["terraform_enterprise_license_secret_crn"], DataType: "string"},
 	}
 
