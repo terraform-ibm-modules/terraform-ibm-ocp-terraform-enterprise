@@ -202,8 +202,9 @@ locals {
   # if postgres_add_acl_rule is true, concatenate the appropriate postgres ACL rules to the VPC ACL rules
   # if VPE connections is enabled (var.postgres_vpe_enabled flag true) and postgres_service_endpoints is "private", use the VPE ACL rules
   # otherwise use the public ACL rules
+  # the same for postgres_service_endpoints "public-and-private" as we enforce private endpoint as postgresql hostname
   final_acl_rules = var.postgres_add_acl_rule ? (
-    var.postgres_vpe_enabled == true && var.postgres_service_endpoints == "private" ?
+    var.postgres_vpe_enabled == true && (var.postgres_service_endpoints == "private" || var.postgres_service_endpoints == "public-and-private") ?
     concat(var.vpc_acl_rules, local.postgres_vpe_acl_rules) :
     concat(var.vpc_acl_rules, local.postgres_public_acl_rules)
   ) : var.vpc_acl_rules
@@ -295,11 +296,25 @@ data "ibm_sm_arbitrary_secret" "tfe_license" {
   secret_id   = module.license[0].resource
 }
 
+# retrieving the private endpoint to postgres
+data "ibm_database_connection" "icd_postgres_private_connection" {
+  count         = var.postgres_vpe_enabled == true && (var.postgres_service_endpoints == "public-and-private" || var.postgres_service_endpoints == "private") ? 1 : 0
+  endpoint_type = "private"
+  deployment_id = module.icd_postgres.id
+  user_id       = module.icd_postgres.adminuser
+  user_type     = "database"
+}
+
 locals {
   # concatenating secondary host with the domain configured on CIS to compute the full secondary hostname FQDN
   tfe_secondary_hostname_fqdn = var.tfe_secondary_host != null && var.existing_cis_instance_domain != null ? "${var.tfe_secondary_host}.${var.existing_cis_instance_domain}" : null
 
   tfe_license = var.tfe_license_secret_crn != null ? data.ibm_sm_arbitrary_secret.tfe_license[0].payload : var.tfe_license
+
+  # if postgres_service_endpoints is "public-and-private" the icd_postgres module returns the public hostname as database hostname to use
+  # but if VPE is enabled with postgres the hostname going to be used with TFE is the private one retrieved through the datasource
+  icd_postgres_hostname = var.postgres_vpe_enabled == true && (var.postgres_service_endpoints == "public-and-private" || var.postgres_service_endpoints == "private") ? data.ibm_database_connection.icd_postgres_private_connection[0].postgres[0].hosts[0].hostname : module.icd_postgres.hostname
+  icd_postgres_port     = var.postgres_vpe_enabled == true && (var.postgres_service_endpoints == "public-and-private" || var.postgres_service_endpoints == "private") ? data.ibm_database_connection.icd_postgres_private_connection[0].postgres[0].hosts[0].port : module.icd_postgres.port
 }
 
 module "tfe_install" {
@@ -309,7 +324,7 @@ module "tfe_install" {
   cluster_resource_group_id = var.resource_group_id
   namespace                 = var.tfe_namespace
   tfe_license               = local.tfe_license
-  tfe_database_host         = "${module.icd_postgres.hostname}:${module.icd_postgres.port}"
+  tfe_database_host         = "${local.icd_postgres_hostname}:${local.icd_postgres_port}"
   tfe_database_user         = module.icd_postgres.service_credentials_object.credentials["tfe"].username
   tfe_database_password     = module.icd_postgres.service_credentials_object.credentials["tfe"].password
 
