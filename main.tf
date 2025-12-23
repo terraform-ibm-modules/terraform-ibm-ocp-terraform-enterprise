@@ -8,7 +8,7 @@ locals {
 
 module "key_protect_all_inclusive" {
   source                    = "terraform-ibm-modules/kms-all-inclusive/ibm"
-  version                   = "4.19.2"
+  version                   = "5.5.10"
   resource_group_id         = var.resource_group_id
   key_protect_instance_name = var.kms_instance_name
   region                    = var.region
@@ -56,7 +56,7 @@ locals {
 
 module "cos" {
   source                     = "terraform-ibm-modules/cos/ibm"
-  version                    = "10.7.0"
+  version                    = "10.7.6"
   resource_group_id          = var.resource_group_id
   region                     = var.region
   create_cos_instance        = var.existing_cos_instance_id != null ? false : true
@@ -106,7 +106,7 @@ module "ocp_vpc" {
 
 module "icd_postgres" {
   source                       = "terraform-ibm-modules/icd-postgresql/ibm"
-  version                      = "4.4.0"
+  version                      = "4.5.4"
   resource_group_id            = var.resource_group_id
   name                         = var.postgres_instance_name
   postgresql_version           = "16" # TFE supports up to Postgres 16 (not 17)
@@ -225,7 +225,7 @@ module "icd_postgres_vpe" {
   depends_on = [time_sleep.wait_before_creating_vpe]
   count      = var.postgres_vpe_enabled ? 1 : 0
   source     = "terraform-ibm-modules/vpe-gateway/ibm"
-  version    = "4.8.4"
+  version    = "4.8.11"
   region     = var.region
   cloud_service_by_crn = [
     {
@@ -284,7 +284,7 @@ locals {
 module "license" {
   count   = var.tfe_license_secret_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.3.3"
+  version = "1.3.7"
   crn     = var.tfe_license_secret_crn
 }
 
@@ -384,14 +384,14 @@ resource "ibm_cm_account" "cm_account_instance" {
 module "existing_secrets_manager_crn" {
   count   = var.existing_secrets_manager_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.3.3"
+  version = "1.3.7"
   crn     = var.existing_secrets_manager_crn
 }
 
 module "secrets_manager_secret_group" {
   count                    = var.existing_secrets_manager_crn != null && var.existing_secrets_manager_secret_group_id == null ? 1 : 0
   source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
-  version                  = "1.3.25"
+  version                  = "1.3.32"
   secret_group_name        = var.secrets_manager_secret_group_name
   secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
   secrets_manager_guid     = module.existing_secrets_manager_crn[0].service_instance
@@ -405,7 +405,7 @@ locals {
 module "redis_password_secret" {
   count                   = var.existing_secrets_manager_crn != null ? 1 : 0
   source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
-  version                 = "1.9.1"
+  version                 = "1.9.4"
   region                  = module.existing_secrets_manager_crn[0].region
   secrets_manager_guid    = module.existing_secrets_manager_crn[0].service_instance
   secret_group_id         = local.secret_group_id
@@ -435,7 +435,7 @@ data "ibm_cis_domain" "existing_cis_instance_domain" {
 module "tfe_dns_record" {
   count           = var.existing_cis_instance_name != null && var.existing_cis_instance_domain != null && var.create_tfe_secondary_host_on_cis ? 1 : 0
   source          = "terraform-ibm-modules/cis/ibm//modules/dns"
-  version         = "2.2.4"
+  version         = "2.2.9"
   cis_instance_id = data.ibm_cis.existing_cis_instance[0].id
   domain_id       = data.ibm_cis_domain.existing_cis_instance_domain[0].domain_id
   dns_record_set = [
@@ -451,7 +451,7 @@ module "tfe_dns_record" {
 module "crn_parser_secrets_manager" {
   count   = var.tfe_secondary_hostname_existing_secret_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.3.0"
+  version = "1.3.7"
   crn     = var.tfe_secondary_hostname_existing_secret_crn
 }
 
