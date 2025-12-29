@@ -1,6 +1,6 @@
 output "redis_password_base64" {
   description = "Base64 encoded Redis password"
-  value       = data.kubernetes_secret.redis_password.data["redis-password"]
+  value       = data.kubernetes_secret_v1.redis_password.data["redis-password"]
   sensitive   = true
 }
 
