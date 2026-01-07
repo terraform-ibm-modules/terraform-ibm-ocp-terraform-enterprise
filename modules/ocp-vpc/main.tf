@@ -4,7 +4,7 @@
 
 module "vpc" {
   source            = "terraform-ibm-modules/landing-zone-vpc/ibm"
-  version           = "8.10.0"
+  version           = "8.10.4"
   resource_group_id = var.resource_group_id
   region            = var.region
   create_vpc        = var.existing_vpc_id == null ? true : false
