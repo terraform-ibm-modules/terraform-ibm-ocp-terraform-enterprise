@@ -287,7 +287,7 @@ resource "random_string" "iact_token" {
   special = false
 }
 
-resource "kubernetes_role_binding" "tfe_admin" {
+resource "kubernetes_role_binding_v1" "tfe_admin" {
 
   metadata {
     name      = "tfe-anyuuid"
