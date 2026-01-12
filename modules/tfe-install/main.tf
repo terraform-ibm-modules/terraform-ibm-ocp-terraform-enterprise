@@ -3,7 +3,7 @@ data "ibm_container_vpc_cluster" "cluster" {
   resource_group_id = var.cluster_resource_group_id
 }
 
-resource "kubernetes_namespace" "tfe" {
+resource "kubernetes_namespace_v1" "tfe" {
   metadata {
     name = var.namespace
   }
@@ -16,11 +16,11 @@ resource "kubernetes_namespace" "tfe" {
   }
 }
 
-resource "kubernetes_secret" "tfe_pull_secret" {
+resource "kubernetes_secret_v1" "tfe_pull_secret" {
   # This secret is used to pull the Terraform Enterprise image from the registry
   metadata {
     name      = "terraform-enterprise"
-    namespace = kubernetes_namespace.tfe.metadata[0].name
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
   }
 
   type = "kubernetes.io/dockerconfigjson"
@@ -151,7 +151,7 @@ locals {
     },
     {
       name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_NAMESPACE"
-      value = kubernetes_namespace.tfe.metadata[0].name
+      value = kubernetes_namespace_v1.tfe.metadata[0].name
     },
     {
       name  = "agents.namespace.enabled"
@@ -159,7 +159,7 @@ locals {
     },
     {
       name  = "agents.namespace.name"
-      value = kubernetes_namespace.tfe.metadata[0].name
+      value = kubernetes_namespace_v1.tfe.metadata[0].name
     },
     {
       name  = "serviceAccount.enabled"
@@ -258,11 +258,11 @@ locals {
 # ########################################################################################################################
 
 resource "helm_release" "tfe_install" {
-  depends_on = [kubernetes_secret.tfe_pull_secret]
+  depends_on = [kubernetes_secret_v1.tfe_pull_secret]
 
   name             = "terraform-enterprise"
   chart            = "${path.module}/chart/tfe"
-  namespace        = kubernetes_namespace.tfe.metadata[0].name
+  namespace        = kubernetes_namespace_v1.tfe.metadata[0].name
   create_namespace = false
   timeout          = 1200
   wait             = true
@@ -287,11 +287,11 @@ resource "random_string" "iact_token" {
   special = false
 }
 
-resource "kubernetes_role_binding" "tfe_admin" {
+resource "kubernetes_role_binding_v1" "tfe_admin" {
 
   metadata {
     name      = "tfe-anyuuid"
-    namespace = kubernetes_namespace.tfe.metadata[0].name
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
   }
 
   role_ref {
@@ -315,7 +315,7 @@ resource "kubectl_manifest" "tfe_route" {
     kind: Route
     metadata:
       name: ${local.route_name}
-      namespace: ${kubernetes_namespace.tfe.metadata[0].name}
+      namespace: ${kubernetes_namespace_v1.tfe.metadata[0].name}
     spec:
       to:
         kind: Service
@@ -337,7 +337,7 @@ resource "kubectl_manifest" "tfe_secondary_route" {
     kind: Route
     metadata:
       name: "tfe-secondary-route"
-      namespace: ${kubernetes_namespace.tfe.metadata[0].name}
+      namespace: ${kubernetes_namespace_v1.tfe.metadata[0].name}
     spec:
       host: ${var.tfe_secondary_hostname_fqdn}
       to:
@@ -371,7 +371,7 @@ resource "kubectl_manifest" "tfe_agent_image_stream" {
     kind: ImageStream
     metadata:
       name: tfe-agent-ibmcloud
-      namespace: ${kubernetes_namespace.tfe.metadata[0].name}
+      namespace: ${kubernetes_namespace_v1.tfe.metadata[0].name}
     spec:
       lookupPolicy:
         local: false
@@ -384,7 +384,7 @@ resource "kubectl_manifest" "tfe_agent_build_config" {
     kind: BuildConfig
     metadata:
       name: tfe-agent-ibmcloud
-      namespace: ${kubernetes_namespace.tfe.metadata[0].name}
+      namespace: ${kubernetes_namespace_v1.tfe.metadata[0].name}
     spec:
       source:
         type: Dockerfile
@@ -431,7 +431,7 @@ data "kubernetes_resource" "tfe_agent_image_stream" {
   kind        = "ImageStream"
   metadata {
     name      = "tfe-agent-ibmcloud"
-    namespace = kubernetes_namespace.tfe.metadata[0].name
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
   }
 }
 
@@ -441,30 +441,30 @@ data "kubernetes_resource" "tfe_route" {
   kind        = "Route"
   metadata {
     name      = local.route_name
-    namespace = kubernetes_namespace.tfe.metadata[0].name
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
   }
 }
 
-data "kubernetes_secret" "tfe_admin_token" {
+data "kubernetes_secret_v1" "tfe_admin_token" {
   depends_on = [data.external.admin_user_token]
   metadata {
     name      = "tfe-admin-token"
-    namespace = kubernetes_namespace.tfe.metadata[0].name
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
   }
 }
 
-resource "kubernetes_secret" "tfe_admin_token" {
+resource "kubernetes_secret_v1" "tfe_admin_token" {
   depends_on = [data.external.admin_user_token]
 
   metadata {
     name      = "tfe-admin-token"
-    namespace = kubernetes_namespace.tfe.metadata[0].name
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
   }
   data = {
     token = (
       data.external.admin_user_token.result["token"] != null && data.external.admin_user_token.result["token"] != ""
       ? data.external.admin_user_token.result["token"]
-      : (try(data.kubernetes_secret.tfe_admin_token.data.token, ""))
+      : (try(data.kubernetes_secret_v1.tfe_admin_token.data.token, ""))
     )
   }
   type = "Opaque"
@@ -484,6 +484,6 @@ resource "null_resource" "tfe_org" {
   count = var.tfe_organization != null && length(trimspace(var.tfe_organization)) > 0 ? 1 : 0
 
   provisioner "local-exec" {
-    command = "${path.module}/scripts/create_org.sh ${kubernetes_secret.tfe_admin_token.data.token} ${var.tfe_organization} ${var.admin_email} ${data.kubernetes_resource.tfe_route.object.status.ingress[0].host}"
+    command = "${path.module}/scripts/create_org.sh ${kubernetes_secret_v1.tfe_admin_token.data.token} ${var.tfe_organization} ${var.admin_email} ${data.kubernetes_resource.tfe_route.object.status.ingress[0].host}"
   }
 }

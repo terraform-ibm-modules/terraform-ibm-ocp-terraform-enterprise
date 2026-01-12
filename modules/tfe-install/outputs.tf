@@ -18,6 +18,6 @@ output "tfe_hostname" {
 
 output "token" {
   description = "A Terraform Enterprise user API token for `var.admin_username` account"
-  value       = resource.kubernetes_secret.tfe_admin_token.data["token"]
+  value       = resource.kubernetes_secret_v1.tfe_admin_token.data["token"]
   sensitive   = true
 }

@@ -16,7 +16,7 @@ resource "helm_release" "redis_install" {
   reset_values     = true
 }
 
-data "kubernetes_secret" "redis_password" {
+data "kubernetes_secret_v1" "redis_password" {
   depends_on = [helm_release.redis_install]
   metadata {
     name      = local.release_name
