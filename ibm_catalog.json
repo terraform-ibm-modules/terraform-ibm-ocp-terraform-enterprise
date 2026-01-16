@@ -23,7 +23,8 @@
       ],
       "short_description": "Automate Terraform HashiCorp Enterprise deployment with supporting IBM Cloud services.",
       "long_description": "Leverage [Terraform IBM Modules](https://github.com/terraform-ibm-modules) to shape and scale your solutions. You can integrate Terraform IBM Modules (TIM) to extend functionality and design a solution tailored to your environment and operations needs. These modules offer reusable, customizable elements that follow IBM Cloud's recommended practices. You can access the [source code and documentation](https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise) and use it to extend your current architecture or create new solutions.\n\nThis solution provides a fully automated, deployment of Terraform Enterprise (TFE) on IBM Cloud. Designed for scalability, security, and ease of use, it provisions all necessary cloud resources—including VPC, Cloud Object Storage, PostgreSQL, and Redis—within a managed and customizable infrastructure.\n\nIdeal for: DevOps teams, cloud architects, and platform engineers looking to streamline Terraform Enterprise setup on IBM Cloud with infrastructure-as-code best practices.",
-      "offering_docs_url": "https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/blob/main/README.md",
+      "offering_docs_url": "https://cloud.ibm.com/docs/ibm-cloud-provider-for-terraform?topic=ibm-cloud-provider-for-terraform-about-tim",
+      "release_notes_url": "https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/releases",
       "offering_icon_url": "https://cdn.worldvectorlogo.com/logos/terraform-enterprise.svg",
       "features": [
         {
