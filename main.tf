@@ -8,7 +8,7 @@ locals {
 
 module "key_protect_all_inclusive" {
   source                    = "terraform-ibm-modules/kms-all-inclusive/ibm"
-  version                   = "5.5.20"
+  version                   = "5.5.21"
   resource_group_id         = var.resource_group_id
   key_protect_instance_name = var.kms_instance_name
   region                    = var.region
@@ -56,7 +56,7 @@ locals {
 
 module "cos" {
   source                     = "terraform-ibm-modules/cos/ibm"
-  version                    = "10.8.3"
+  version                    = "10.8.5"
   resource_group_id          = var.resource_group_id
   region                     = var.region
   create_cos_instance        = var.existing_cos_instance_id != null ? false : true
@@ -106,7 +106,7 @@ module "ocp_vpc" {
 
 module "icd_postgres" {
   source                       = "terraform-ibm-modules/icd-postgresql/ibm"
-  version                      = "4.5.16"
+  version                      = "4.6.5"
   resource_group_id            = var.resource_group_id
   name                         = var.postgres_instance_name
   postgresql_version           = "16" # TFE supports up to Postgres 16 (not 17)
@@ -225,7 +225,7 @@ module "icd_postgres_vpe" {
   depends_on = [time_sleep.wait_before_creating_vpe]
   count      = var.postgres_vpe_enabled ? 1 : 0
   source     = "terraform-ibm-modules/vpe-gateway/ibm"
-  version    = "4.8.19"
+  version    = "5.0.1"
   region     = var.region
   cloud_service_by_crn = [
     {
@@ -391,7 +391,7 @@ module "existing_secrets_manager_crn" {
 module "secrets_manager_secret_group" {
   count                    = var.existing_secrets_manager_crn != null && var.existing_secrets_manager_secret_group_id == null ? 1 : 0
   source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
-  version                  = "1.3.36"
+  version                  = "1.3.37"
   secret_group_name        = var.secrets_manager_secret_group_name
   secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
   secrets_manager_guid     = module.existing_secrets_manager_crn[0].service_instance
@@ -405,7 +405,7 @@ locals {
 module "redis_password_secret" {
   count                   = var.existing_secrets_manager_crn != null ? 1 : 0
   source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
-  version                 = "1.9.12"
+  version                 = "1.9.13"
   region                  = module.existing_secrets_manager_crn[0].region
   secrets_manager_guid    = module.existing_secrets_manager_crn[0].service_instance
   secret_group_id         = local.secret_group_id
