@@ -2,14 +2,11 @@
 package test
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
 	"testing"
 
-	"github.com/IBM/go-sdk-core/v5/core"
 	"github.com/stretchr/testify/assert"
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/common"
 	"github.com/terraform-ibm-modules/ibmcloud-terratest-wrapper/testhelper"
@@ -40,15 +37,11 @@ func TestMain(m *testing.M) {
 		log.Fatal(err)
 	}
 
-	// generate a random password, fail if error
-	pass, passErr := getRandomAdminPassword()
-	if passErr != nil {
-		log.Fatal(passErr)
-	}
+	pass := common.GetRandomPasswordWithPrefix()
 
 	// ADD SENSITIVE VALS TO ENV
 	// not adding to regular vars so not to leak the values
-	setPassEnvErr := os.Setenv("TF_VAR_admin_password", *pass)
+	setPassEnvErr := os.Setenv("TF_VAR_admin_password", pass)
 	if setPassEnvErr != nil {
 		log.Fatal(setPassEnvErr)
 	}
@@ -130,11 +123,7 @@ func TestRunSelfHostedSchematics(t *testing.T) {
 		WaitJobCompleteMinutes: 120,
 	})
 
-	// generate a random password, fail if error
-	password, passwordErr := getRandomAdminPassword()
-	if passwordErr != nil {
-		log.Fatal(passwordErr)
-	}
+	password := common.GetRandomPasswordWithPrefix()
 
 	options.TerraformVars = []testschematic.TestSchematicTerraformVar{
 		{Name: "prefix", Value: options.Prefix, DataType: "string"},
@@ -149,16 +138,4 @@ func TestRunSelfHostedSchematics(t *testing.T) {
 	if !options.UpgradeTestSkipped {
 		assert.NoError(t, err, "Schematic Test had an unexpected error")
 	}
-}
-
-func getRandomAdminPassword() (*string, error) {
-	// Generate a 15 char long random string for the admin_pass
-	randomBytes := make([]byte, 13)
-	_, randErr := rand.Read(randomBytes)
-	if randErr != nil {
-		return nil, randErr
-	} // do not proceed if we can't gen a random password
-
-	randomPass := "A1" + base64.URLEncoding.EncodeToString(randomBytes)[:13]
-	return core.StringPtr(randomPass), nil
 }
