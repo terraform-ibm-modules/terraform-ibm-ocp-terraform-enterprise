@@ -196,7 +196,7 @@ variable "tfe_service_secondary_servicetype" {
 }
 
 variable "tfe_pod_template_security_config" {
-  description = "Security configuration of the deployment of TFE to put into the TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE TFE environemnt variable"
+  description = "Security configuration of the deployment of TFE to put into the TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE TFE environment variable"
   type        = string
   default     = "{\"securityContext\":{\"allowPrivilegeEscalation\":false,\"capabilities\":{\"drop\":[\"ALL\"]},\"runAsNonRoot\":true,\"seccompProfile\":{\"type\":\"RuntimeDefault\"}}}"
 }

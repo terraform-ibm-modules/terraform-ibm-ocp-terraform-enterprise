@@ -53,7 +53,6 @@ output "redis_password_secret_crn" {
   description = "The CRN of the secret containing the redis admin password"
 }
 
-# questi due
 output "tfe_console_url" {
   value       = module.tfe.tfe_console_url
   description = "url to access Terraform Enterprise."
