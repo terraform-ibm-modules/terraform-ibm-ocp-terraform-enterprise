@@ -173,3 +173,60 @@ variable "tfe_secondary_hostname_secret_name" {
   type        = string
   default     = "terraform-enterprise-certificates-secondary"
 }
+
+
+variable "tfe_service_servicetype" {
+  description = "TFE primary service ServiceType configuration. Allowed values are ClusterIP and LoadBalancer. Default to ClusterIP."
+  type        = string
+  default     = "ClusterIP"
+  validation {
+    condition     = contains(["ClusterIP", "LoadBalancer"], var.tfe_service_servicetype)
+    error_message = "The value of var.tfe_service_servicetype cannot be different from ClusterIP or LoadBalancer"
+  }
+}
+
+variable "tfe_service_secondary_servicetype" {
+  description = "TFE secondary service ServiceType configuration. Allowed values are ClusterIP and LoadBalancer. Default to ClusterIP."
+  type        = string
+  default     = "ClusterIP"
+  validation {
+    condition     = contains(["ClusterIP", "LoadBalancer"], var.tfe_service_secondary_servicetype)
+    error_message = "The value of var.tfe_service_secondary_servicetype cannot be different from ClusterIP or LoadBalancer"
+  }
+}
+
+variable "tfe_pod_template_security_config" {
+  description = "Security configuration of the deployment of TFE to put into the TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE TFE environemnt variable"
+  type        = string
+  default     = "{\"securityContext\":{\"allowPrivilegeEscalation\":false,\"capabilities\":{\"drop\":[\"ALL\"]},\"runAsNonRoot\":true,\"seccompProfile\":{\"type\":\"RuntimeDefault\"}}}"
+}
+
+variable "tfe_service_admin_node_port" {
+  description = "Admin NodePort for the TFE primary service. Null doesn't expose the port on the service. Default to null"
+  type        = string
+  default     = null
+}
+
+variable "tfe_service_secondary_admin_node_port" {
+  description = "Admin NodePort for the TFE primary service. Null doesn't expose the port on the service. Default to null."
+  type        = string
+  default     = null
+}
+
+variable "tfe_deployment_replicas" {
+  description = "TFE deployment replicas. Default to 3."
+  type        = number
+  default     = 3
+}
+
+variable "tfe_resources_configuration_memory" {
+  description = "TFE deployment resource configuration for the memory. Default to 3000Mi."
+  type        = string
+  default     = "3000Mi"
+}
+
+variable "tfe_resources_configuration_cpu" {
+  description = "TFE deployment resource configuration for the CPU. Default to 1."
+  type        = string
+  default     = "1"
+}

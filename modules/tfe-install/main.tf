@@ -40,8 +40,9 @@ resource "kubernetes_secret_v1" "tfe_pull_secret" {
 }
 
 locals {
-  route_name   = "tfe"
-  tfe_hostname = "${local.route_name}-${var.namespace}.${data.ibm_container_vpc_cluster.cluster.ingress_hostname}" # Compute the TFE hostname based on the namespace and cluster ingress hostname. Not putting a dependency on the route resource here, as it is created after the helm release.
+  tfe_deployment_replicas = var.tfe_deployment_replicas != null ? var.tfe_deployment_replicas : 3
+  route_name              = "tfe"
+  tfe_hostname            = "${local.route_name}-${var.namespace}.${data.ibm_container_vpc_cluster.cluster.ingress_hostname}" # Compute the TFE hostname based on the namespace and cluster ingress hostname. Not putting a dependency on the route resource here, as it is created after the helm release.
 
   # building the list of values to configure in the helm release
   set_values_list = [
@@ -168,6 +169,14 @@ locals {
     {
       name  = "serviceAccount.name"
       value = "tfe"
+    },
+    {
+      name  = "replicaCount"
+      value = local.tfe_deployment_replicas
+    },
+    {
+      name  = "tfe.readinessProbePath"
+      value = "/_health_check"
     }
   ]
 
@@ -197,7 +206,12 @@ locals {
       name  = "tlsSecondary.certificateSecret"
       value = var.tfe_secondary_hostname_secret_name
     }
-  ] : []
+    ] : [
+    {
+      name  = "tlsSecondary"
+      value = null
+    }
+  ]
 
   # concatenating values for the final list
   set_values_list_final = concat(local.set_values_list, local.set_values_list_secondary_hostname)
@@ -230,7 +244,7 @@ locals {
     },
     {
       name  = "env.variables.TFE_RUN_PIPELINE_KUBERNETES_POD_TEMPLATE"
-      value = "eyJzZWN1cml0eUNvbnRleHQiOnsiYWxsb3dQcml2aWxlZ2VFc2NhbGF0aW9uIjpmYWxzZSwiY2FwYWJpbGl0aWVzIjp7ImRyb3AiOlsiQUxMIl19LCJydW5Bc05vblJvb3QiOnRydWUsInNlY2NvbXBQcm9maWxlIjp7InR5cGUiOiJSdW50aW1lRGVmYXVsdCJ9fX0=" # pragma: allowlist secret
+      value = base64encode(var.tfe_pod_template_security_config)
     },
     {
       name  = "env.secrets.TFE_IACT_TOKEN"
@@ -253,11 +267,89 @@ locals {
   set_sensitive_values_list_final = concat(local.set_sensitive_values_list, local.set_sensitive_values_list_secondary_hostname)
 }
 
+resource "kubernetes_config_map" "custom_tfe_start" {
+  metadata {
+    name      = "custom-tfe-start"
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
+  }
+
+  data = {
+    "custom_tfe_start.sh" = file("${path.module}/scripts/custom_tfe_start.sh")
+  }
+}
+
+locals {
+  tfe_deployment_labels = {}
+  tfe_deployment_annotations = { "checkov.io/skip1" : "CKV_K8S_13= The Helm chart should remain similar to the open source original",
+    "checkov.io/skip2" : "CKV_K8S_43= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip3" : "CKV_K8S_31= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip4" : "CKV_K8S_35= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip5" : "CKV_K8S_23= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip6" : "CKV_K8S_22= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip7" : "CKV_K8S_37= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip8" : "CKV_K8S_38= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip9" : "CKV_K8S_8= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip10" : "CKV_K8S_28= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip11" : "CKV_K8S_20= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip12" : "CKV_K8S_11= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip13" : "CKV2_K8S_6= The Helm chart should remain similar to the open source original.",
+    "checkov.io/skip14" : "CKV_K8S_40= The Helm chart should remain similar to the open source original.",
+  "checkov.io/skip15" : "CKV_K8S_21= The default namespace should not be used" }
+
+  tfe_service_values = {
+    "annotations" : {
+      "service.beta.openshift.io/serving-cert-secret-name" : "terraform-enterprise-certificates",
+      "checkov.io/skip1" : "CKV_K8S_21= The default namespace should not be used"
+    },
+    "labels" : {},
+    "type" : var.tfe_service_servicetype,
+    "adminNodePort" : var.tfe_service_admin_node_port,
+  }
+
+  tfe_service_account = {
+    "annotations" : {
+      "checkov.io/skip1" : "CKV_K8S_41= Ensure that default service accounts are not actively used"
+    }
+  }
+
+  tfe_secret = {
+    "annotations" : {
+      "checkov.io/skip1" : "CKV_K8S_21= The default namespace should not be used"
+    }
+  }
+
+  tfe_agents_rbac = {
+    "annotations" : {
+      "checkov.io/skip1" : "CKV_K8S_42= Ensure that default service accounts are not actively used"
+    }
+  }
+
+  tfe_secondary_hostname_secret_name = var.tfe_secondary_hostname_secret_name != null && var.tfe_secondary_hostname_secret_name != "" ? var.tfe_secondary_hostname_secret_name : "terraform-enterprise-certificates-secondary"
+
+  tfe_service_secondary_values = var.tfe_secondary_hostname_fqdn != null ? {
+    "annotations" : {
+      "service.beta.openshift.io/serving-cert-secret-name" : "${local.tfe_secondary_hostname_secret_name}-internal",
+      "checkov.io/skip1" : "CKV_K8S_21= The default namespace should not be used"
+    },
+    "labels" : {},
+    "type" : var.tfe_service_secondary_servicetype,
+    "adminNodePort" : var.tfe_service_secondary_admin_node_port,
+  } : null
+
+  tfe_resources_configuration = {
+    "requests" : {
+      "memory" : var.tfe_resources_configuration_memory != null && var.tfe_resources_configuration_memory != "" ? var.tfe_resources_configuration_memory : "3000Mi",
+      "cpu" : var.tfe_resources_configuration_cpu != null && var.tfe_resources_configuration_cpu != "" ? var.tfe_resources_configuration_cpu : "1",
+    }
+  }
+}
+
 # ########################################################################################################################
 # # Terraform Enterprise Helm Chart
 # ########################################################################################################################
 
 resource "helm_release" "tfe_install" {
+  # depends_on = [kubernetes_secret_v1.tfe_pull_secret, data.helm_template.tfe_install]
   depends_on = [kubernetes_secret_v1.tfe_pull_secret]
 
   name             = "terraform-enterprise"
@@ -274,13 +366,207 @@ resource "helm_release" "tfe_install" {
 
   set_sensitive = local.set_sensitive_values_list_final
 
-  values = [<<-EOF
-    container:
-      securityContext:
-        runAsUser: 1000
-  EOF
+  values = [
+    yamlencode({
+      "config" = {
+        "annotations" = {
+          "checkov.io/skip1" = "CKV_K8S_21= The default namespace should not be used"
+        }
+      }
+      "env" = {
+        "variables" = {
+          "TFE_RUN_PIPELINE_KUBERNETES_OPEN_SHIFT_ENABLED" = "true"
+        }
+      }
+      "agents" = {
+        "namespace" = {
+          "enabled" = false
+        },
+        "rbac" = local.tfe_agents_rbac
+      }
+      "deployment" = {
+        "labels"      = local.tfe_deployment_labels,
+        "annotations" = local.tfe_deployment_annotations
+      },
+      "adminHttpsPort"  = null,
+      "tlsRedis"        = null,
+      "tlsRedisSidekiq" = null,
+      "container" = {
+        "command" = ["/bin/sh"],
+        "args"    = ["-c", "/scripts/custom_tfe_start.sh"],
+        "securityContext" = {
+          "runAsUser" = 1000
+        }
+      },
+      "extraVolumes" = [
+        {
+          "configMap" = {
+            "defaultMode" = 488
+            "name"        = "custom-tfe-start"
+          }
+          "name" = "scripts"
+        }
+      ],
+      "extraVolumeMounts" = [
+        {
+          "mountPath" = "/scripts"
+          "name"      = "scripts"
+          "readOnly"  = true
+        }
+      ]
+      "service"          = local.tfe_service_values,
+      "serviceSecondary" = local.tfe_service_secondary_values,
+      "serviceAccount"   = local.tfe_service_account,
+      "resources"        = local.tfe_resources_configuration,
+      "secret"           = local.tfe_secret,
+    }),
   ]
 }
+
+# data "helm_template" "tfe_install" {
+#   name             = "terraform-enterprise"
+#   chart            = "${path.module}/chart/tfe"
+#   namespace        = kubernetes_namespace_v1.tfe.metadata[0].name
+
+#   # show_only = [
+#   #   "templates/master-statefulset.yaml",
+#   #   "templates/master-svc.yaml",
+#   # ]
+
+#   set = local.set_values_list_final
+
+#   set_sensitive = local.set_sensitive_values_list_final
+
+#   values = [
+#     yamlencode({
+#       "config" = {
+#         "annotations" = {
+#           "checkov.io/skip1" = "CKV_K8S_21= The default namespace should not be used"
+#         }
+#       }
+#       "env" = {
+#         "variables" = {
+#           "TFE_RUN_PIPELINE_KUBERNETES_OPEN_SHIFT_ENABLED" = "true"
+#         }
+#       }
+#       "agents" = {
+#         "namespace" = {
+#           "enabled" = false
+#         }
+#       }
+#       "deployment" = {
+#         "labels"      = local.tfe_deployment_labels,
+#         "annotations" = local.tfe_deployment_annotations
+#       },
+#       "adminHttpsPort"   = {},
+#       "tlsRedis"         = {},
+#       "tlsRedisSidekiq"  = {},
+#       "container" = {
+#         "command" = ["/bin/sh"],
+#         "args"    = ["-c", "/scripts/custom_tfe_start.sh"],
+#         "securityContext" = {
+#           "runAsUser" = 1000
+#         }
+#       },
+#       "extraVolumes" = [
+#         {
+#           "configMap" = {
+#             "defaultMode" = 488
+#             "name"        = "custom-tfe-start"
+#           }
+#           "name" = "scripts"
+#         }
+#       ],
+#       "extraVolumeMounts" = [
+#         {
+#           "mountPath" = "/scripts"
+#           "name"      = "scripts"
+#           "readOnly"  = true
+#         }
+#       ]
+#       "service"          = local.tfe_service_values
+#       "serviceSecondary" = null,
+#     }),
+#   ]
+# }
+
+
+# resource "local_file" "tfe_install_manifests" {
+#   for_each = data.helm_template.tfe_install.manifests
+
+#   filename = "./${each.key}"
+#   content  = each.value
+# }
+
+# output "tfe_install_manifests" {
+#   value = data.helm_template.tfe_install.manifest
+# }
+
+# output "tfe_install_instance_manifests" {
+#   value = data.helm_template.tfe_install.manifests
+# }
+
+# output "tfe_install_instance_notes" {
+#   value = data.helm_template.tfe_install.notes
+# }
+
+# <<-EOT
+#       container:
+#         volumeMounts:
+#         - mountPath: /scripts
+#           name: scripts
+#           readOnly: true
+#         command:
+#           - /bin/sh
+#           - '-c'
+#           - |
+#             /scripts/custom_tfe_start.sh
+#         securityContext:
+#           runAsUser: 1000
+#       volumes:
+#       - configMap:
+#           defaultMode: 484
+#           name: custom-tfe-start
+#         name: scripts
+#     EOT
+# command:
+#   - /bin/sh
+#   - '-c'
+#   - |
+#     sed -i '/^[ ]\{2\}pool:/a\ \ schema_search_path: "public,ibm_extension"' /app/config/database.yml
+#     sed -i 's/server_names_hash_bucket_size 128;/server_names_hash_bucket_size 256;/' /etc/nginx/nginx.conf.tmpl
+#     /usr/local/bin/supervisord-run
+
+# yamlencode({
+#     "adminHttpsPort" = {},
+#     "tlsRedis" = {},
+#     "tlsRedisSidekiq" = {},
+# }),
+
+#     yamlencode({
+#       "adminHttpsPort" = {},
+#       "tlsRedis" = {},
+#       "tlsRedisSidekiq" = {},
+#       "container" = {
+#         "command" = [
+#           "/bin/sh", "-c",
+# <<-EOT
+#             sed -i '/^[ ]\{2\}pool:/a\ \ schema_search_path: "public,ibm_extension"' /app/config/database.yml
+#             sed -i 's/server_names_hash_bucket_size 128;/server_names_hash_bucket_size 256;/' /etc/nginx/nginx.conf.tmpl
+#             /usr/local/bin/supervisord-run
+# EOT
+#         ]
+#         "securityContext" = {
+#           "runAsUser" = 1000
+#         }
+#       }
+#     }),
+
+#   <<-EOF
+#   container:
+#     securityContext:
+#       runAsUser: 1000
+# EOF
 
 resource "random_string" "iact_token" {
   length  = 10
@@ -462,7 +748,7 @@ resource "kubernetes_secret_v1" "tfe_admin_token" {
   }
   data = {
     token = (
-      data.external.admin_user_token.result["token"] != null && data.external.admin_user_token.result["token"] != ""
+      data.external.admin_user_token.result["token"] != null && data.external.admin_user_token.result["token"] != "" && data.external.admin_user_token.result["token"] != "-1"
       ? data.external.admin_user_token.result["token"]
       : (try(data.kubernetes_secret_v1.tfe_admin_token.data.token, ""))
     )

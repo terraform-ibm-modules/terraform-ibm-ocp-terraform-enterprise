@@ -64,6 +64,8 @@ output "redis_password" {
   sensitive   = true
 }
 
+## questi due
+
 output "tfe_console_url" {
   value       = module.tfe_install.tfe_console_url
   description = "url to access Terraform Enterprise."

@@ -10,22 +10,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app: terraform-enterprise
+    {{- if .Values.deployment.labels }}
+    {{- toYaml .Values.deployment.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.deployment.annotations }}
   annotations:
-    checkov.io/skip1: CKV_K8S_13= The Helm chart should remain similar to the open source original.
-    checkov.io/skip2: CKV_K8S_43= The Helm chart should remain similar to the open source original.
-    checkov.io/skip3: CKV_K8S_31= The Helm chart should remain similar to the open source original.
-    checkov.io/skip4: CKV_K8S_35= The Helm chart should remain similar to the open source original.
-    checkov.io/skip5: CKV_K8S_23= The Helm chart should remain similar to the open source original.
-    checkov.io/skip6: CKV_K8S_22= The Helm chart should remain similar to the open source original.
-    checkov.io/skip7: CKV_K8S_37= The Helm chart should remain similar to the open source original.
-    checkov.io/skip8: CKV_K8S_38= The Helm chart should remain similar to the open source original.
-    checkov.io/skip9: CKV_K8S_8= The Helm chart should remain similar to the open source original.
-    checkov.io/skip10: CKV_K8S_28= The Helm chart should remain similar to the open source original.
-    checkov.io/skip11: CKV_K8S_20= The Helm chart should remain similar to the open source original.
-    checkov.io/skip12: CKV_K8S_11= The Helm chart should remain similar to the open source original.
-    checkov.io/skip13: CKV2_K8S_6= The Helm chart should remain similar to the open source original.
-    checkov.io/skip14: CKV_K8S_40= The Helm chart should remain similar to the open source original.
-    checkov.io/skip15: CKV_K8S_21= The default namespace should not be used
+    {{- toYaml .Values.deployment.annotations | nindent 4 }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -82,6 +73,20 @@ spec:
           secret:
             secretName: terraform-enterprise-ca-certificates
         {{- end }}
+        {{- if .Values.tlsRedis }}
+        {{- if and .Values.tlsRedis.certData .Values.tlsRedis.keyData .Values.tlsRedis.caCertData }}
+        - name: certificates-redis
+          secret:
+            secretName: {{ .Values.tlsRedis.certificateSecret | default "terraform-enterprise-certificates-redis" }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.tlsRedisSidekiq }}
+        {{- if and .Values.tlsRedisSidekiq.certData .Values.tlsRedisSidekiq.keyData .Values.tlsRedisSidekiq.caCertData }}
+        - name: certificates-redis-sidekiq
+          secret:
+            secretName: {{ .Values.tlsRedisSidekiq.certificateSecret | default "terraform-enterprise-certificates-redis-sidekiq" }}
+        {{- end }}
+        {{- end }}
         {{- if .Values.csi.enabled }}
         - name: secrets-store
           csi:
@@ -108,13 +113,14 @@ spec:
         {{ toYaml .Values.initContainers | nindent 8}}
       containers:
       - name: terraform-enterprise
+        {{- if .Values.container.command }}
         command:
-          - /bin/sh
-          - '-c'
-          - |
-            sed -i '/^[ ]\{2\}pool:/a\ \ schema_search_path: "public,ibm_extension"' /app/config/database.yml
-            sed -i 's/server_names_hash_bucket_size 128;/server_names_hash_bucket_size 256;/' /etc/nginx/nginx.conf.tmpl
-            /usr/local/bin/supervisord-run
+          {{ .Values.container.command }}
+        {{- end }}
+        {{- if .Values.container.args }}
+        args:
+          {{ toYaml .Values.container.args | nindent 10}}
+        {{- end }}
         image: {{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         securityContext:
@@ -152,7 +158,7 @@ spec:
         {{- end }}
         readinessProbe:
           httpGet:
-            path: {{ .Values.tfe.readinessProbePath | default "/_health_check" }}
+            path: {{ .Values.tfe.readinessProbePath | default "/api/v1/health/readiness" }}
             port: {{ .Values.tfe.privateHttpPort }}
             scheme: {{ .Values.tfe.readinessProbeScheme | default "HTTP"  }}
         resources:
@@ -179,6 +185,32 @@ spec:
             mountPath: {{ include "cacert.path" . }}
             subPath: {{ .Values.tls.caCertFileName }}
           {{- end }}
+          {{- if .Values.tlsRedis }}
+          {{- if and .Values.tlsRedis.certData .Values.tlsRedis.keyData .Values.tlsRedis.caCertData }}
+          - name: certificates-redis
+            mountPath: {{ .Values.tlsRedis.certMountPath }}
+            subPath: tls.crt
+          - name: certificates-redis
+            mountPath: {{ .Values.tlsRedis.keyMountPath }}
+            subPath: tls.key
+          - name: certificates-redis
+            mountPath: {{ .Values.tlsRedis.caCertMountPath }}
+            subPath: tls.ca
+          {{- end }}
+          {{- end }}
+          {{- if and .Values.tlsRedisSidekiq }}
+          {{- if and .Values.tlsRedisSidekiq.certData .Values.tlsRedisSidekiq.keyData .Values.tlsRedisSidekiq.caCertData }}
+          - name: certificates-redis-sidekiq
+            mountPath: {{ .Values.tlsRedisSidekiq.certMountPath }}
+            subPath: tls.crt
+          - name: certificates-redis-sidekiq
+            mountPath: {{ .Values.tlsRedisSidekiq.keyMountPath }}
+            subPath: tls.key
+          - name: certificates-redis-sidekiq
+            mountPath: {{ .Values.tlsRedisSidekiq.caCertMountPath }}
+            subPath: tls.ca
+          {{- end }}
+          {{- end }}
           {{- if .Values.csi.enabled }}
           - name: secrets-store
             mountPath: "{{ .Values.csi.mountPath }}"
@@ -190,6 +222,9 @@ spec:
         ports:
         - containerPort: {{ .Values.tfe.privateHttpPort }}
         - containerPort: {{ .Values.tfe.privateHttpsPort }}
+        {{- if .Values.tfe.adminHttpsPort }}
+        - containerPort: {{ .Values.tfe.adminHttpsPort }}
+        {{- end }}
         {{- if .Values.tfe.metrics.enable }}
         - containerPort: {{.Values.tfe.metrics.httpPort}}
         - containerPort: {{.Values.tfe.metrics.httpsPort}}

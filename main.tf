@@ -317,6 +317,8 @@ locals {
   icd_postgres_port     = var.postgres_vpe_enabled == true && (var.postgres_service_endpoints == "public-and-private" || var.postgres_service_endpoints == "private") ? data.ibm_database_connection.icd_postgres_private_connection[0].postgres[0].hosts[0].port : module.icd_postgres.port
 }
 
+### questo
+
 module "tfe_install" {
   depends_on                = [module.redis, module.icd_postgres_vpe]
   source                    = "./modules/tfe-install"
@@ -353,6 +355,8 @@ module "tfe_install" {
 ########################################################################################################################
 # Connect to Catalog Management
 ########################################################################################################################
+
+### questo
 
 resource "ibm_cm_account" "cm_account_instance" {
   count = var.add_to_catalog ? 1 : 0
@@ -431,6 +435,8 @@ data "ibm_cis_domain" "existing_cis_instance_domain" {
   domain = var.existing_cis_instance_domain
   cis_id = data.ibm_cis.existing_cis_instance[0].id
 }
+
+### questo
 
 module "tfe_dns_record" {
   count           = var.existing_cis_instance_name != null && var.existing_cis_instance_domain != null && var.create_tfe_secondary_host_on_cis ? 1 : 0

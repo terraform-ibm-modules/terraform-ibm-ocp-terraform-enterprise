@@ -54,7 +54,7 @@ while [ $ATTEMPT -le $MAX_RETRIES ]; do
   elif [ "$STATUS" == "error" ] && [ "$ERROR" == "admin user creation not allowed" ]; then
     echo "Attempt $ATTEMPT: server response: $ERROR. This is expected if the admin user already exists. Exiting successfully." >> $LOGFILE
     >&2 echo "Attempt $ATTEMPT: server response: $ERROR. This is expected if the admin user already exists. Exiting successfully."
-    echo "{\"token\": \"\"}"
+    echo "{\"token\": \"-1\"}"
     exit 0
   else
     echo "Attempt $ATTEMPT: Unexpected response: $RESPONSE" >> $LOGFILE

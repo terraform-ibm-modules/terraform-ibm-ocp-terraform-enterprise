@@ -24,11 +24,19 @@ serviceAccount:
   annotations: {}
   labels: {}
 
+deployment:
+  # Configure deployment annotations
+  annotations: {}
+  labels: {}
 pod:
 # Configure pod annotations
   annotations: {}
   labels: {}
 container:
+# Configure container command
+  command: null
+# Configure container args as a list
+  args: null
 # Configure pod specific security context settings
   securityContext: {}
 
@@ -44,8 +52,8 @@ container:
 # If you do want to specify resource limits, uncomment the following lines and adjust them as necessary.
 resources:
   requests:
-    memory: "3000Mi"
-    cpu: '1'
+    memory: "8192Mi"
+    cpu: "4000m"
   # limits:
   #   memory: ""
   #   cpu: ""
@@ -65,6 +73,31 @@ tls:
   # keyData:
   # caCertData:
 
+tlsSecondary:
+  # certificateSecret: terraform-enterprise-certificates-secondary # pragma: allowlist secret
+  certMountPath: /etc/ssl/private/terraform-enterprise-secondary/cert.pem
+  keyMountPath: /etc/ssl/private/terraform-enterprise-secondary/key.pem
+  # certData:
+  # keyData:
+
+tlsRedis:
+  # certificateSecret: terraform-enterprise-certificates-redis # pragma: allowlist secret
+  certMountPath: /etc/ssl/private/terraform-enterprise-redis/cert.pem
+  keyMountPath: /etc/ssl/private/terraform-enterprise-redis/key.pem
+  caCertMountPath: /etc/ssl/private/terraform-enterprise-redis/ca.pem
+  # certData:
+  # keyData:
+  # caCertData:
+
+tlsRedisSidekiq:
+  # certificateSecret: terraform-enterprise-certificates-redis-sidekiq # pragma: allowlist secret
+  certMountPath: /etc/ssl/private/terraform-enterprise-redis-sidekiq/cert.pem
+  keyMountPath: /etc/ssl/private/terraform-enterprise-redis-sidekiq/key.pem
+  caCertMountPath: /etc/ssl/private/terraform-enterprise-redis-sidekiq/ca.pem
+  # certData:
+  # keyData:
+  # caCertData:
+
 tfe:
   metrics:
     enable: false
@@ -72,6 +105,8 @@ tfe:
     httpsPort: 9091
   privateHttpPort: 8080
   privateHttpsPort: 8443
+  # Specifies the port that the system API endpoints listen on for HTTPS requests.
+  #adminHttpsPort: 8446
   ## Readiness probe settings customize the terraform-enterprise health check path, eg: to use the full service dependency check
   # readinessProbePath: "/_health_check?full"
   # readinessProbeScheme: "HTTP"
@@ -183,8 +218,7 @@ ingress:
 
  # Injector service specific configurations
 service:
-  annotations:
-      service.beta.openshift.io/serving-cert-secret-name: "terraform-enterprise-certificates"
+  annotations: {}
     # Add annotations here for specific cloud provider configurations.
     # Examples:
     # - For Google Cloud, use the NEG (Network Endpoint Group) annotation:
@@ -195,7 +229,7 @@ service:
     # Add labels to the service created for Terraform Enterprise. Helpful if your metrics collection
     # depends on ServiceMonitors instead of pod annotations.
 
-  type: ClusterIP # The type of service to create. Options: LoadBalancer, ClusterIP, NodePort.
+  type: LoadBalancer # The type of service to create. Options: LoadBalancer, ClusterIP, NodePort.
                      # - LoadBalancer: Exposes the service externally using a cloud provider's load balancer.
                      # - ClusterIP: Default type; exposes the service only within the cluster.
                      # - NodePort: Exposes the service on a static port on each cluster node.
@@ -204,6 +238,41 @@ service:
 
   nodePort: 32443    # If service.type is NodePort, this sets the external port on cluster nodes.
                      # Ignored for LoadBalancer and ClusterIP types.
+
+  adminNodePort: 32446 # If service.type is NodePort, this sets the external port on cluster nodes for the admin HTTPS port.
+                       # Ignored for LoadBalancer and ClusterIP types.
+
+  appProtocol: tcp   # Application protocol for the service.
+                     # - Default is "tcp" for broad compatibility across cloud providers.
+                     # - Set to "https" if Gateway API or Layer 7 features are required.
+
+  loadBalancerIP: null # If service.type is LoadBalancer, you can optionally set a specific external IP.
+                       # Useful for static IP requirements or pre-existing IP reservations.
+
+serviceSecondary:
+  annotations: {}
+    # Add annotations here for specific cloud provider configurations.
+    # Examples:
+    # - For Google Cloud, use the NEG (Network Endpoint Group) annotation:
+    #   cloud.google.com/neg: '{"ingress": true}'
+    # - For Azure, configure the health probe request path for HTTPS health checks:
+    #   service.beta.kubernetes.io/azure-load-balancer-health-probe-request-path: "/_health_check"
+  labels: {}
+    # Add labels to the service created for Terraform Enterprise. Helpful if your metrics collection
+    # depends on ServiceMonitors instead of pod annotations.
+
+  type: ClusterIP    # The type of service to create. Options: LoadBalancer, ClusterIP, NodePort.
+                     # - LoadBalancer: Exposes the service externally using a cloud provider's load balancer.
+                     # - ClusterIP: Default type; exposes the service only within the cluster.
+                     # - NodePort: Exposes the service on a static port on each cluster node.
+
+  port: 443          # The port exposed by the service (external port).
+
+  nodePort: 32443    # If service.type is NodePort, this sets the external port on cluster nodes.
+                     # Ignored for LoadBalancer and ClusterIP types.
+
+  adminNodePort: 32447 # If service.type is NodePort, this sets the external port on cluster nodes for the admin HTTPS port.
+                       # Ignored for LoadBalancer and ClusterIP types.
 
   appProtocol: tcp   # Application protocol for the service.
                      # - Default is "tcp" for broad compatibility across cloud providers.
@@ -228,8 +297,6 @@ openshift:
   enabled: false
 
 env:
-  # configFilePath: env-config.yaml
-  # secretsFilePath: # env-secrets.yaml
   # configMapRefs:
   #   - name:
   # secretRefs:
@@ -304,7 +371,7 @@ agents:
     labels: {}
   namespace:
     # Whether to create a namespace for the agents.
-    enabled: false
+    enabled: true
     # The name of the agent namespace to create, or the name of the namespace to use if it
     # already exists. Defaults to the release namespace with the suffix "-agents".
     name: null
@@ -351,7 +418,7 @@ csi:
   annotations: {}
   labels: {}
   # checkov:skip=CKV_SECRET_6:The Helm chart should remain similar to the open source original.
-  secretProviderClass: terraform-enterprise-vault-secrets
+  secretProviderClass: terraform-enterprise-vault-secrets # checkov:skip=CKV_SECRET_6
   vaultRole: ""
   vaultAddress: "" # Example: http://vault.vault-namespace.svc.cluster.local:8200
   mountPath: "" # Example: /mnt/secrets-store
@@ -373,3 +440,9 @@ csi:
     secretName: ""
     # Type of the Kubernetes secret. Example: Opaque
     type: ""
+
+secret:
+  annotations: {}
+
+config:
+  annotations: {}

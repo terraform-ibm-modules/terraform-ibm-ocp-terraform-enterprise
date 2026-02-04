@@ -45,9 +45,8 @@ metadata:
   labels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  annotations:
-    checkov.io/skip1: CKV_K8S_42= Ensure that default service accounts are not actively used
   {{- with .Values.agents.rbac.annotations }}
+  annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 roleRef:
