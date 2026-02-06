@@ -279,57 +279,29 @@ resource "kubernetes_config_map" "custom_tfe_start" {
 }
 
 locals {
-  tfe_deployment_labels = {}
-  tfe_deployment_annotations = { "checkov.io/skip1" : "CKV_K8S_13= The Helm chart should remain similar to the open source original",
-    "checkov.io/skip2" : "CKV_K8S_43= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip3" : "CKV_K8S_31= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip4" : "CKV_K8S_35= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip5" : "CKV_K8S_23= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip6" : "CKV_K8S_22= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip7" : "CKV_K8S_37= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip8" : "CKV_K8S_38= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip9" : "CKV_K8S_8= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip10" : "CKV_K8S_28= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip11" : "CKV_K8S_20= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip12" : "CKV_K8S_11= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip13" : "CKV2_K8S_6= The Helm chart should remain similar to the open source original.",
-    "checkov.io/skip14" : "CKV_K8S_40= The Helm chart should remain similar to the open source original.",
-  "checkov.io/skip15" : "CKV_K8S_21= The default namespace should not be used" }
+  tfe_deployment_labels      = {}
+  tfe_deployment_annotations = {}
 
   tfe_service_values = {
     "annotations" : {
       "service.beta.openshift.io/serving-cert-secret-name" : "terraform-enterprise-certificates",
-      "checkov.io/skip1" : "CKV_K8S_21= The default namespace should not be used"
     },
     "labels" : {},
     "type" : var.tfe_service_servicetype,
     "adminNodePort" : var.tfe_service_admin_node_port,
   }
 
-  tfe_service_account = {
-    "annotations" : {
-      "checkov.io/skip1" : "CKV_K8S_41= Ensure that default service accounts are not actively used"
-    }
-  }
+  tfe_service_account = {}
 
-  tfe_secret = {
-    "annotations" : {
-      "checkov.io/skip1" : "CKV_K8S_21= The default namespace should not be used"
-    }
-  }
+  tfe_secret = {}
 
-  tfe_agents_rbac = {
-    "annotations" : {
-      "checkov.io/skip1" : "CKV_K8S_42= Ensure that default service accounts are not actively used"
-    }
-  }
+  tfe_agents_rbac = {}
 
   tfe_secondary_hostname_secret_name = var.tfe_secondary_hostname_secret_name != null && var.tfe_secondary_hostname_secret_name != "" ? var.tfe_secondary_hostname_secret_name : "terraform-enterprise-certificates-secondary"
 
   tfe_service_secondary_values = var.tfe_secondary_hostname_fqdn != null ? {
     "annotations" : {
       "service.beta.openshift.io/serving-cert-secret-name" : "${local.tfe_secondary_hostname_secret_name}-internal",
-      "checkov.io/skip1" : "CKV_K8S_21= The default namespace should not be used"
     },
     "labels" : {},
     "type" : var.tfe_service_secondary_servicetype,
@@ -369,9 +341,7 @@ resource "helm_release" "tfe_install" {
   values = [
     yamlencode({
       "config" = {
-        "annotations" = {
-          "checkov.io/skip1" = "CKV_K8S_21= The default namespace should not be used"
-        }
+        "annotations" = {}
       }
       "env" = {
         "variables" = {
@@ -422,151 +392,6 @@ resource "helm_release" "tfe_install" {
     }),
   ]
 }
-
-# data "helm_template" "tfe_install" {
-#   name             = "terraform-enterprise"
-#   chart            = "${path.module}/chart/tfe"
-#   namespace        = kubernetes_namespace_v1.tfe.metadata[0].name
-
-#   # show_only = [
-#   #   "templates/master-statefulset.yaml",
-#   #   "templates/master-svc.yaml",
-#   # ]
-
-#   set = local.set_values_list_final
-
-#   set_sensitive = local.set_sensitive_values_list_final
-
-#   values = [
-#     yamlencode({
-#       "config" = {
-#         "annotations" = {
-#           "checkov.io/skip1" = "CKV_K8S_21= The default namespace should not be used"
-#         }
-#       }
-#       "env" = {
-#         "variables" = {
-#           "TFE_RUN_PIPELINE_KUBERNETES_OPEN_SHIFT_ENABLED" = "true"
-#         }
-#       }
-#       "agents" = {
-#         "namespace" = {
-#           "enabled" = false
-#         }
-#       }
-#       "deployment" = {
-#         "labels"      = local.tfe_deployment_labels,
-#         "annotations" = local.tfe_deployment_annotations
-#       },
-#       "adminHttpsPort"   = {},
-#       "tlsRedis"         = {},
-#       "tlsRedisSidekiq"  = {},
-#       "container" = {
-#         "command" = ["/bin/sh"],
-#         "args"    = ["-c", "/scripts/custom_tfe_start.sh"],
-#         "securityContext" = {
-#           "runAsUser" = 1000
-#         }
-#       },
-#       "extraVolumes" = [
-#         {
-#           "configMap" = {
-#             "defaultMode" = 488
-#             "name"        = "custom-tfe-start"
-#           }
-#           "name" = "scripts"
-#         }
-#       ],
-#       "extraVolumeMounts" = [
-#         {
-#           "mountPath" = "/scripts"
-#           "name"      = "scripts"
-#           "readOnly"  = true
-#         }
-#       ]
-#       "service"          = local.tfe_service_values
-#       "serviceSecondary" = null,
-#     }),
-#   ]
-# }
-
-
-# resource "local_file" "tfe_install_manifests" {
-#   for_each = data.helm_template.tfe_install.manifests
-
-#   filename = "./${each.key}"
-#   content  = each.value
-# }
-
-# output "tfe_install_manifests" {
-#   value = data.helm_template.tfe_install.manifest
-# }
-
-# output "tfe_install_instance_manifests" {
-#   value = data.helm_template.tfe_install.manifests
-# }
-
-# output "tfe_install_instance_notes" {
-#   value = data.helm_template.tfe_install.notes
-# }
-
-# <<-EOT
-#       container:
-#         volumeMounts:
-#         - mountPath: /scripts
-#           name: scripts
-#           readOnly: true
-#         command:
-#           - /bin/sh
-#           - '-c'
-#           - |
-#             /scripts/custom_tfe_start.sh
-#         securityContext:
-#           runAsUser: 1000
-#       volumes:
-#       - configMap:
-#           defaultMode: 484
-#           name: custom-tfe-start
-#         name: scripts
-#     EOT
-# command:
-#   - /bin/sh
-#   - '-c'
-#   - |
-#     sed -i '/^[ ]\{2\}pool:/a\ \ schema_search_path: "public,ibm_extension"' /app/config/database.yml
-#     sed -i 's/server_names_hash_bucket_size 128;/server_names_hash_bucket_size 256;/' /etc/nginx/nginx.conf.tmpl
-#     /usr/local/bin/supervisord-run
-
-# yamlencode({
-#     "adminHttpsPort" = {},
-#     "tlsRedis" = {},
-#     "tlsRedisSidekiq" = {},
-# }),
-
-#     yamlencode({
-#       "adminHttpsPort" = {},
-#       "tlsRedis" = {},
-#       "tlsRedisSidekiq" = {},
-#       "container" = {
-#         "command" = [
-#           "/bin/sh", "-c",
-# <<-EOT
-#             sed -i '/^[ ]\{2\}pool:/a\ \ schema_search_path: "public,ibm_extension"' /app/config/database.yml
-#             sed -i 's/server_names_hash_bucket_size 128;/server_names_hash_bucket_size 256;/' /etc/nginx/nginx.conf.tmpl
-#             /usr/local/bin/supervisord-run
-# EOT
-#         ]
-#         "securityContext" = {
-#           "runAsUser" = 1000
-#         }
-#       }
-#     }),
-
-#   <<-EOF
-#   container:
-#     securityContext:
-#       runAsUser: 1000
-# EOF
 
 resource "random_string" "iact_token" {
   length  = 10
