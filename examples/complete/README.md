@@ -39,5 +39,5 @@ You can report issues and request features for this module in GitHub issues in t
 To set up your local development environment, see [Local development setup](https://terraform-ibm-modules.github.io/documentation/#/local-dev-setup) in the project documentation.
 
 <!-- BEGIN SCHEMATICS DEPLOY TIP HOOK -->
-:exclamation: Ctrl/Cmd+Click or right-click to open deploy button in a new tab
+:information_source: Ctrl/Cmd+Click or right-click on the Schematics deploy button to open in a new tab
 <!-- END SCHEMATICS DEPLOY TIP HOOK -->
