@@ -2,9 +2,13 @@
 # IBM Cloud OpenShift Terraform Enterprise modules
 
 <!-- BEGIN SCHEMATICS DEPLOY HOOK -->
-<a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=terraform-enterprise-complete-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/tree/main/examples/complete"><img src="https://img.shields.io/badge/Deploy%20with IBM%20Cloud%20Schematics-0f62fe?logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics" style="height: 16px; vertical-align: text-bottom;"></a>
+<p>
+  <a href="https://cloud.ibm.com/schematics/workspaces/create?workspace_name=terraform-enterprise-complete-example&repository=https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/tree/main/examples/complete">
+    <img src="https://img.shields.io/badge/Deploy%20with%20IBM%20Cloud%20Schematics-0f62fe?style=flat&logo=ibm&logoColor=white&labelColor=0f62fe" alt="Deploy with IBM Cloud Schematics">
+  </a><br>
+  ℹ️ Ctrl/Cmd+Click or right-click on the Schematics deploy button to open in a new tab.
+</p>
 <!-- END SCHEMATICS DEPLOY HOOK -->
-
 
 [![Incubating](https://img.shields.io/badge/status-Incubating%20(Not%20yet%20consumable)-red)](https://terraform-ibm-modules.github.io/documentation/#/badge-status)
 [![latest release](https://img.shields.io/github/v/release/terraform-ibm-modules/terraform-ibm-terraform-enterprise?logo=GitHub&sort=semver)](https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/releases/latest)
@@ -18,7 +22,6 @@ This repository provides a top-level Terraform module for deploying and managing
 It provides also the option to setup a secondary hostname for the Terraform Enterprise instance from an existing domain registered on an existing instance of IBM Cloud Internet Service.
 
 **Status:** This module is working but still incubating (alpha version). Interfaces and behaviors may change. Early adopters are encouraged to try it and provide feedback.
-
 
 ## Required access policies
 
@@ -37,7 +40,3 @@ You need the following permissions to run this module:
 You can report issues and request features for this module in GitHub issues in the module repo. See [Report an issue or request a feature](https://github.com/terraform-ibm-modules/.github/blob/main/.github/SUPPORT.md).
 
 To set up your local development environment, see [Local development setup](https://terraform-ibm-modules.github.io/documentation/#/local-dev-setup) in the project documentation.
-
-<!-- BEGIN SCHEMATICS DEPLOY TIP HOOK -->
-:information_source: Ctrl/Cmd+Click or right-click on the Schematics deploy button to open in a new tab
-<!-- END SCHEMATICS DEPLOY TIP HOOK -->

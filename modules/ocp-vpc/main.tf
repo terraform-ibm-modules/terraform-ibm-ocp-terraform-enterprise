@@ -4,7 +4,7 @@
 
 module "vpc" {
   source            = "terraform-ibm-modules/landing-zone-vpc/ibm"
-  version           = "8.15.10"
+  version           = "8.15.11"
   resource_group_id = var.resource_group_id
   region            = var.region
   create_vpc        = var.existing_vpc_id == null ? true : false
@@ -80,7 +80,7 @@ locals {
 module "openshift" {
   count                               = var.existing_cluster_id == null ? 1 : 0
   source                              = "terraform-ibm-modules/base-ocp-vpc/ibm"
-  version                             = "3.81.9"
+  version                             = "3.82.3"
   cluster_name                        = var.cluster_name
   resource_group_id                   = var.resource_group_id
   region                              = var.region
