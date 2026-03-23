@@ -66,9 +66,9 @@ module "cos" {
   bucket_name              = var.cos_bucket_name
   add_bucket_name_suffix   = true
   create_cos_bucket        = true
-  retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
-  kms_encryption_enabled   = true
-  kms_key_crn              = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-cos"].crn
+  # retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
+  kms_encryption_enabled = true
+  kms_key_crn            = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-cos"].crn
   resource_keys = [
     {
       name                      = "tfe-credentials"
@@ -116,9 +116,12 @@ module "icd_postgres" {
   use_same_kms_key_for_backups = false
   kms_key_crn                  = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql"].crn
   backup_encryption_key_crn    = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql-backup"].crn
-  service_credential_names = {
-    "tfe" : "Operator"
-  }
+  service_credential_names = [
+    {
+      "name" : "tfe",
+      "role" : "Operator"
+    }
+  ]
   deletion_protection = var.postgres_deletion_protection
 }
 
