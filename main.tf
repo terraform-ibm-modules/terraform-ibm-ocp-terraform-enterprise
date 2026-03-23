@@ -66,9 +66,8 @@ module "cos" {
   bucket_name              = var.cos_bucket_name
   add_bucket_name_suffix   = true
   create_cos_bucket        = true
-  # retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
-  kms_encryption_enabled = true
-  kms_key_crn            = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-cos"].crn
+  kms_encryption_enabled   = true
+  kms_key_crn              = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-cos"].crn
   resource_keys = [
     {
       name                      = "tfe-credentials"
