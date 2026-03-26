@@ -14,7 +14,7 @@ This repository provides a top-level Terraform module for deploying and managing
 
 **Status:** This module deploys a functional TFE infrastructure on IBM Cloud. However, it does not yet implement all production-ready requirements such as network isolation, security hardening, and compliance controls. The module interfaces and behaviors may change as these capabilities are added. Early adopters are encouraged to try it and provide feedback.
 
-### Version 0.2.0 Breaking change note
+### Version 4.0.0 Breaking change note
 
 Upgrading to this version is a breaking change due to the deprecation of the kubernetes_config_map resource, moving to kubernetes_config_map_v1.
 To prevent the configmap from being destroyed and recreated, please follow the steps below:
