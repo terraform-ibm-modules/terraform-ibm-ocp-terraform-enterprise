@@ -33,10 +33,6 @@ pod:
   annotations: {}
   labels: {}
 container:
-# Configure container command
-  command: null
-# Configure container args as a list
-  args: null
 # Configure pod specific security context settings
   securityContext: {}
 
@@ -106,7 +102,7 @@ tfe:
   privateHttpPort: 8080
   privateHttpsPort: 8443
   # Specifies the port that the system API endpoints listen on for HTTPS requests.
-  #adminHttpsPort: 8446
+  adminHttpsPort: 8446
   ## Readiness probe settings customize the terraform-enterprise health check path, eg: to use the full service dependency check
   # readinessProbePath: "/_health_check?full"
   # readinessProbeScheme: "HTTP"
@@ -336,6 +332,7 @@ env:
     # TFE_OBJECT_STORAGE_S3_SERVER_SIDE_ENCRYPTION: ""
     # TFE_OBJECT_STORAGE_S3_SERVER_SIDE_ENCRYPTION_KMS_KEY_ID: ""
     # TFE_OBJECT_STORAGE_S3_USE_INSTANCE_PROFILE: ""
+    # TFE_REDIS_USE_MTLS: ""
     # TFE_REDIS_USE_TLS: ""
     # TFE_REDIS_USER: ""
     # TFE_REDIS_HOST: ""
