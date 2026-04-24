@@ -14,24 +14,9 @@ This repository provides a top-level Terraform module for deploying and managing
 
 **Status:** This module deploys a functional TFE infrastructure on IBM Cloud. However, it does not yet implement all production-ready requirements such as network isolation, security hardening, and compliance controls. The module interfaces and behaviors may change as these capabilities are added. Early adopters are encouraged to try it and provide feedback.
 
-### Version 4.0.0 Breaking change note
+### Versions upgrade notes
 
-Upgrading to this version is a breaking change due to the deprecation of the kubernetes_config_map resource, moving to kubernetes_config_map_v1.
-To prevent the configmap from being destroyed and recreated, please follow the steps below:
-
-1. Update your terraform code to use v3.x.x of the kubernetes provider and to consume the new version of this module
-2. Remove the old resource from the state.
-By using terraform CLI:
-`terraform state rm 'module.tfe.module.tfe_install.kubernetes_config_map.custom_tfe_start'`
-By schematics CLI:
-`ibmcloud schematics workspace state rm --id <WORKSPACE_ID> --address 'module.tfe.module.tfe_install.kubernetes_config_map.custom_tfe_start'`
-3. Import the resource to the new address:
-By using Terraform CLI:
-`terraform import 'module.tfe.module.tfe_install.kubernetes_config_map_v1.custom_tfe_start' "<custom_tfe_start configmap resource ID>"`
-By using Schematics CLI:
-`ibmcloud schematics workspace import --id <WORKSPACE_ID> --address 'module.tfe.module.tfe_install.kubernetes_config_map_v1.custom_tfe_start' --resourceID "<custom_tfe_start configmap resource ID>"`
-**Note** : Run terraform plan to confirm that the import was successful. Do not run the plan after renaming the resource in the configuration if the above steps haven't been applied yet.
-
+Please refer to [this document](./upgrade.md) for the notes related with upgrading to a new major version of this module
 
 ### TFE Secondary hostname
 
