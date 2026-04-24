@@ -180,12 +180,6 @@ variable "cos_bucket_name" {
   default     = "tfe-cos-bucket"
 }
 
-# variable "cos_retention" {
-#   type        = bool
-#   description = "Whether retention for the Object Storage bucket is enabled. Enable for staging and prod environments."
-#   default     = false
-# }
-
 ##############################################################################
 # PostGres
 ##############################################################################
