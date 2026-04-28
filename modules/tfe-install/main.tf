@@ -333,7 +333,7 @@ resource "helm_release" "tfe_install" {
   recreate_pods    = true
   force_update     = true
   reset_values     = true
-  atomic           = true
+  atomic           = var.rollback_on_failure
 
   set = local.set_values_list_final
 
