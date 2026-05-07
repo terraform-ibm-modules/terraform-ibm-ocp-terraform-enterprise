@@ -7,6 +7,7 @@ resource "helm_release" "redis_install" {
   name             = local.release_name
   repository       = "oci://registry-1.docker.io/bitnamicharts"
   chart            = "redis"
+  version          = "25.5.2"
   namespace        = local.namespace
   create_namespace = true
   timeout          = 1200
