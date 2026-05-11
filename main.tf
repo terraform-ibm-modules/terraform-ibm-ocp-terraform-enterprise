@@ -349,6 +349,7 @@ module "tfe_install" {
   tfe_secondary_hostname_secret_name = var.tfe_secondary_hostname_secret_name
   tfe_secondary_hostname_certificate = var.tfe_secondary_hostname_existing_secret_crn != null ? "${data.ibm_sm_public_certificate.tfe_secondary_hostname_certificate[0].certificate}${data.ibm_sm_public_certificate.tfe_secondary_hostname_certificate[0].intermediate}" : null
   tfe_secondary_hostname_key         = var.tfe_secondary_hostname_existing_secret_crn != null ? data.ibm_sm_public_certificate.tfe_secondary_hostname_certificate[0].private_key : null
+  tfe_image_tag                      = var.tfe_image_tag
 }
 
 ########################################################################################################################

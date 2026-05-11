@@ -328,7 +328,7 @@ resource "helm_release" "tfe_install" {
   chart            = "${path.module}/chart/tfe"
   namespace        = kubernetes_namespace_v1.tfe.metadata[0].name
   create_namespace = false
-  timeout          = 1200
+  timeout          = 6000
   wait             = true
   recreate_pods    = true
   force_update     = true

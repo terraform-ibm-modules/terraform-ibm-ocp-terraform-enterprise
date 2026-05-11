@@ -468,3 +468,10 @@ variable "tfe_secondary_hostname_secret_name" {
   type        = string
   default     = null
 }
+
+variable "tfe_image_tag" {
+  description = "The version tag of the Terraform Enterprise image to use"
+  type        = string
+  default     = "2.0.1"
+}
+
