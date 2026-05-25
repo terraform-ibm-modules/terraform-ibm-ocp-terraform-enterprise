@@ -260,10 +260,10 @@ resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
   group     = module.ocp_vpc.vpc_default_security_group
   direction = "inbound"
   local     = var.postgres_vpe_enabled == true ? each.value.cidr : "0.0.0.0/0"
-  remote   = module.ocp_vpc.kube_cluster_sg.id
-  protocol = "tcp"
-  port_min = module.icd_postgres.port
-  port_max = module.icd_postgres.port
+  remote    = module.ocp_vpc.kube_cluster_sg.id
+  protocol  = "tcp"
+  port_min  = module.icd_postgres.port
+  port_max  = module.icd_postgres.port
 }
 
 ########################################################################################################################
