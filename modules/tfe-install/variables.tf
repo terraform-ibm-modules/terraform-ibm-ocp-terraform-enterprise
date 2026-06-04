@@ -230,3 +230,9 @@ variable "tfe_resources_configuration_cpu" {
   type        = string
   default     = "1"
 }
+
+variable "rollback_on_failure" {
+  description = "Flag to automatically rollback the helm chart on installation failure."
+  type        = bool
+  default     = true
+}
