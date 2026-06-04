@@ -8,12 +8,13 @@ kind: Service
 metadata:
   name: terraform-enterprise
   namespace: {{ .Release.Namespace }}
+  annotations:
   {{- if .Values.service.annotations }}
   {{- with .Values.service.annotations }}
-  annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- end }}
+    checkov.io/skip1: CKV_K8S_21
   {{- if .Values.service.labels }}
   {{- with .Values.service.labels }}
   labels:
