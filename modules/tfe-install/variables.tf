@@ -145,6 +145,13 @@ variable "tfe_redis_password" {
   sensitive   = true
 }
 
+variable "tfe_redis_certificate_base64" {
+  description = "Base64 encoded TLS certificate for Redis connection (required for IBM Cloud Redis)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "tfe_secondary_hostname_fqdn" {
   description = "The FQDN for the Terraform Enterprise secondary instance hostname. Default to null."
   type        = string

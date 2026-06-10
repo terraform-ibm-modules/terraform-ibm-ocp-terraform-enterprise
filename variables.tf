@@ -279,6 +279,18 @@ variable "existing_redis_password_base64" {
   }
 }
 
+variable "existing_redis_certificate_base64" {
+  type        = string
+  description = "Base64 encoded TLS certificate for the existing redis instance. Required for IBM Cloud Redis connections. Default to null."
+  default     = null
+  sensitive   = true
+
+  validation {
+    condition     = var.existing_redis_hostname != null ? var.existing_redis_certificate_base64 != null : true
+    error_message = "If var.existing_redis_hostname is set, var.existing_redis_certificate_base64 must also be set for TLS connection."
+  }
+}
+
 variable "redis_password_secret_name" {
   type        = string
   description = "The name of the Secrets Manager secret to store the redis password if var.existing_secrets_manager_crn is not null. Default to tfe_redis_password."
@@ -287,6 +299,40 @@ variable "redis_password_secret_name" {
     condition     = var.existing_secrets_manager_crn == null ? true : (var.redis_password_secret_name != null && var.redis_password_secret_name != "" ? true : false)
     error_message = "If var.existing_secrets_manager_crn is not null var.redis_password_secret_name cannot be null or empty string."
   }
+}
+
+variable "redis_instance_name" {
+  type        = string
+  description = "Name of the Redis instance to create. Default to tfe-redis."
+  default     = "tfe-redis"
+}
+
+variable "redis_version" {
+  type        = string
+  description = "Version of Redis to provision. If not specified, the latest version will be used."
+  default     = null
+}
+
+variable "redis_member_host_flavor" {
+  type        = string
+  description = "Host flavor for Redis members. Default to multitenant."
+  default     = "multitenant"
+}
+
+variable "redis_service_endpoints" {
+  type        = string
+  description = "Service endpoints for the Redis instance to deploy. Default is public-and-private."
+  default     = "public-and-private"
+  validation {
+    condition     = contains(["private", "public-and-private"], var.redis_service_endpoints)
+    error_message = "Allowed values for var.redis_service_endpoints are 'private' and 'public-and-private'"
+  }
+}
+
+variable "redis_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection within terraform. The Redis instance cannot be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
+  default     = true
 }
 
 ##############################################################################
