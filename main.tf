@@ -332,6 +332,7 @@ module "tfe_install" {
   cluster_resource_group_id = var.resource_group_id
   namespace                 = var.tfe_namespace
   tfe_license               = local.tfe_license
+  tfe_image_tag             = var.tfe_image_tag
   tfe_database_host         = "${local.icd_postgres_hostname}:${local.icd_postgres_port}"
   tfe_database_user         = module.icd_postgres.service_credentials_object.credentials["tfe"].username
   tfe_database_password     = module.icd_postgres.service_credentials_object.credentials["tfe"].password

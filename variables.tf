@@ -75,6 +75,11 @@ variable "admin_password" {
   sensitive   = true
 }
 
+variable "tfe_image_tag" {
+  type        = string
+  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1')"
+}
+
 variable "tfe_namespace" {
   type        = string
   description = "namespace to place Terraform Enterprise in on cluster"

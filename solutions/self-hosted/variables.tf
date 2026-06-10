@@ -59,6 +59,11 @@ variable "tfe_license" {
   sensitive   = true
 }
 
+variable "tfe_image_tag" {
+  type        = string
+  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1')"
+}
+
 variable "admin_username" {
   type        = string
   description = "The user name of the Terraform Enterprise admin user"

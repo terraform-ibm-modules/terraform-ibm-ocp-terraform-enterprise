@@ -70,9 +70,8 @@ variable "tfe_license" {
 }
 
 variable "tfe_image_tag" {
-  description = "The version tag of the Terraform Enterprise image to use"
+  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1')"
   type        = string
-  default     = "v202504-1"
 }
 
 variable "tfe_encryption_password" {
