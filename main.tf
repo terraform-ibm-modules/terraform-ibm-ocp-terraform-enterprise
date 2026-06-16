@@ -136,32 +136,34 @@ locals {
     concat(
       [
         {
-          name        = "allow-postgres-outbound-${subnet}"
-          action      = "allow"
-          direction   = "outbound"
-          source      = cidr
-          destination = "0.0.0.0/0"
-          tcp = {
-            source_port_max = 65535
-            source_port_min = 1
-            port_min        = module.icd_postgres.port
-            port_max        = module.icd_postgres.port
-          }
+          name            = "allow-postgres-outbound-${subnet}"
+          action          = "allow"
+          direction       = "outbound"
+          source          = cidr
+          destination     = "0.0.0.0/0"
+          protocol        = "tcp"
+          source_port_min = 1
+          source_port_max = 65535
+          port_min        = module.icd_postgres.port
+          port_max        = module.icd_postgres.port
+          type            = null
+          code            = null
         }
       ],
       [
         {
-          name        = "allow-postgres-inbound-${subnet}"
-          action      = "allow"
-          direction   = "inbound"
-          source      = "0.0.0.0/0"
-          destination = cidr
-          tcp = {
-            source_port_max = module.icd_postgres.port
-            source_port_min = module.icd_postgres.port
-            port_max        = 65535
-            port_min        = 1
-          }
+          name            = "allow-postgres-inbound-${subnet}"
+          action          = "allow"
+          direction       = "inbound"
+          source          = "0.0.0.0/0"
+          destination     = cidr
+          protocol        = "tcp"
+          source_port_min = module.icd_postgres.port
+          source_port_max = module.icd_postgres.port
+          port_min        = 1
+          port_max        = 65535
+          type            = null
+          code            = null
         }
       ]
     )
@@ -172,30 +174,32 @@ locals {
   postgres_vpe_acl_rules = flatten([
     for subnet, cidr in var.subnets_zones_cidr : [
       {
-        name        = "allow-postgres-outbound-to-vpe-${subnet}"
-        action      = "allow"
-        direction   = "outbound"
-        source      = cidr
-        destination = cidr
-        tcp = {
-          source_port_max = 65535
-          source_port_min = 1
-          port_min        = module.icd_postgres.port
-          port_max        = module.icd_postgres.port
-        }
+        name            = "allow-postgres-outbound-to-vpe-${subnet}"
+        action          = "allow"
+        direction       = "outbound"
+        source          = cidr
+        destination     = cidr
+        protocol        = "tcp"
+        source_port_min = 1
+        source_port_max = 65535
+        port_min        = module.icd_postgres.port
+        port_max        = module.icd_postgres.port
+        type            = null
+        code            = null
       },
       {
-        name        = "allow-postgres-inbound-from-vpe-${subnet}"
-        action      = "allow"
-        direction   = "inbound"
-        source      = cidr
-        destination = cidr
-        tcp = {
-          source_port_max = module.icd_postgres.port
-          source_port_min = module.icd_postgres.port
-          port_max        = 65535
-          port_min        = 1
-        }
+        name            = "allow-postgres-inbound-from-vpe-${subnet}"
+        action          = "allow"
+        direction       = "inbound"
+        source          = cidr
+        destination     = cidr
+        protocol        = "tcp"
+        source_port_min = module.icd_postgres.port
+        source_port_max = module.icd_postgres.port
+        port_min        = 1
+        port_max        = 65535
+        type            = null
+        code            = null
       }
     ]
   ])
@@ -257,10 +261,9 @@ resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
   direction = "inbound"
   local     = var.postgres_vpe_enabled == true ? each.value.cidr : "0.0.0.0/0"
   remote    = module.ocp_vpc.kube_cluster_sg.id
-  tcp {
-    port_min = module.icd_postgres.port
-    port_max = module.icd_postgres.port
-  }
+  protocol  = "tcp"
+  port_min  = module.icd_postgres.port
+  port_max  = module.icd_postgres.port
 }
 
 ########################################################################################################################
