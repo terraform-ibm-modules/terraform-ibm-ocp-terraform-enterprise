@@ -23,6 +23,9 @@ serviceAccount:
   name: null
   annotations: {}
   labels: {}
+  # Set to true if the service account needs to mount tokens (e.g., for Kubernetes API access)
+  # Set to false for better security when token mounting is not required
+  automountToken: false
 
 deployment:
   # Configure deployment annotations
@@ -107,6 +110,13 @@ tfe:
   privateHttpsPort: 8443
   # Specifies the port that the system API endpoints listen on for HTTPS requests.
   #adminHttpsPort: 8446
+  ## Liveness probe settings
+  # livenessProbePath: "/_health_check"
+  # livenessProbeScheme: "HTTP"
+  # livenessProbeInitialDelay: 30
+  # livenessProbePeriod: 10
+  # livenessProbeTimeout: 5
+  # livenessProbeFailureThreshold: 3
   ## Readiness probe settings customize the terraform-enterprise health check path, eg: to use the full service dependency check
   # readinessProbePath: "/_health_check?full"
   # readinessProbeScheme: "HTTP"

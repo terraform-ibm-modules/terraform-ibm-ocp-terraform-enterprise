@@ -14,21 +14,15 @@ metadata:
     {{- toYaml .Values.deployment.labels | nindent 4 }}
     {{- end }}
   annotations:
-    checkov.io/skip1: CKV_K8S_37
-    checkov.io/skip2: CKV_K8S_31
-    checkov.io/skip3: CKV_K8S_8
-    checkov.io/skip4: CKV_K8S_20
-    checkov.io/skip5: CKV_K8S_13
-    checkov.io/skip6: CKV_K8S_40
-    checkov.io/skip7: CKV_K8S_22
-    checkov.io/skip8: CKV_K8S_35
-    checkov.io/skip9: CKV_K8S_28
-    checkov.io/skip10: CKV_K8S_38
-    checkov.io/skip11: CKV_K8S_21
-    checkov.io/skip12: CKV_K8S_23
-    checkov.io/skip13: CKV_K8S_43
-    checkov.io/skip14: CKV_K8S_11
-    checkov.io/skip15: CKV2_K8S_6
+    checkov.io/skip1: CKV_K8S_13=Memory limits should be set
+    checkov.io/skip2: CKV_K8S_40=Containers should run as a high UID to avoid host conflict
+    checkov.io/skip3: CKV_K8S_22=Use read-only filesystem for containers where possible
+    checkov.io/skip4: CKV_K8S_35=Prefer using secrets as files over secrets as environment variables
+    checkov.io/skip5: CKV_K8S_23=Minimize the admission of root containers
+    checkov.io/skip6: CKV_K8S_43=Image should use digest
+    checkov.io/skip7: CKV_K8S_11=CPU limits should be set
+    checkov.io/skip8: CKV2_K8S_6=Minimize the admission of pods which lack an associated NetworkPolicy
+    checkov.io/skip9: CKV_K8S_21=The default namespace should not be used
   {{- if .Values.deployment.annotations }}
     {{- toYaml .Values.deployment.annotations | nindent 4 }}
   {{- end }}
@@ -123,6 +117,7 @@ spec:
       {{- else }}
       serviceAccountName: {{ .Release.Namespace }}
       {{- end }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountToken | default false }}
       {{- end }}
       initContainers:
         {{ toYaml .Values.initContainers | nindent 8}}
@@ -147,6 +142,13 @@ spec:
             drop:
               - ALL
           runAsNonRoot: true
+        {{- else if not .Values.container.securityContext }}
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         {{- else }}
         {{- toYaml .Values.container.securityContext | nindent 10 }}
         {{- end }}
@@ -171,6 +173,15 @@ spec:
               name: {{ .name }}
           {{- end }}
         {{- end }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.tfe.livenessProbePath | default "/_health_check" }}
+            port: {{ .Values.tfe.privateHttpPort }}
+            scheme: {{ .Values.tfe.livenessProbeScheme | default "HTTP" }}
+          initialDelaySeconds: {{ .Values.tfe.livenessProbeInitialDelay | default 30 }}
+          periodSeconds: {{ .Values.tfe.livenessProbePeriod | default 10 }}
+          timeoutSeconds: {{ .Values.tfe.livenessProbeTimeout | default 5 }}
+          failureThreshold: {{ .Values.tfe.livenessProbeFailureThreshold | default 3 }}
         readinessProbe:
           httpGet:
             path: {{ .Values.tfe.readinessProbePath | default "/api/v1/health/readiness" }}
