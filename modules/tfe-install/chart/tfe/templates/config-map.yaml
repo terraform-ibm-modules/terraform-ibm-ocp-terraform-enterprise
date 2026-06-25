@@ -8,10 +8,14 @@ metadata:
   name: terraform-enterprise-env-config
   namespace: {{ .Release.Namespace }}
   annotations:
-    checkov.io/skip1: CKV_K8S_21=The default namespace should not be used
-  {{- if .Values.config.annotations }}
+    {{- if .Values.checkovSkipList.configMap }}
+    {{- range .Values.checkovSkipList.configMap }}
+    {{ . }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.config.annotations }}
     {{- toYaml .Values.config.annotations | nindent 4 }}
-  {{- end }}
+    {{- end }}
 data:
   {{- include "helpers.list-env-variables" . | indent 2 }}
   TFE_RUN_PIPELINE_DRIVER: kubernetes
