@@ -180,6 +180,30 @@ variable "cos_bucket_name" {
   default     = "tfe-cos-bucket"
 }
 
+variable "cos_retention_default" {
+  description = "The number of days that an object can remain unmodified in an Object Storage bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = number
+  default     = null
+}
+
+variable "cos_retention_maximum" {
+  description = "he maximum number of days that an object can be kept unmodified in the bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = number
+  default     = null
+}
+
+variable "cos_retention_minimum" {
+  description = "The minimum number of days that an object must be kept unmodified in the bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = number
+  default     = null
+}
+
+variable "cos_retention_permanent" {
+  description = "Whether permanent retention status is enabled for the Object Storage bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = bool
+  default     = null
+}
+
 ##############################################################################
 # PostGres
 ##############################################################################

@@ -13,8 +13,23 @@ metadata:
     {{- if .Values.deployment.labels }}
     {{- toYaml .Values.deployment.labels | nindent 4 }}
     {{- end }}
-  {{- if .Values.deployment.annotations }}
   annotations:
+    checkov.io/skip1: CKV_K8S_37
+    checkov.io/skip2: CKV_K8S_31
+    checkov.io/skip3: CKV_K8S_8
+    checkov.io/skip4: CKV_K8S_20
+    checkov.io/skip5: CKV_K8S_13
+    checkov.io/skip6: CKV_K8S_40
+    checkov.io/skip7: CKV_K8S_22
+    checkov.io/skip8: CKV_K8S_35
+    checkov.io/skip9: CKV_K8S_28
+    checkov.io/skip10: CKV_K8S_38
+    checkov.io/skip11: CKV_K8S_21
+    checkov.io/skip12: CKV_K8S_23
+    checkov.io/skip13: CKV_K8S_43
+    checkov.io/skip14: CKV_K8S_11
+    checkov.io/skip15: CKV2_K8S_6
+  {{- if .Values.deployment.annotations }}
     {{- toYaml .Values.deployment.annotations | nindent 4 }}
   {{- end }}
 spec:

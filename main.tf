@@ -64,6 +64,10 @@ module "cos" {
   cos_instance_name        = var.cos_instance_name
   resource_tags            = var.resource_tags
   bucket_name              = var.cos_bucket_name
+  retention_default        = var.cos_retention_default
+  retention_maximum        = var.cos_retention_maximum
+  retention_minimum        = var.cos_retention_minimum
+  retention_permanent      = var.cos_retention_permanent
   add_bucket_name_suffix   = true
   create_cos_bucket        = true
   kms_encryption_enabled   = true
