@@ -56,13 +56,13 @@ locals {
 
 module "cos" {
   source                   = "terraform-ibm-modules/cos/ibm"
-  version                  = "10.15.1"
+  version                  = "10.16.0"
   resource_group_id        = var.resource_group_id
   region                   = var.region
   create_cos_instance      = var.existing_cos_instance_id != null ? false : true
   existing_cos_instance_id = var.existing_cos_instance_id
   cos_instance_name        = var.cos_instance_name
-  cos_tags                 = var.resource_tags
+  resource_tags            = var.resource_tags
   bucket_name              = var.cos_bucket_name
   retention_default        = var.cos_retention_default
   retention_maximum        = var.cos_retention_maximum
