@@ -137,10 +137,10 @@ tfe:
   ## Liveness probe settings
   # livenessProbePath: "/_health_check"
   # livenessProbeScheme: "HTTP"
-  # livenessProbeInitialDelay: 30
+  # livenessProbeInitialDelay: 120
   # livenessProbePeriod: 10
   # livenessProbeTimeout: 5
-  # livenessProbeFailureThreshold: 3
+  # livenessProbeFailureThreshold: 6
   ## Readiness probe settings customize the terraform-enterprise health check path, eg: to use the full service dependency check
   # readinessProbePath: "/_health_check?full"
   # readinessProbeScheme: "HTTP"

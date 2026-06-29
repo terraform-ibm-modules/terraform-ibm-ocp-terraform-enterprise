@@ -174,10 +174,10 @@ spec:
             path: {{ .Values.tfe.livenessProbePath | default "/_health_check" }}
             port: {{ .Values.tfe.privateHttpPort }}
             scheme: {{ .Values.tfe.livenessProbeScheme | default "HTTP" }}
-          initialDelaySeconds: {{ .Values.tfe.livenessProbeInitialDelay | default 30 }}
+          initialDelaySeconds: {{ .Values.tfe.livenessProbeInitialDelay | default 120 }}
           periodSeconds: {{ .Values.tfe.livenessProbePeriod | default 10 }}
           timeoutSeconds: {{ .Values.tfe.livenessProbeTimeout | default 5 }}
-          failureThreshold: {{ .Values.tfe.livenessProbeFailureThreshold | default 3 }}
+          failureThreshold: {{ .Values.tfe.livenessProbeFailureThreshold | default 6 }}
         readinessProbe:
           httpGet:
             path: {{ .Values.tfe.readinessProbePath | default "/api/v1/health/readiness" }}
