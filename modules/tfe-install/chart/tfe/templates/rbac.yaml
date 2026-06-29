@@ -45,15 +45,15 @@ metadata:
   labels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- if or .Values.checkovSkipList.roleBinding .Values.agents.rbac.annotations }}
   annotations:
-    {{- if .Values.checkovSkipList.roleBinding }}
     {{- range .Values.checkovSkipList.roleBinding }}
     {{ . }}
-    {{- end }}
     {{- end }}
     {{- with .Values.agents.rbac.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+  {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

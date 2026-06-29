@@ -8,17 +8,15 @@ kind: Service
 metadata:
   name: terraform-enterprise
   namespace: {{ .Release.Namespace }}
+  {{- if or .Values.checkovSkipList.service .Values.service.annotations }}
   annotations:
-    {{- if .Values.checkovSkipList.service }}
     {{- range .Values.checkovSkipList.service }}
     {{ . }}
     {{- end }}
-    {{- end }}
-    {{- if .Values.service.annotations }}
     {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- end }}
+  {{- end }}
   {{- if .Values.service.labels }}
   {{- with .Values.service.labels }}
   labels:

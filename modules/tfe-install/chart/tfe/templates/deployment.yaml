@@ -13,15 +13,15 @@ metadata:
     {{- if .Values.deployment.labels }}
     {{- toYaml .Values.deployment.labels | nindent 4 }}
     {{- end }}
+  {{- if or .Values.checkovSkipList.deployment .Values.deployment.annotations }}
   annotations:
-    {{- if .Values.checkovSkipList.deployment }}
     {{- range .Values.checkovSkipList.deployment }}
     {{ . }}
     {{- end }}
+    {{- with .Values.deployment.annotations }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if .Values.deployment.annotations }}
-    {{- toYaml .Values.deployment.annotations | nindent 4 }}
-    {{- end }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
