@@ -74,6 +74,20 @@ variable "tfe_image_tag" {
   type        = string
 }
 
+variable "tfe_helm_chart_version" {
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3')."
+  type        = string
+}
+
+variable "tfe_helm_repository" {
+  description = "The Helm repository URL for Terraform Enterprise chart (e.g., 'https://helm.releases.hashicorp.com')."
+  type        = string
+  validation {
+    condition     = can(regex("^https?://", var.tfe_helm_repository))
+    error_message = "The Helm repository URL must start with http:// or https://"
+  }
+}
+
 variable "tfe_encryption_password" {
   description = "The encryption password for Terraform Enterprise"
   type        = string
@@ -138,11 +152,24 @@ variable "tfe_redis_host" {
   type        = string
 }
 
+variable "tfe_redis_username" {
+  description = "The Redis username for Terraform Enterprise"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "tfe_redis_password" {
   description = "The Redis password for Terraform Enterprise"
   type        = string
   default     = ""
   sensitive   = true
+}
+
+variable "tfe_redis_port" {
+  description = "The Redis port for Terraform Enterprise"
+  type        = number
+  default     = 6379
 }
 
 variable "tfe_redis_certificate_base64" {
@@ -241,4 +268,10 @@ variable "rollback_on_failure" {
   description = "Flag to automatically rollback the helm chart on installation failure."
   type        = bool
   default     = true
+}
+
+variable "tfe_startup_checks_ignore_failures" {
+  description = "Comma-separated list of startup checks to treat as warnings instead of blocking startup. Useful for tolerating expired certificates in CA bundles. Example: 'tls'. Default is null (all checks must pass)."
+  type        = string
+  default     = null
 }

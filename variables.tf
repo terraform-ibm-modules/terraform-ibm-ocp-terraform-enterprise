@@ -80,6 +80,17 @@ variable "tfe_image_tag" {
   description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1')"
 }
 
+variable "tfe_helm_chart_version" {
+  type        = string
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3')."
+}
+
+variable "tfe_helm_repository" {
+  type        = string
+  description = "The Helm repository URL for Terraform Enterprise chart (e.g., 'https://helm.releases.hashicorp.com')."
+  default     = "https://helm.releases.hashicorp.com"
+}
+
 variable "tfe_namespace" {
   type        = string
   description = "namespace to place Terraform Enterprise in on cluster"
@@ -267,6 +278,29 @@ variable "existing_redis_hostname" {
   default     = null
 }
 
+variable "existing_redis_port" {
+  type        = number
+  description = "Port of the existing redis instance. Default to null."
+  default     = null
+
+  validation {
+    condition     = var.existing_redis_hostname != null ? var.existing_redis_port != null : true
+    error_message = "If var.existing_redis_hostname is set, var.existing_redis_port must also be set."
+  }
+}
+
+variable "existing_redis_username" {
+  type        = string
+  description = "Username for the existing redis instance. Default to null."
+  default     = null
+  sensitive   = true
+
+  validation {
+    condition     = var.existing_redis_hostname != null ? var.existing_redis_username != null : true
+    error_message = "If var.existing_redis_hostname is set, var.existing_redis_username must also be set."
+  }
+}
+
 variable "existing_redis_password_base64" {
   type        = string
   description = "Base64 encoded password for the existing redis instance. Default to null."
@@ -321,8 +355,8 @@ variable "redis_member_host_flavor" {
 
 variable "redis_service_endpoints" {
   type        = string
-  description = "Service endpoints for the Redis instance to deploy. Default is public-and-private."
-  default     = "public-and-private"
+  description = "Service endpoints for the Redis instance to deploy. Default is private."
+  default     = "private"
   validation {
     condition     = contains(["private", "public-and-private"], var.redis_service_endpoints)
     error_message = "Allowed values for var.redis_service_endpoints are 'private' and 'public-and-private'"

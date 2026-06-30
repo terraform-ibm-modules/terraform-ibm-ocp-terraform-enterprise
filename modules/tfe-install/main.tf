@@ -39,6 +39,124 @@ resource "kubernetes_secret_v1" "tfe_pull_secret" {
   }
 }
 
+# Create service account for TFE (needed by the job)
+# Must have Helm labels/annotations so Helm can adopt it
+resource "kubernetes_service_account_v1" "tfe" {
+  metadata {
+    name      = "tfe"
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
+    labels = {
+      "app.kubernetes.io/managed-by" = "Helm"
+    }
+    annotations = {
+      "meta.helm.sh/release-name"      = "terraform-enterprise"
+      "meta.helm.sh/release-namespace" = "tfe"
+    }
+  }
+}
+
+# Secret for database connection used by the extension installation job
+resource "kubernetes_secret_v1" "pg_bootstrap" {
+  metadata {
+    name      = "pg-bootstrap"
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
+  }
+
+  data = {
+    DATABASE_URL = "postgresql://${var.tfe_database_user}:${var.tfe_database_password}@${var.tfe_database_host}/${var.tfe_database_name}?sslmode=require"
+  }
+
+  type = "Opaque"
+}
+
+# Kubernetes Job to install PostgreSQL extensions before TFE starts
+resource "kubernetes_job_v1" "install_pg_extensions" {
+  depends_on = [
+    kubernetes_secret_v1.pg_bootstrap,
+    kubernetes_service_account_v1.tfe,
+    kubernetes_role_binding_v1.tfe_admin,
+  ]
+
+  metadata {
+    name      = "install-pg-extensions"
+    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
+  }
+
+  spec {
+    template {
+      metadata {}
+      spec {
+        container {
+          name  = "psql"
+          image = "postgres:16-alpine"
+          command = [
+            "sh", "-c",
+            <<-EOT
+              echo "Setting up PostgreSQL extensions for IBM Cloud..."
+              
+              # Wait for database to be ready
+              until psql "$DATABASE_URL" -c '\q' 2>/dev/null; do
+                echo "Waiting for database..."
+                sleep 2
+              done
+              
+              echo "Database is ready. Creating extensions in ibm_extension schema..."
+              
+              # Create extensions in ibm_extension schema (IBM Cloud requirement)
+              psql "$DATABASE_URL" <<-EOSQL
+                -- Ensure ibm_extension schema exists
+                CREATE SCHEMA IF NOT EXISTS ibm_extension;
+                
+                -- Grant usage on schema
+                GRANT USAGE ON SCHEMA ibm_extension TO CURRENT_USER;
+                
+                -- Create extensions if they don't exist
+                CREATE EXTENSION IF NOT EXISTS "hstore" WITH SCHEMA "ibm_extension";
+                CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "ibm_extension";
+                CREATE EXTENSION IF NOT EXISTS "citext" WITH SCHEMA "ibm_extension";
+                
+                -- Grant all privileges on schema
+                GRANT ALL PRIVILEGES ON SCHEMA ibm_extension TO CURRENT_USER;
+                GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ibm_extension TO CURRENT_USER;
+                GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA ibm_extension TO CURRENT_USER;
+                GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA ibm_extension TO CURRENT_USER;
+                
+                -- Verify extensions
+                SELECT extname, nspname
+                FROM pg_extension e
+                JOIN pg_namespace n ON e.extnamespace = n.oid
+                WHERE nspname = 'ibm_extension';
+              EOSQL
+              
+              echo "Extensions created in ibm_extension schema."
+              echo "TFE will use TFE_DATABASE_EXTRA_SCHEMAS to include ibm_extension in search_path."
+              echo "PostgreSQL extensions setup complete!"
+            EOT
+          ]
+          env {
+            name = "DATABASE_URL"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret_v1.pg_bootstrap.metadata[0].name
+                key  = "DATABASE_URL"
+              }
+            }
+          }
+        }
+        restart_policy       = "Never"
+        service_account_name = "tfe"
+      }
+    }
+    backoff_limit = 3
+  }
+
+  wait_for_completion = true
+
+  timeouts {
+    create = "5m"
+  }
+}
+
 locals {
   tfe_deployment_replicas = var.tfe_deployment_replicas != null ? var.tfe_deployment_replicas : 3
   route_name              = "tfe"
@@ -87,6 +205,14 @@ locals {
       value = "sslmode=require"
     },
     {
+      name  = "env.variables.TFE_DATABASE_EXTENSION_SCHEMA"
+      value = "ibm_extension"
+    },
+    {
+      name  = "env.variables.TFE_DATABASE_EXTRA_SCHEMAS"
+      value = "ibm_extension"
+    },
+    {
       name  = "env.variables.TFE_DATABASE_USER"
       value = var.tfe_database_user
     },
@@ -124,11 +250,11 @@ locals {
     },
     {
       name  = "env.variables.TFE_REDIS_USE_TLS"
-      value = false
+      value = true
     },
     {
       name  = "env.variables.TFE_REDIS_HOST"
-      value = var.tfe_redis_host
+      value = var.tfe_redis_port != 6379 ? "${var.tfe_redis_host}:${var.tfe_redis_port}" : var.tfe_redis_host
     },
     {
       name  = "env.variables.TFE_OBJECT_STORAGE_S3_REGION"
@@ -163,8 +289,8 @@ locals {
       value = kubernetes_namespace_v1.tfe.metadata[0].name
     },
     {
-      name  = "serviceAccount.enabled"
-      value = true
+      name  = "serviceAccount.create"
+      value = false
     },
     {
       name  = "serviceAccount.name"
@@ -176,9 +302,17 @@ locals {
     },
     {
       name  = "tfe.readinessProbePath"
-      value = "/_health_check"
+      value = "/api/v1/health/readiness"
     }
   ]
+
+  # Conditionally add TFE_STARTUP_CHECKS_IGNORE_FAILURES if specified
+  set_values_list_startup_checks = var.tfe_startup_checks_ignore_failures != null ? [
+    {
+      name  = "env.variables.TFE_STARTUP_CHECKS_IGNORE_FAILURES"
+      value = var.tfe_startup_checks_ignore_failures
+    }
+  ] : []
 
   # adding values to helm release if a secondary TFE hostname is to be configured
   set_values_list_secondary_hostname = var.tfe_secondary_hostname_fqdn != null ? [
@@ -208,13 +342,28 @@ locals {
     }
     ] : [
     {
-      name  = "tlsSecondary"
-      value = null
+      name  = "tlsSecondary.certData"
+      value = ""
+    },
+    {
+      name  = "tlsSecondary.keyData"
+      value = ""
     }
   ]
 
   # concatenating values for the final list
-  set_values_list_final = concat(local.set_values_list, local.set_values_list_secondary_hostname)
+  set_values_list_final = concat(
+    local.set_values_list,
+    local.set_values_list_secondary_hostname,
+    local.set_values_list_startup_checks
+  )
+
+  # Extract environment variables from set_values_list for the values block
+  env_variables = {
+    for item in local.set_values_list_final :
+    replace(item.name, "env.variables.", "") => item.value
+    if startswith(item.name, "env.variables.") && item.name != "env.variables.TFE_REDIS_PORT"
+  }
 
   # building the list of sensitive values
   set_sensitive_values_list = [
@@ -235,8 +384,12 @@ locals {
       value = var.tfe_database_password
     },
     {
+      name  = "env.secrets.TFE_REDIS_USER"
+      value = var.tfe_redis_username
+    },
+    {
       name  = "env.secrets.TFE_REDIS_PASSWORD"
-      value = var.tfe_redis_password
+      value = base64decode(var.tfe_redis_password)
     },
     {
       name  = "env.variables.TFE_OBJECT_STORAGE_S3_ACCESS_KEY_ID"
@@ -267,16 +420,17 @@ locals {
   set_sensitive_values_list_final = concat(local.set_sensitive_values_list, local.set_sensitive_values_list_secondary_hostname)
 }
 
-resource "kubernetes_config_map_v1" "custom_tfe_start" {
-  metadata {
-    name      = "custom-tfe-start"
-    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
-  }
-
-  data = {
-    "custom_tfe_start.sh" = file("${path.module}/scripts/custom_tfe_start.sh")
-  }
-}
+# Custom startup script removed - using environment variables instead
+# resource "kubernetes_config_map" "custom_tfe_start" {
+#   metadata {
+#     name      = "custom-tfe-start"
+#     namespace = kubernetes_namespace_v1.tfe.metadata[0].name
+#   }
+#
+#   data = {
+#     "custom_tfe_start.sh" = file("${path.module}/scripts/custom_tfe_start.sh")
+#   }
+# }
 
 locals {
   tfe_deployment_labels      = {}
@@ -321,23 +475,39 @@ locals {
 # ########################################################################################################################
 
 resource "helm_release" "tfe_install" {
-  # depends_on = [kubernetes_secret_v1.tfe_pull_secret, data.helm_template.tfe_install]
-  depends_on = [kubernetes_secret_v1.tfe_pull_secret]
+  depends_on = [
+    kubernetes_secret_v1.tfe_pull_secret,
+    kubernetes_namespace_v1.tfe,
+    kubernetes_job_v1.install_pg_extensions
+  ]
 
   name             = "terraform-enterprise"
-  chart            = "${path.module}/chart/tfe"
+  repository       = var.tfe_helm_repository
+  chart            = "terraform-enterprise"
+  version          = var.tfe_helm_chart_version
   namespace        = kubernetes_namespace_v1.tfe.metadata[0].name
   create_namespace = false
-  timeout          = 1200
-  wait             = true
+  timeout          = 1200 # 20 minutes timeout for TFE deployment
+  wait             = true # Wait for pods to reach ready state; surfaces deployment errors clearly
+  wait_for_jobs    = true # Wait for any Helm-managed jobs to complete
   recreate_pods    = true
   force_update     = true
   reset_values     = true
-  atomic           = var.rollback_on_failure
+  atomic           = false # Do not auto-rollback on failure — operator needs to inspect the failed state
 
-  set = local.set_values_list_final
+  set = [
+    for item in local.set_values_list_final : {
+      name  = item.name
+      value = tostring(item.value)
+    }
+  ]
 
-  set_sensitive = local.set_sensitive_values_list_final
+  set_sensitive = [
+    for item in local.set_sensitive_values_list_final : {
+      name  = item.name
+      value = item.value
+    }
+  ]
 
   values = [
     yamlencode({
@@ -345,9 +515,7 @@ resource "helm_release" "tfe_install" {
         "annotations" = {}
       }
       "env" = {
-        "variables" = {
-          "TFE_RUN_PIPELINE_KUBERNETES_OPEN_SHIFT_ENABLED" = "true"
-        }
+        "variables" = local.env_variables
       }
       "agents" = {
         "namespace" = {
@@ -359,32 +527,28 @@ resource "helm_release" "tfe_install" {
         "labels"      = local.tfe_deployment_labels,
         "annotations" = local.tfe_deployment_annotations
       },
-      "adminHttpsPort"  = null,
-      "tlsRedis"        = null,
-      "tlsRedisSidekiq" = null,
+      "adminHttpsPort" = null,
+      # IBM Cloud Redis uses one-way TLS — only a CA cert is needed to verify the
+      # server. Setting tls.caCertData adds the cert to TFE's global CA bundle
+      # (TFE_TLS_CA_BUNDLE_FILE) so it trusts the Redis server certificate.
+      # The tlsRedis mTLS block (certData+keyData+caCertData) is not used because
+      # IBM Cloud Redis does not require mutual TLS.
+      "tls" = {
+        "caCertData" = var.tfe_redis_certificate_base64 != "" ? var.tfe_redis_certificate_base64 : null
+      },
+      "tlsRedis" = {
+        "certData" = ""
+        "keyData"  = ""
+      },
+      "tlsRedisSidekiq" = {
+        "certData" = ""
+        "keyData"  = ""
+      },
       "container" = {
-        "command" = ["/bin/sh"],
-        "args"    = ["-c", "/scripts/custom_tfe_start.sh"],
         "securityContext" = {
           "runAsUser" = 1000
         }
       },
-      "extraVolumes" = [
-        {
-          "configMap" = {
-            "defaultMode" = 488
-            "name"        = "custom-tfe-start"
-          }
-          "name" = "scripts"
-        }
-      ],
-      "extraVolumeMounts" = [
-        {
-          "mountPath" = "/scripts"
-          "name"      = "scripts"
-          "readOnly"  = true
-        }
-      ]
       "service"          = local.tfe_service_values,
       "serviceSecondary" = local.tfe_service_secondary_values,
       "serviceAccount"   = local.tfe_service_account,
@@ -400,6 +564,7 @@ resource "random_string" "iact_token" {
 }
 
 resource "kubernetes_role_binding_v1" "tfe_admin" {
+  depends_on = [kubernetes_service_account_v1.tfe]
 
   metadata {
     name      = "tfe-anyuuid"
@@ -464,8 +629,9 @@ resource "kubectl_manifest" "tfe_secondary_route" {
 
 }
 
+# Admin user creation via external script after Helm install completes
 data "external" "admin_user_token" {
-  depends_on = [kubectl_manifest.tfe_route]
+  depends_on = [helm_release.tfe_install]
   program = [
     "${path.module}/scripts/create_admin_user.sh",
     local.tfe_hostname,
@@ -474,6 +640,13 @@ data "external" "admin_user_token" {
     var.admin_email,
     var.admin_password
   ]
+
+  lifecycle {
+    postcondition {
+      condition     = self.result["token"] != null
+      error_message = "Admin user creation failed or timed out. TFE may need manual initialization via the web UI."
+    }
+  }
 }
 
 ### Build custom TFE agent image
@@ -538,7 +711,7 @@ resource "kubectl_manifest" "tfe_agent_build_config" {
 }
 
 data "kubernetes_resource" "tfe_agent_image_stream" {
-  depends_on  = [kubectl_manifest.tfe_agent_image_stream]
+  depends_on  = [kubectl_manifest.tfe_agent_image_stream, kubectl_manifest.tfe_agent_build_config]
   api_version = "image.openshift.io/v1"
   kind        = "ImageStream"
   metadata {

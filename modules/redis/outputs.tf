@@ -3,8 +3,14 @@
 ##############################################################################
 
 output "redis_password_base64" {
-  description = "Base64 encoded Redis password"
+  description = "Base64-encoded Redis password for the TFE service credential"
   value       = base64encode(module.icd_redis.service_credentials_object.credentials["tfe"].password)
+  sensitive   = true
+}
+
+output "redis_username" {
+  description = "The Redis username"
+  value       = module.icd_redis.service_credentials_object.credentials["tfe"].username
   sensitive   = true
 }
 
@@ -19,8 +25,8 @@ output "redis_port" {
 }
 
 output "redis_certificate_base64" {
-  description = "Base64 encoded TLS certificate for Redis connection (already base64 encoded by IBM Cloud)"
-  value       = module.icd_redis.service_credentials_object.credentials["tfe"].connection.rediss.certificate.certificate_base64
+  description = "Base64 encoded TLS certificate for Redis connection"
+  value       = module.icd_redis.certificate_base64
   sensitive   = true
 }
 

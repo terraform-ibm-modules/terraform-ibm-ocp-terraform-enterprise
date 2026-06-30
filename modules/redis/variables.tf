@@ -31,8 +31,8 @@ variable "redis_member_host_flavor" {
 
 variable "redis_service_endpoints" {
   type        = string
-  description = "Service endpoints for the Redis instance"
-  default     = "public-and-private"
+  description = "Service endpoints for the Redis instance. Default is private."
+  default     = "private"
   validation {
     condition     = contains(["private", "public-and-private"], var.redis_service_endpoints)
     error_message = "Allowed values for var.redis_service_endpoints are 'private' and 'public-and-private'"
