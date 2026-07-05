@@ -180,6 +180,30 @@ variable "cos_bucket_name" {
   default     = "tfe-cos-bucket"
 }
 
+variable "cos_retention_default" {
+  description = "The number of days that an object can remain unmodified in an Object Storage bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = number
+  default     = null
+}
+
+variable "cos_retention_maximum" {
+  description = "he maximum number of days that an object can be kept unmodified in the bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = number
+  default     = null
+}
+
+variable "cos_retention_minimum" {
+  description = "The minimum number of days that an object must be kept unmodified in the bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = number
+  default     = null
+}
+
+variable "cos_retention_permanent" {
+  description = "Whether permanent retention status is enabled for the Object Storage bucket. For more details refer to terraform-ibm-modules cos documentation. Default to null to disable retention."
+  type        = bool
+  default     = null
+}
+
 ##############################################################################
 # PostGres
 ##############################################################################
@@ -312,44 +336,47 @@ variable "ocp_entitlement" {
 variable "vpc_acl_rules" {
   description = "Custom ACLs rules to attach to the VPC ones"
   type = list(object({
-    action      = string
-    destination = string
-    direction   = string
-    name        = string
-    source      = string
-    tcp = object({
-      port_max        = optional(number, 65535)
-      port_min        = optional(number, 1)
-      source_port_max = optional(number, 65535)
-      source_port_min = optional(number, 1)
-    })
+    action          = string
+    destination     = string
+    direction       = string
+    name            = string
+    source          = string
+    protocol        = optional(string)
+    port_min        = optional(number)
+    port_max        = optional(number)
+    source_port_min = optional(number)
+    source_port_max = optional(number)
+    type            = optional(number)
+    code            = optional(number)
   }))
   default = [
     {
-      name        = "allow-all-inbound"
-      action      = "allow"
-      direction   = "inbound"
-      source      = "0.0.0.0/0"
-      destination = "0.0.0.0/0"
-      tcp = {
-        port_max        = 65535
-        port_min        = 1
-        source_port_max = 65535
-        source_port_min = 1
-      }
+      name            = "allow-all-inbound"
+      action          = "allow"
+      direction       = "inbound"
+      source          = "0.0.0.0/0"
+      destination     = "0.0.0.0/0"
+      protocol        = null
+      port_min        = null
+      port_max        = null
+      source_port_min = null
+      source_port_max = null
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-all-outbound"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "0.0.0.0/0"
-      destination = "0.0.0.0/0"
-      tcp = {
-        port_max        = 65535
-        port_min        = 1
-        source_port_max = 65535
-        source_port_min = 1
-      }
+      name            = "allow-all-outbound"
+      action          = "allow"
+      direction       = "outbound"
+      source          = "0.0.0.0/0"
+      destination     = "0.0.0.0/0"
+      protocol        = null
+      port_min        = null
+      port_max        = null
+      source_port_min = null
+      source_port_max = null
+      type            = null
+      code            = null
     }
   ]
 }

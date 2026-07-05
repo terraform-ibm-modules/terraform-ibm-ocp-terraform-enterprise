@@ -56,14 +56,18 @@ locals {
 
 module "cos" {
   source                   = "terraform-ibm-modules/cos/ibm"
-  version                  = "10.15.1"
+  version                  = "10.16.0"
   resource_group_id        = var.resource_group_id
   region                   = var.region
   create_cos_instance      = var.existing_cos_instance_id != null ? false : true
   existing_cos_instance_id = var.existing_cos_instance_id
   cos_instance_name        = var.cos_instance_name
-  cos_tags                 = var.resource_tags
+  resource_tags            = var.resource_tags
   bucket_name              = var.cos_bucket_name
+  retention_default        = var.cos_retention_default
+  retention_maximum        = var.cos_retention_maximum
+  retention_minimum        = var.cos_retention_minimum
+  retention_permanent      = var.cos_retention_permanent
   add_bucket_name_suffix   = true
   create_cos_bucket        = true
   kms_encryption_enabled   = true
@@ -136,32 +140,34 @@ locals {
     concat(
       [
         {
-          name        = "allow-postgres-outbound-${subnet}"
-          action      = "allow"
-          direction   = "outbound"
-          source      = cidr
-          destination = "0.0.0.0/0"
-          tcp = {
-            source_port_max = 65535
-            source_port_min = 1
-            port_min        = module.icd_postgres.port
-            port_max        = module.icd_postgres.port
-          }
+          name            = "allow-postgres-outbound-${subnet}"
+          action          = "allow"
+          direction       = "outbound"
+          source          = cidr
+          destination     = "0.0.0.0/0"
+          protocol        = "tcp"
+          source_port_min = 1
+          source_port_max = 65535
+          port_min        = module.icd_postgres.port
+          port_max        = module.icd_postgres.port
+          type            = null
+          code            = null
         }
       ],
       [
         {
-          name        = "allow-postgres-inbound-${subnet}"
-          action      = "allow"
-          direction   = "inbound"
-          source      = "0.0.0.0/0"
-          destination = cidr
-          tcp = {
-            source_port_max = module.icd_postgres.port
-            source_port_min = module.icd_postgres.port
-            port_max        = 65535
-            port_min        = 1
-          }
+          name            = "allow-postgres-inbound-${subnet}"
+          action          = "allow"
+          direction       = "inbound"
+          source          = "0.0.0.0/0"
+          destination     = cidr
+          protocol        = "tcp"
+          source_port_min = module.icd_postgres.port
+          source_port_max = module.icd_postgres.port
+          port_min        = 1
+          port_max        = 65535
+          type            = null
+          code            = null
         }
       ]
     )
@@ -172,30 +178,32 @@ locals {
   postgres_vpe_acl_rules = flatten([
     for subnet, cidr in var.subnets_zones_cidr : [
       {
-        name        = "allow-postgres-outbound-to-vpe-${subnet}"
-        action      = "allow"
-        direction   = "outbound"
-        source      = cidr
-        destination = cidr
-        tcp = {
-          source_port_max = 65535
-          source_port_min = 1
-          port_min        = module.icd_postgres.port
-          port_max        = module.icd_postgres.port
-        }
+        name            = "allow-postgres-outbound-to-vpe-${subnet}"
+        action          = "allow"
+        direction       = "outbound"
+        source          = cidr
+        destination     = cidr
+        protocol        = "tcp"
+        source_port_min = 1
+        source_port_max = 65535
+        port_min        = module.icd_postgres.port
+        port_max        = module.icd_postgres.port
+        type            = null
+        code            = null
       },
       {
-        name        = "allow-postgres-inbound-from-vpe-${subnet}"
-        action      = "allow"
-        direction   = "inbound"
-        source      = cidr
-        destination = cidr
-        tcp = {
-          source_port_max = module.icd_postgres.port
-          source_port_min = module.icd_postgres.port
-          port_max        = 65535
-          port_min        = 1
-        }
+        name            = "allow-postgres-inbound-from-vpe-${subnet}"
+        action          = "allow"
+        direction       = "inbound"
+        source          = cidr
+        destination     = cidr
+        protocol        = "tcp"
+        source_port_min = module.icd_postgres.port
+        source_port_max = module.icd_postgres.port
+        port_min        = 1
+        port_max        = 65535
+        type            = null
+        code            = null
       }
     ]
   ])
@@ -257,10 +265,9 @@ resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
   direction = "inbound"
   local     = var.postgres_vpe_enabled == true ? each.value.cidr : "0.0.0.0/0"
   remote    = module.ocp_vpc.kube_cluster_sg.id
-  tcp {
-    port_min = module.icd_postgres.port
-    port_max = module.icd_postgres.port
-  }
+  protocol  = "tcp"
+  port_min  = module.icd_postgres.port
+  port_max  = module.icd_postgres.port
 }
 
 ########################################################################################################################

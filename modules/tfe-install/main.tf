@@ -267,7 +267,7 @@ locals {
   set_sensitive_values_list_final = concat(local.set_sensitive_values_list, local.set_sensitive_values_list_secondary_hostname)
 }
 
-resource "kubernetes_config_map" "custom_tfe_start" {
+resource "kubernetes_config_map_v1" "custom_tfe_start" {
   metadata {
     name      = "custom-tfe-start"
     namespace = kubernetes_namespace_v1.tfe.metadata[0].name

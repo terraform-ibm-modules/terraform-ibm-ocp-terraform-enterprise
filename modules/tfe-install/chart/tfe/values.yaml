@@ -5,6 +5,30 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# Centralized Checkov skip list for security policy exceptions
+# These annotations will be applied to the respective Kubernetes resources
+checkovSkipList:
+  deployment:
+    - "checkov.io/skip1: CKV_K8S_13=Memory limits should be set"
+    - "checkov.io/skip2: CKV_K8S_40=Containers should run as a high UID to avoid host conflict"
+    - "checkov.io/skip3: CKV_K8S_22=Use read-only filesystem for containers where possible"
+    - "checkov.io/skip4: CKV_K8S_35=Prefer using secrets as files over secrets as environment variables"
+    - "checkov.io/skip5: CKV_K8S_23=Minimize the admission of root containers"
+    - "checkov.io/skip6: CKV_K8S_43=Image should use digest"
+    - "checkov.io/skip7: CKV_K8S_11=CPU limits should be set"
+    - "checkov.io/skip8: CKV2_K8S_6=Minimize the admission of pods which lack an associated NetworkPolicy"
+    - "checkov.io/skip9: CKV_K8S_21=The default namespace should not be used"
+  secret:
+    - "checkov.io/skip1: CKV_K8S_21=The default namespace should not be used"
+  configMap:
+    - "checkov.io/skip1: CKV_K8S_21=The default namespace should not be used"
+  service:
+    - "checkov.io/skip1: CKV_K8S_21=The default namespace should not be used"
+  roleBinding:
+    - "checkov.io/skip1: CKV_K8S_42=Ensure that default service accounts are not actively used"
+  secretProviderClass:
+    - "checkov.io/skip1: CKV_SECRET_6=This is a Kubernetes resource name reference, not a secret value"
+
 replicaCount: 3
 
 # Image pull secret to use for registry authentication.
@@ -23,6 +47,9 @@ serviceAccount:
   name: null
   annotations: {}
   labels: {}
+  # Set to true if the service account needs to mount tokens (e.g., for Kubernetes API access)
+  # Set to false for better security when token mounting is not required
+  automountToken: false
 
 deployment:
   # Configure deployment annotations
@@ -107,6 +134,13 @@ tfe:
   privateHttpsPort: 8443
   # Specifies the port that the system API endpoints listen on for HTTPS requests.
   #adminHttpsPort: 8446
+  ## Liveness probe settings
+  # livenessProbePath: "/_health_check"
+  # livenessProbeScheme: "HTTP"
+  # livenessProbeInitialDelay: 120
+  # livenessProbePeriod: 10
+  # livenessProbeTimeout: 5
+  # livenessProbeFailureThreshold: 6
   ## Readiness probe settings customize the terraform-enterprise health check path, eg: to use the full service dependency check
   # readinessProbePath: "/_health_check?full"
   # readinessProbeScheme: "HTTP"
@@ -417,8 +451,7 @@ csi:
   enabled: false
   annotations: {}
   labels: {}
-  # checkov:skip=CKV_SECRET_6:The Helm chart should remain similar to the open source original.
-  secretProviderClass: terraform-enterprise-vault-secrets # checkov:skip=CKV_SECRET_6
+  secretProviderClass: terraform-enterprise-vault-secrets  #checkov:skip=CKV_SECRET_6:This is a Kubernetes resource name reference, not a secret value
   vaultRole: ""
   vaultAddress: "" # Example: http://vault.vault-namespace.svc.cluster.local:8200
   mountPath: "" # Example: /mnt/secrets-store

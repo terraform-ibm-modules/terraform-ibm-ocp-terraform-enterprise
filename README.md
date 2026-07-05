@@ -14,7 +14,6 @@ This repository provides a top-level Terraform module for deploying and managing
 
 **Status:** This module deploys a functional TFE infrastructure on IBM Cloud. However, it does not yet implement all production-ready requirements such as network isolation, security hardening, and compliance controls. The module interfaces and behaviors may change as these capabilities are added. Early adopters are encouraged to try it and provide feedback.
 
-
 ### TFE Secondary hostname
 
 This module supports to configure the TFE instance with a [secondary hostname](https://developer.hashicorp.com/terraform/enterprise/deploy/reference/configuration#tfe_hostname_secondary) by:
