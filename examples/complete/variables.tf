@@ -131,177 +131,190 @@ variable "kms_key_deletion_protection" {
 variable "vpc_acl_rules" {
   description = "Custom ACLs rules to attach to the VPC ones. Default opens HTTPs traffic to VPC subnets."
   type = list(object({
-    action      = string
-    before      = optional(string, null)
-    destination = string
-    direction   = string
-    name        = string
-    source      = string
-    tcp = object({
-      port_max        = optional(number, 65535)
-      port_min        = optional(number, 1)
-      source_port_max = optional(number, 65535)
-      source_port_min = optional(number, 1)
-    })
+    action          = string
+    before          = optional(string, null)
+    destination     = string
+    direction       = string
+    name            = string
+    source          = string
+    protocol        = optional(string)
+    port_min        = optional(number)
+    port_max        = optional(number)
+    source_port_min = optional(number)
+    source_port_max = optional(number)
+    type            = optional(number)
+    code            = optional(number)
   }))
   default = [
     # rules needed to access tfe dashboard on public route
     {
-      name        = "allow-https-inbound-zone-1"
-      action      = "allow"
-      direction   = "inbound"
-      source      = "0.0.0.0/0"
-      destination = "10.10.10.0/24"
-      tcp = {
-        source_port_max = 65535
-        source_port_min = 1
-        port_max        = 443
-        port_min        = 443
-      }
+      name            = "allow-https-inbound-zone-1"
+      action          = "allow"
+      direction       = "inbound"
+      source          = "0.0.0.0/0"
+      destination     = "10.10.10.0/24"
+      protocol        = "tcp"
+      source_port_min = 1
+      source_port_max = 65535
+      port_min        = 443
+      port_max        = 443
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-outbound-zone-1"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "10.10.10.0/24"
-      destination = "0.0.0.0/0"
-      tcp = {
-        source_port_max = 443
-        source_port_min = 443
-        port_max        = 65535
-        port_min        = 1
-      }
+      name            = "allow-https-outbound-zone-1"
+      action          = "allow"
+      direction       = "outbound"
+      source          = "10.10.10.0/24"
+      destination     = "0.0.0.0/0"
+      protocol        = "tcp"
+      source_port_min = 443
+      source_port_max = 443
+      port_min        = 1
+      port_max        = 65535
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-inbound-zone-2"
-      action      = "allow"
-      direction   = "inbound"
-      source      = "0.0.0.0/0"
-      destination = "10.10.20.0/24"
-      tcp = {
-        source_port_max = 65535
-        source_port_min = 1
-        port_max        = 443
-        port_min        = 443
-      }
+      name            = "allow-https-inbound-zone-2"
+      action          = "allow"
+      direction       = "inbound"
+      source          = "0.0.0.0/0"
+      destination     = "10.10.20.0/24"
+      protocol        = "tcp"
+      source_port_min = 1
+      source_port_max = 65535
+      port_min        = 443
+      port_max        = 443
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-outbound-zone-2"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "10.20.10.0/24"
-      destination = "0.0.0.0/0"
-      tcp = {
-        source_port_max = 443
-        source_port_min = 443
-        port_max        = 65535
-        port_min        = 1
-      }
+      name            = "allow-https-outbound-zone-2"
+      action          = "allow"
+      direction       = "outbound"
+      source          = "10.20.10.0/24"
+      destination     = "0.0.0.0/0"
+      protocol        = "tcp"
+      source_port_min = 443
+      source_port_max = 443
+      port_min        = 1
+      port_max        = 65535
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-inbound-zone-3"
-      action      = "allow"
-      direction   = "inbound"
-      source      = "0.0.0.0/0"
-      destination = "10.30.10.0/24"
-      tcp = {
-        source_port_max = 65535
-        source_port_min = 1
-        port_max        = 443
-        port_min        = 443
-      }
+      name            = "allow-https-inbound-zone-3"
+      action          = "allow"
+      direction       = "inbound"
+      source          = "0.0.0.0/0"
+      destination     = "10.30.10.0/24"
+      protocol        = "tcp"
+      source_port_min = 1
+      source_port_max = 65535
+      port_min        = 443
+      port_max        = 443
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-outbound-zone-3"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "10.30.10.0/24"
-      destination = "0.0.0.0/0"
-      tcp = {
-        source_port_max = 443
-        source_port_min = 443
-        port_max        = 65535
-        port_min        = 1
-      }
+      name            = "allow-https-outbound-zone-3"
+      action          = "allow"
+      direction       = "outbound"
+      source          = "10.30.10.0/24"
+      destination     = "0.0.0.0/0"
+      protocol        = "tcp"
+      source_port_min = 443
+      source_port_max = 443
+      port_min        = 1
+      port_max        = 65535
+      type            = null
+      code            = null
     },
     # rules currently needed to pull images for redis into the cluster
     {
-      name        = "allow-https-outbound-for-images-zone-1"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "10.10.10.0/24"
-      destination = "0.0.0.0/0"
-      tcp = {
-        source_port_max = 65535
-        source_port_min = 1
-        port_max        = 443
-        port_min        = 443
-      }
+      name            = "allow-https-outbound-for-images-zone-1"
+      action          = "allow"
+      direction       = "outbound"
+      source          = "10.10.10.0/24"
+      destination     = "0.0.0.0/0"
+      protocol        = "tcp"
+      source_port_min = 1
+      source_port_max = 65535
+      port_min        = 443
+      port_max        = 443
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-outbound-for-images-zone-2"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "10.20.10.0/24"
-      destination = "0.0.0.0/0"
-      tcp = {
-        source_port_max = 65535
-        source_port_min = 1
-        port_max        = 443
-        port_min        = 443
-      }
+      name            = "allow-https-outbound-for-images-zone-2"
+      action          = "allow"
+      direction       = "outbound"
+      source          = "10.20.10.0/24"
+      destination     = "0.0.0.0/0"
+      protocol        = "tcp"
+      source_port_min = 1
+      source_port_max = 65535
+      port_min        = 443
+      port_max        = 443
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-outbound-for-images-zone-3"
-      action      = "allow"
-      direction   = "outbound"
-      source      = "10.30.10.0/24"
-      destination = "0.0.0.0/0"
-      tcp = {
-        source_port_max = 65535
-        source_port_min = 1
-        port_max        = 443
-        port_min        = 443
-      }
+      name            = "allow-https-outbound-for-images-zone-3"
+      action          = "allow"
+      direction       = "outbound"
+      source          = "10.30.10.0/24"
+      destination     = "0.0.0.0/0"
+      protocol        = "tcp"
+      source_port_min = 1
+      source_port_max = 65535
+      port_min        = 443
+      port_max        = 443
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-inbound-for-images-zone-1"
-      action      = "allow"
-      direction   = "inbound"
-      source      = "0.0.0.0/0"
-      destination = "10.10.10.0/24"
-      tcp = {
-        source_port_max = 443
-        source_port_min = 443
-        port_max        = 65535
-        port_min        = 1
-      }
+      name            = "allow-https-inbound-for-images-zone-1"
+      action          = "allow"
+      direction       = "inbound"
+      source          = "0.0.0.0/0"
+      destination     = "10.10.10.0/24"
+      protocol        = "tcp"
+      source_port_min = 443
+      source_port_max = 443
+      port_min        = 1
+      port_max        = 65535
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-inbound-for-images-zone-2"
-      action      = "allow"
-      direction   = "inbound"
-      source      = "0.0.0.0/0"
-      destination = "10.20.10.0/24"
-      tcp = {
-        source_port_max = 443
-        source_port_min = 443
-        port_max        = 65535
-        port_min        = 1
-      }
+      name            = "allow-https-inbound-for-images-zone-2"
+      action          = "allow"
+      direction       = "inbound"
+      source          = "0.0.0.0/0"
+      destination     = "10.20.10.0/24"
+      protocol        = "tcp"
+      source_port_min = 443
+      source_port_max = 443
+      port_min        = 1
+      port_max        = 65535
+      type            = null
+      code            = null
     },
     {
-      name        = "allow-https-inbound-for-images-zone-3"
-      action      = "allow"
-      direction   = "inbound"
-      source      = "0.0.0.0/0"
-      destination = "10.30.10.0/24"
-      tcp = {
-        source_port_max = 443
-        source_port_min = 443
-        port_max        = 65535
-        port_min        = 1
-      }
+      name            = "allow-https-inbound-for-images-zone-3"
+      action          = "allow"
+      direction       = "inbound"
+      source          = "0.0.0.0/0"
+      destination     = "10.30.10.0/24"
+      protocol        = "tcp"
+      source_port_min = 443
+      source_port_max = 443
+      port_min        = 1
+      port_max        = 65535
+      type            = null
+      code            = null
     }
   ]
 }

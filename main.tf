@@ -8,7 +8,7 @@ locals {
 
 module "key_protect_all_inclusive" {
   source                    = "terraform-ibm-modules/kms-all-inclusive/ibm"
-  version                   = "5.5.36"
+  version                   = "5.6.5"
   resource_group_id         = var.resource_group_id
   key_protect_instance_name = var.kms_instance_name
   region                    = var.region
@@ -56,17 +56,20 @@ locals {
 
 module "cos" {
   source                   = "terraform-ibm-modules/cos/ibm"
-  version                  = "10.14.9"
+  version                  = "10.17.2"
   resource_group_id        = var.resource_group_id
   region                   = var.region
   create_cos_instance      = var.existing_cos_instance_id != null ? false : true
   existing_cos_instance_id = var.existing_cos_instance_id
   cos_instance_name        = var.cos_instance_name
-  cos_tags                 = var.resource_tags
+  resource_tags            = var.resource_tags
   bucket_name              = var.cos_bucket_name
+  retention_default        = var.cos_retention_default
+  retention_maximum        = var.cos_retention_maximum
+  retention_minimum        = var.cos_retention_minimum
+  retention_permanent      = var.cos_retention_permanent
   add_bucket_name_suffix   = true
   create_cos_bucket        = true
-  retention_enabled        = var.cos_retention # disable retention for test environments - enable for stage/prod
   kms_encryption_enabled   = true
   kms_key_crn              = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-cos"].crn
   resource_keys = [
@@ -105,7 +108,7 @@ module "ocp_vpc" {
 
 module "icd_postgres" {
   source                       = "terraform-ibm-modules/icd-postgresql/ibm"
-  version                      = "4.11.0"
+  version                      = "4.15.0"
   resource_group_id            = var.resource_group_id
   name                         = var.postgres_instance_name
   postgresql_version           = "16" # TFE supports up to Postgres 16 (not 17)
@@ -116,9 +119,12 @@ module "icd_postgres" {
   use_same_kms_key_for_backups = false
   kms_key_crn                  = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql"].crn
   backup_encryption_key_crn    = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-postgresql-backup"].crn
-  service_credential_names = {
-    "tfe" : "Operator"
-  }
+  service_credential_names = [
+    {
+      "name" : "tfe",
+      "role" : "Operator"
+    }
+  ]
   deletion_protection = var.postgres_deletion_protection
 }
 
@@ -134,32 +140,34 @@ locals {
     concat(
       [
         {
-          name        = "allow-postgres-outbound-${subnet}"
-          action      = "allow"
-          direction   = "outbound"
-          source      = cidr
-          destination = "0.0.0.0/0"
-          tcp = {
-            source_port_max = 65535
-            source_port_min = 1
-            port_min        = module.icd_postgres.port
-            port_max        = module.icd_postgres.port
-          }
+          name            = "allow-postgres-outbound-${subnet}"
+          action          = "allow"
+          direction       = "outbound"
+          source          = cidr
+          destination     = "0.0.0.0/0"
+          protocol        = "tcp"
+          source_port_min = 1
+          source_port_max = 65535
+          port_min        = module.icd_postgres.port
+          port_max        = module.icd_postgres.port
+          type            = null
+          code            = null
         }
       ],
       [
         {
-          name        = "allow-postgres-inbound-${subnet}"
-          action      = "allow"
-          direction   = "inbound"
-          source      = "0.0.0.0/0"
-          destination = cidr
-          tcp = {
-            source_port_max = module.icd_postgres.port
-            source_port_min = module.icd_postgres.port
-            port_max        = 65535
-            port_min        = 1
-          }
+          name            = "allow-postgres-inbound-${subnet}"
+          action          = "allow"
+          direction       = "inbound"
+          source          = "0.0.0.0/0"
+          destination     = cidr
+          protocol        = "tcp"
+          source_port_min = module.icd_postgres.port
+          source_port_max = module.icd_postgres.port
+          port_min        = 1
+          port_max        = 65535
+          type            = null
+          code            = null
         }
       ]
     )
@@ -170,30 +178,32 @@ locals {
   postgres_vpe_acl_rules = flatten([
     for subnet, cidr in var.subnets_zones_cidr : [
       {
-        name        = "allow-postgres-outbound-to-vpe-${subnet}"
-        action      = "allow"
-        direction   = "outbound"
-        source      = cidr
-        destination = cidr
-        tcp = {
-          source_port_max = 65535
-          source_port_min = 1
-          port_min        = module.icd_postgres.port
-          port_max        = module.icd_postgres.port
-        }
+        name            = "allow-postgres-outbound-to-vpe-${subnet}"
+        action          = "allow"
+        direction       = "outbound"
+        source          = cidr
+        destination     = cidr
+        protocol        = "tcp"
+        source_port_min = 1
+        source_port_max = 65535
+        port_min        = module.icd_postgres.port
+        port_max        = module.icd_postgres.port
+        type            = null
+        code            = null
       },
       {
-        name        = "allow-postgres-inbound-from-vpe-${subnet}"
-        action      = "allow"
-        direction   = "inbound"
-        source      = cidr
-        destination = cidr
-        tcp = {
-          source_port_max = module.icd_postgres.port
-          source_port_min = module.icd_postgres.port
-          port_max        = 65535
-          port_min        = 1
-        }
+        name            = "allow-postgres-inbound-from-vpe-${subnet}"
+        action          = "allow"
+        direction       = "inbound"
+        source          = cidr
+        destination     = cidr
+        protocol        = "tcp"
+        source_port_min = module.icd_postgres.port
+        source_port_max = module.icd_postgres.port
+        port_min        = 1
+        port_max        = 65535
+        type            = null
+        code            = null
       }
     ]
   ])
@@ -224,7 +234,7 @@ module "icd_postgres_vpe" {
   depends_on = [time_sleep.wait_before_creating_vpe]
   count      = var.postgres_vpe_enabled ? 1 : 0
   source     = "terraform-ibm-modules/vpe-gateway/ibm"
-  version    = "5.1.0"
+  version    = "5.3.5"
   region     = var.region
   cloud_service_by_crn = [
     {
@@ -255,10 +265,9 @@ resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
   direction = "inbound"
   local     = var.postgres_vpe_enabled == true ? each.value.cidr : "0.0.0.0/0"
   remote    = module.ocp_vpc.kube_cluster_sg.id
-  tcp {
-    port_min = module.icd_postgres.port
-    port_max = module.icd_postgres.port
-  }
+  protocol  = "tcp"
+  port_min  = module.icd_postgres.port
+  port_max  = module.icd_postgres.port
 }
 
 ########################################################################################################################
@@ -283,7 +292,7 @@ locals {
 module "license" {
   count   = var.tfe_license_secret_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.4.2"
+  version = "1.9.0"
   crn     = var.tfe_license_secret_crn
 }
 
@@ -383,14 +392,14 @@ resource "ibm_cm_account" "cm_account_instance" {
 module "existing_secrets_manager_crn" {
   count   = var.existing_secrets_manager_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.4.2"
+  version = "1.9.0"
   crn     = var.existing_secrets_manager_crn
 }
 
 module "secrets_manager_secret_group" {
   count                    = var.existing_secrets_manager_crn != null && var.existing_secrets_manager_secret_group_id == null ? 1 : 0
   source                   = "terraform-ibm-modules/secrets-manager-secret-group/ibm"
-  version                  = "1.4.8"
+  version                  = "1.5.3"
   secret_group_name        = var.secrets_manager_secret_group_name
   secret_group_description = "Secret group for storing secrets created by the Terraform Enterprise Deployable Architecture."
   secrets_manager_guid     = module.existing_secrets_manager_crn[0].service_instance
@@ -404,7 +413,7 @@ locals {
 module "redis_password_secret" {
   count                   = var.existing_secrets_manager_crn != null ? 1 : 0
   source                  = "terraform-ibm-modules/secrets-manager-secret/ibm"
-  version                 = "1.9.14"
+  version                 = "1.10.1"
   region                  = module.existing_secrets_manager_crn[0].region
   secrets_manager_guid    = module.existing_secrets_manager_crn[0].service_instance
   secret_group_id         = local.secret_group_id
@@ -434,7 +443,7 @@ data "ibm_cis_domain" "existing_cis_instance_domain" {
 module "tfe_dns_record" {
   count           = var.existing_cis_instance_name != null && var.existing_cis_instance_domain != null && var.create_tfe_secondary_host_on_cis ? 1 : 0
   source          = "terraform-ibm-modules/cis/ibm//modules/dns"
-  version         = "2.2.10"
+  version         = "2.4.1"
   cis_instance_id = data.ibm_cis.existing_cis_instance[0].id
   domain_id       = data.ibm_cis_domain.existing_cis_instance_domain[0].domain_id
   dns_record_set = [
@@ -450,7 +459,7 @@ module "tfe_dns_record" {
 module "crn_parser_secrets_manager" {
   count   = var.tfe_secondary_hostname_existing_secret_crn != null ? 1 : 0
   source  = "terraform-ibm-modules/common-utilities/ibm//modules/crn-parser"
-  version = "1.4.2"
+  version = "1.9.0"
   crn     = var.tfe_secondary_hostname_existing_secret_crn
 }
 

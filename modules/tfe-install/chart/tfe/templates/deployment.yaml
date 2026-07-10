@@ -13,9 +13,14 @@ metadata:
     {{- if .Values.deployment.labels }}
     {{- toYaml .Values.deployment.labels | nindent 4 }}
     {{- end }}
-  {{- if .Values.deployment.annotations }}
+  {{- if or .Values.checkovSkipList.deployment .Values.deployment.annotations }}
   annotations:
-    {{- toYaml .Values.deployment.annotations | nindent 4 }}
+    {{- range .Values.checkovSkipList.deployment }}
+    {{ . }}
+    {{- end }}
+    {{- with .Values.deployment.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -108,6 +113,7 @@ spec:
       {{- else }}
       serviceAccountName: {{ .Release.Namespace }}
       {{- end }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountToken | default false }}
       {{- end }}
       initContainers:
         {{ toYaml .Values.initContainers | nindent 8}}
@@ -132,6 +138,13 @@ spec:
             drop:
               - ALL
           runAsNonRoot: true
+        {{- else if not .Values.container.securityContext }}
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
         {{- else }}
         {{- toYaml .Values.container.securityContext | nindent 10 }}
         {{- end }}
@@ -156,6 +169,15 @@ spec:
               name: {{ .name }}
           {{- end }}
         {{- end }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.tfe.livenessProbePath | default "/_health_check" }}
+            port: {{ .Values.tfe.privateHttpPort }}
+            scheme: {{ .Values.tfe.livenessProbeScheme | default "HTTP" }}
+          initialDelaySeconds: {{ .Values.tfe.livenessProbeInitialDelay | default 120 }}
+          periodSeconds: {{ .Values.tfe.livenessProbePeriod | default 10 }}
+          timeoutSeconds: {{ .Values.tfe.livenessProbeTimeout | default 5 }}
+          failureThreshold: {{ .Values.tfe.livenessProbeFailureThreshold | default 6 }}
         readinessProbe:
           httpGet:
             path: {{ .Values.tfe.readinessProbePath | default "/api/v1/health/readiness" }}

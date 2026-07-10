@@ -45,9 +45,14 @@ metadata:
   labels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.agents.rbac.annotations }}
+  {{- if or .Values.checkovSkipList.roleBinding .Values.agents.rbac.annotations }}
   annotations:
+    {{- range .Values.checkovSkipList.roleBinding }}
+    {{ . }}
+    {{- end }}
+    {{- with .Values.agents.rbac.annotations }}
     {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io

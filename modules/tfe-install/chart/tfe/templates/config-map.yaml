@@ -7,10 +7,15 @@ kind: ConfigMap
 metadata:
   name: terraform-enterprise-env-config
   namespace: {{ .Release.Namespace }}
-{{- if .Values.config.annotations }}
+  {{- if or .Values.checkovSkipList.configMap .Values.config.annotations }}
   annotations:
-    {{- toYaml .Values.config.annotations | nindent 4 }}
-{{- end }}
+    {{- range .Values.checkovSkipList.configMap }}
+    {{ . }}
+    {{- end }}
+    {{- with .Values.config.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- end }}
 data:
   {{- include "helpers.list-env-variables" . | indent 2 }}
   TFE_RUN_PIPELINE_DRIVER: kubernetes

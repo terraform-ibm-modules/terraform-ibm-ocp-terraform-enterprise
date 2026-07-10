@@ -14,6 +14,7 @@ resource "helm_release" "redis_install" {
   recreate_pods    = true
   force_update     = true
   reset_values     = true
+  atomic           = true
 }
 
 data "kubernetes_secret_v1" "redis_password" {
