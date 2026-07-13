@@ -39,124 +39,6 @@ resource "kubernetes_secret_v1" "tfe_pull_secret" {
   }
 }
 
-# Create service account for TFE (needed by the job)
-# Must have Helm labels/annotations so Helm can adopt it
-resource "kubernetes_service_account_v1" "tfe" {
-  metadata {
-    name      = "tfe"
-    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
-    labels = {
-      "app.kubernetes.io/managed-by" = "Helm"
-    }
-    annotations = {
-      "meta.helm.sh/release-name"      = "terraform-enterprise"
-      "meta.helm.sh/release-namespace" = "tfe"
-    }
-  }
-}
-
-# Secret for database connection used by the extension installation job
-resource "kubernetes_secret_v1" "pg_bootstrap" {
-  metadata {
-    name      = "pg-bootstrap"
-    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
-  }
-
-  data = {
-    DATABASE_URL = "postgresql://${var.tfe_database_user}:${var.tfe_database_password}@${var.tfe_database_host}/${var.tfe_database_name}?sslmode=require"
-  }
-
-  type = "Opaque"
-}
-
-# Kubernetes Job to install PostgreSQL extensions before TFE starts
-resource "kubernetes_job_v1" "install_pg_extensions" {
-  depends_on = [
-    kubernetes_secret_v1.pg_bootstrap,
-    kubernetes_service_account_v1.tfe,
-    kubernetes_role_binding_v1.tfe_admin,
-  ]
-
-  metadata {
-    name      = "install-pg-extensions"
-    namespace = kubernetes_namespace_v1.tfe.metadata[0].name
-  }
-
-  spec {
-    template {
-      metadata {}
-      spec {
-        container {
-          name  = "psql"
-          image = "postgres:16-alpine"
-          command = [
-            "sh", "-c",
-            <<-EOT
-              echo "Setting up PostgreSQL extensions for IBM Cloud..."
-              
-              # Wait for database to be ready
-              until psql "$DATABASE_URL" -c '\q' 2>/dev/null; do
-                echo "Waiting for database..."
-                sleep 2
-              done
-              
-              echo "Database is ready. Creating extensions in ibm_extension schema..."
-              
-              # Create extensions in ibm_extension schema (IBM Cloud requirement)
-              psql "$DATABASE_URL" <<-EOSQL
-                -- Ensure ibm_extension schema exists
-                CREATE SCHEMA IF NOT EXISTS ibm_extension;
-                
-                -- Grant usage on schema
-                GRANT USAGE ON SCHEMA ibm_extension TO CURRENT_USER;
-                
-                -- Create extensions if they don't exist
-                CREATE EXTENSION IF NOT EXISTS "hstore" WITH SCHEMA "ibm_extension";
-                CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "ibm_extension";
-                CREATE EXTENSION IF NOT EXISTS "citext" WITH SCHEMA "ibm_extension";
-                
-                -- Grant all privileges on schema
-                GRANT ALL PRIVILEGES ON SCHEMA ibm_extension TO CURRENT_USER;
-                GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ibm_extension TO CURRENT_USER;
-                GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA ibm_extension TO CURRENT_USER;
-                GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA ibm_extension TO CURRENT_USER;
-                
-                -- Verify extensions
-                SELECT extname, nspname
-                FROM pg_extension e
-                JOIN pg_namespace n ON e.extnamespace = n.oid
-                WHERE nspname = 'ibm_extension';
-              EOSQL
-              
-              echo "Extensions created in ibm_extension schema."
-              echo "TFE will use TFE_DATABASE_EXTRA_SCHEMAS to include ibm_extension in search_path."
-              echo "PostgreSQL extensions setup complete!"
-            EOT
-          ]
-          env {
-            name = "DATABASE_URL"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret_v1.pg_bootstrap.metadata[0].name
-                key  = "DATABASE_URL"
-              }
-            }
-          }
-        }
-        restart_policy       = "Never"
-        service_account_name = "tfe"
-      }
-    }
-    backoff_limit = 3
-  }
-
-  wait_for_completion = true
-
-  timeouts {
-    create = "5m"
-  }
-}
-
 locals {
   tfe_deployment_replicas = var.tfe_deployment_replicas != null ? var.tfe_deployment_replicas : 3
   route_name              = "tfe"
@@ -254,7 +136,7 @@ locals {
     },
     {
       name  = "env.variables.TFE_REDIS_HOST"
-      value = var.tfe_redis_port != 6379 ? "${var.tfe_redis_host}:${var.tfe_redis_port}" : var.tfe_redis_host
+      value = "${var.tfe_redis_host}:${var.tfe_redis_port}"
     },
     {
       name  = "env.variables.TFE_OBJECT_STORAGE_S3_REGION"
@@ -420,18 +302,6 @@ locals {
   set_sensitive_values_list_final = concat(local.set_sensitive_values_list, local.set_sensitive_values_list_secondary_hostname)
 }
 
-# Custom startup script removed - using environment variables instead
-# resource "kubernetes_config_map" "custom_tfe_start" {
-#   metadata {
-#     name      = "custom-tfe-start"
-#     namespace = kubernetes_namespace_v1.tfe.metadata[0].name
-#   }
-#
-#   data = {
-#     "custom_tfe_start.sh" = file("${path.module}/scripts/custom_tfe_start.sh")
-#   }
-# }
-
 locals {
   tfe_deployment_labels      = {}
   tfe_deployment_annotations = {}
@@ -478,7 +348,6 @@ resource "helm_release" "tfe_install" {
   depends_on = [
     kubernetes_secret_v1.tfe_pull_secret,
     kubernetes_namespace_v1.tfe,
-    kubernetes_job_v1.install_pg_extensions
   ]
 
   name             = "terraform-enterprise"
@@ -493,7 +362,7 @@ resource "helm_release" "tfe_install" {
   recreate_pods    = true
   force_update     = true
   reset_values     = true
-  atomic           = false # Do not auto-rollback on failure — operator needs to inspect the failed state
+  atomic           = var.rollback_on_failure
 
   set = [
     for item in local.set_values_list_final : {
@@ -544,6 +413,31 @@ resource "helm_release" "tfe_install" {
         "certData" = ""
         "keyData"  = ""
       },
+      "initContainers" = [
+        {
+          "name"  = "pg-extensions"
+          "image" = var.pg_extension_job_image
+          "command" = [
+            "sh", "-c",
+            join("\n", [
+              "until psql \"$DATABASE_URL\" -c '\\q' 2>/dev/null; do echo 'Waiting for database...'; sleep 2; done",
+              "psql \"$DATABASE_URL\" <<-EOSQL",
+              "  CREATE SCHEMA IF NOT EXISTS ibm_extension;",
+              "  CREATE EXTENSION IF NOT EXISTS hstore    WITH SCHEMA ibm_extension;",
+              "  CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\" WITH SCHEMA ibm_extension;",
+              "  CREATE EXTENSION IF NOT EXISTS citext    WITH SCHEMA ibm_extension;",
+              "EOSQL",
+              "echo 'PostgreSQL extensions ready.'",
+            ])
+          ]
+          "env" = [
+            {
+              "name"  = "DATABASE_URL"
+              "value" = "postgresql://${var.tfe_database_user}:${var.tfe_database_password}@${var.tfe_database_host}/${var.tfe_database_name}?sslmode=require"
+            }
+          ]
+        }
+      ],
       "container" = {
         "securityContext" = {
           "runAsUser" = 1000
@@ -564,8 +458,6 @@ resource "random_string" "iact_token" {
 }
 
 resource "kubernetes_role_binding_v1" "tfe_admin" {
-  depends_on = [kubernetes_service_account_v1.tfe]
-
   metadata {
     name      = "tfe-anyuuid"
     namespace = kubernetes_namespace_v1.tfe.metadata[0].name

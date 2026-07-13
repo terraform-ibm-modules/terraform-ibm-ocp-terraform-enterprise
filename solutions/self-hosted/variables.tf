@@ -61,12 +61,12 @@ variable "tfe_license" {
 
 variable "tfe_image_tag" {
   type        = string
-  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1')"
+  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
 }
 
 variable "tfe_helm_chart_version" {
   type        = string
-  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3')."
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
 }
 
 variable "tfe_helm_repository" {

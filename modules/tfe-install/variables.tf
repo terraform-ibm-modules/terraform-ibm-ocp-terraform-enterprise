@@ -70,12 +70,12 @@ variable "tfe_license" {
 }
 
 variable "tfe_image_tag" {
-  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1')"
+  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
   type        = string
 }
 
 variable "tfe_helm_chart_version" {
-  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3')."
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
   type        = string
 }
 
@@ -155,14 +155,14 @@ variable "tfe_redis_host" {
 variable "tfe_redis_username" {
   description = "The Redis username for Terraform Enterprise"
   type        = string
-  default     = ""
+  nullable    = false
   sensitive   = true
 }
 
 variable "tfe_redis_password" {
   description = "The Redis password for Terraform Enterprise"
   type        = string
-  default     = ""
+  nullable    = false
   sensitive   = true
 }
 
@@ -268,6 +268,13 @@ variable "rollback_on_failure" {
   description = "Flag to automatically rollback the helm chart on installation failure."
   type        = bool
   default     = true
+}
+
+variable "pg_extension_job_image" {
+  description = "Container image used by the TFE init container that creates required PostgreSQL extensions in IBM Cloud before TFE starts. The image must contain the 'psql' binary. Override this in air-gapped or private-registry environments. See https://hub.docker.com/_/postgres for available tags."
+  type        = string
+  default     = "postgres:16-alpine"
+  nullable    = false
 }
 
 variable "tfe_startup_checks_ignore_failures" {
