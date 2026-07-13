@@ -4,13 +4,13 @@
 
 module "vpc" {
   source            = "terraform-ibm-modules/landing-zone-vpc/ibm"
-  version           = "8.18.0"
+  version           = "9.1.0"
   resource_group_id = var.resource_group_id
   region            = var.region
   create_vpc        = var.existing_vpc_id == null ? true : false
   existing_vpc_id   = var.existing_vpc_id
   name              = var.vpc_name
-  tags              = []
+  resource_tags     = []
   address_prefixes = {
     for zone, cidr in var.subnets_zones_cidr :
     zone => [cidr]
@@ -80,7 +80,7 @@ locals {
 module "openshift" {
   count                               = var.existing_cluster_id == null ? 1 : 0
   source                              = "terraform-ibm-modules/base-ocp-vpc/ibm"
-  version                             = "3.84.0"
+  version                             = "3.90.0"
   cluster_name                        = var.cluster_name
   resource_group_id                   = var.resource_group_id
   region                              = var.region
@@ -88,7 +88,7 @@ module "openshift" {
   vpc_id                              = module.vpc.vpc_id
   vpc_subnets                         = local.cluster_vpc_subnets
   worker_pools                        = local.worker_pools
-  tags                                = var.resource_tags
+  resource_tags                       = var.resource_tags
   access_tags                         = var.access_tags
   ocp_version                         = var.ocp_version
   ocp_entitlement                     = var.ocp_entitlement
