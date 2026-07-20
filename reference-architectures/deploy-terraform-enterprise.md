@@ -1,84 +1,36 @@
 ---
-
-# The YAML header is required. For more information about the YAML header, see
-# https://test.cloud.ibm.com/docs-internal/writing?topic=writing-reference-architectures
-
 copyright:
   years: 2026
 lastupdated: "[{LAST_UPDATED_DATE}]"
 
-keywords: # Not typically populated
-
-subcollection: repo-name # Use deployable-reference-architectures, or the subcollection value from your toc.yaml file if docs-only.
-
-authors:
-  - name: "Pranjali Mundra"
- 
+subcollection: deployable-reference-architectures 
 
 # The release that the reference architecture describes
 version: 1.0
 
-# Use if the reference architecture has deployable code.
-# Value is the URL to land the user in the IBM Cloud catalog details page for the deployable architecture.
-# See https://test.cloud.ibm.com/docs/get-coding?topic=get-coding-deploy-button
 deployment-url: https://cloud.ibm.com/catalog/7a4d68b4-cf8b-40cd-a3d1-f49aff526eb3/architecture/deploy-arch-ibm-terraform-enterprise-42170cf3-6337-453e-8d2d-ffabd48c4914-global
 
 docs: https://cloud.ibm.com/docs/solution-guide
 
 image_source: https://github.com/terraform-ibm-modules/terraform-ibm-terraform-enterprise/reference-architectures/diagram-quick-start.svg
 
-related_links:
-  - title: 'Title'
-    url: 'https://url.com'
-    description: 'Description.'
-  - title: 'related or follow-on architectures'
-    url: 'https://url'
-    description: 'Description'
 
-# use-case from 'code' column in
-# https://github.ibm.com/digital/taxonomy/blob/main/topics/topics_flat_list.csv
 use-case: TOPICS-Terraform
 
-# industry from 'code' column in
-# https://github.ibm.com/digital/taxonomy/blob/main/industries/industries_flat_list.csv
 industry: SoftwareAndPlatformApplications
-
-# compliance from 'code' column in
-# https://github.ibm.com/digital/taxonomy/blob/main/compliance_entities/compliance_entities_flat_list.csv
-compliance:
 
 content-type: reference-architecture
 
-
-# For reference architectures in https://github.com/terraform-ibm-modules only.
-# All reference architectures stored in the /reference-architectures directory
-
-# Set production to true to publish the reference architecture to IBM Cloud docs.
-
-production: false
+production: true
 
 ---
 
-<!--
-The following line inserts all the attribute definitions. Don't delete.
--->
 {{site.data.keyword.attribute-definition-list}}
 
-<!--
-Don't include "reference architecture" in the following title.
-Specify a title based on a use case. If the architecture has a module
-or tile in the IBM Cloud catalog, match the title to the catalog. See
-https://test.cloud.ibm.com/docs/solution-as-code?topic=solution-as-code-naming-guidance.
--->
 
 # Terraform Enterprise (TFE) on IBM Cloud
 {: #deploy-tfe-byol}
 {: toc-content-type="reference-architecture"}
-{: toc-industry="value"}
-{: toc-use-case="value"}
-{: toc-compliance="value"}
-{: toc-version="value"}
-
 
 Terraform Enterprise (TFE) on IBM Cloud streamlines how organizations set up and manage infrastructure as code. 
 
