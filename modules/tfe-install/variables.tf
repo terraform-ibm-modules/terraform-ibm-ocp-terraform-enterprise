@@ -69,19 +69,24 @@ variable "tfe_license" {
   sensitive   = true
 }
 
+# renovate: datasource=github-releases depName=hashicorp/terraform-enterprise
 variable "tfe_image_tag" {
-  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
+  description = "The version tag of the Terraform Enterprise image to use (e.g., '2.0.4'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
   type        = string
+  default     = "2.0.4"
 }
 
+# renovate: datasource=helm depName=terraform-enterprise registryUrl=https://helm.releases.hashicorp.com
 variable "tfe_helm_chart_version" {
-  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '2.0.4'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
   type        = string
+  default     = "2.0.4"
 }
 
 variable "tfe_helm_repository" {
   description = "The Helm repository URL for Terraform Enterprise chart (e.g., 'https://helm.releases.hashicorp.com')."
   type        = string
+  default     = "https://helm.releases.hashicorp.com"
   validation {
     condition     = can(regex("^https?://", var.tfe_helm_repository))
     error_message = "The Helm repository URL must start with http:// or https://"

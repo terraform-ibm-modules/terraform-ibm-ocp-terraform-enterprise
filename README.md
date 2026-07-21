@@ -39,8 +39,6 @@ You can report issues and request features for this module in GitHub issues in t
 
 To set up your local development environment, see [Local development setup](https://terraform-ibm-modules.github.io/documentation/#/local-dev-setup) in the project documentation.
 
-<<<<<<< HEAD
-=======
 ## Helm Chart Configuration
 
 This module deploys Terraform Enterprise using the official HashiCorp Helm chart from a remote repository. You must specify:
@@ -53,17 +51,16 @@ This module deploys Terraform Enterprise using the official HashiCorp Helm chart
 ```hcl
 module "terraform_enterprise" {
   source = "terraform-ibm-modules/terraform-enterprise/ibm"
-  
+
   tfe_helm_chart_version = "1.6.3"
   tfe_helm_repository    = "https://helm.releases.hashicorp.com"  # Optional, this is the default
   tfe_image_tag          = "v202506-1"
-  
+
   # ... other required variables
 }
 ```
 
 **Important:** Ensure the Helm chart version is compatible with your TFE image tag (`tfe_image_tag`). Refer to the [HashiCorp Terraform Enterprise documentation](https://developer.hashicorp.com/terraform/enterprise/flexible-deployments/install/kubernetes/install) for compatibility information.
->>>>>>> d9878e8 (added changes for configurable tfe image, icd redis and helm configuration)
 
 ## Notes
 
