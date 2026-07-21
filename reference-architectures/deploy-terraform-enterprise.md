@@ -89,5 +89,3 @@ The following table outlines the products or services used in the architecture f
 {: #next-steps}
 
 To deploy this architecture, understand [Terraform Enterprise (TFE) Bring Your Own License](/docs/ibm-cloud-provider-for-terraform?topic=ibm-cloud-provider-for-terraform-deploying-tfe-byol).
-
-
