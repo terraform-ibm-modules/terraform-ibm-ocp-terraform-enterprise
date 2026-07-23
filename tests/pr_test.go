@@ -62,6 +62,7 @@ func setupOptions(t *testing.T, prefix string, dir string) *testhelper.TestOptio
 			"postgres_service_endpoints":   "private",
 			"postgres_deletion_protection": false,
 			"kms_key_deletion_protection":  false,
+			"redis_deletion_protection":    false,
 			"tfe_license_secret_crn":       permanentResources["terraform_enterprise_license_secret_crn"],
 			"secrets_manager_crn":          permanentResources["secretsManagerCRN"],
 		},

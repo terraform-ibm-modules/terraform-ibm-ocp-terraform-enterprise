@@ -10,7 +10,7 @@ module "vpc" {
   create_vpc        = var.existing_vpc_id == null ? true : false
   existing_vpc_id   = var.existing_vpc_id
   name              = var.vpc_name
-  tags              = []
+  resource_tags     = []
   address_prefixes = {
     for zone, cidr in var.subnets_zones_cidr :
     zone => [cidr]
@@ -88,7 +88,7 @@ module "openshift" {
   vpc_id                              = module.vpc.vpc_id
   vpc_subnets                         = local.cluster_vpc_subnets
   worker_pools                        = local.worker_pools
-  tags                                = var.resource_tags
+  resource_tags                       = var.resource_tags
   access_tags                         = var.access_tags
   ocp_version                         = var.ocp_version
   ocp_entitlement                     = var.ocp_entitlement
