@@ -32,6 +32,14 @@ module "key_protect_all_inclusive" {
           force_delete = local.force_delete
         },
         {
+          key_name     = "terraform-enterprise-redis"
+          force_delete = local.force_delete
+        },
+        {
+          key_name     = "terraform-enterprise-redis-backup"
+          force_delete = local.force_delete
+        },
+        {
           key_name     = "terraform-enterprise-vsi-volume-key"
           force_delete = local.force_delete
         }
@@ -122,7 +130,7 @@ module "icd_postgres" {
   service_credential_names = [
     {
       "name" : "tfe",
-      "role" : "Operator"
+      "role" : "Administrator"
     }
   ]
   deletion_protection = var.postgres_deletion_protection
@@ -275,14 +283,27 @@ resource "ibm_is_security_group_rule" "vpc_kubecluster_sg_rule" {
 ########################################################################################################################
 
 module "redis" {
-  depends_on = [module.ocp_vpc]
-  count      = var.existing_redis_hostname == null ? 1 : 0
-  source     = "./modules/redis"
+  count                     = var.existing_redis_hostname == null ? 1 : 0
+  source                    = "./modules/redis"
+  resource_group_id         = var.resource_group_id
+  redis_instance_name       = var.redis_instance_name
+  region                    = var.region
+  redis_version             = var.redis_version
+  redis_member_host_flavor  = var.redis_member_host_flavor
+  redis_service_endpoints   = var.redis_service_endpoints
+  kms_key_crn               = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-redis"].crn
+  backup_encryption_key_crn = module.key_protect_all_inclusive.keys["terraform-enterprise.terraform-enterprise-redis-backup"].crn
+  resource_tags             = var.resource_tags
+  access_tags               = var.access_tags
+  redis_deletion_protection = var.redis_deletion_protection
 }
 
 locals {
-  redis_host        = var.existing_redis_hostname != null ? var.existing_redis_hostname : module.redis[0].redis_host
-  redis_pass_base64 = var.existing_redis_password_base64 != null ? var.existing_redis_password_base64 : module.redis[0].redis_password_base64
+  redis_host               = var.existing_redis_hostname != null ? var.existing_redis_hostname : module.redis[0].redis_host
+  redis_port               = var.existing_redis_port != null ? var.existing_redis_port : module.redis[0].redis_port
+  redis_username           = var.existing_redis_username != null ? var.existing_redis_username : module.redis[0].redis_username
+  redis_pass_base64        = var.existing_redis_password_base64 != null ? var.existing_redis_password_base64 : module.redis[0].redis_password_base64
+  redis_certificate_base64 = var.existing_redis_certificate_base64 != null ? var.existing_redis_certificate_base64 : module.redis[0].redis_certificate_base64
 }
 
 ########################################################################################################################
@@ -332,6 +353,9 @@ module "tfe_install" {
   cluster_resource_group_id = var.resource_group_id
   namespace                 = var.tfe_namespace
   tfe_license               = local.tfe_license
+  tfe_image_tag             = var.tfe_image_tag
+  tfe_helm_chart_version    = var.tfe_helm_chart_version
+  tfe_helm_repository       = var.tfe_helm_repository
   tfe_database_host         = "${local.icd_postgres_hostname}:${local.icd_postgres_port}"
   tfe_database_user         = module.icd_postgres.service_credentials_object.credentials["tfe"].username
   tfe_database_password     = module.icd_postgres.service_credentials_object.credentials["tfe"].password
@@ -340,10 +364,13 @@ module "tfe_install" {
   tfe_s3_region     = var.region
   tfe_s3_access_key = module.cos.resource_keys["tfe-credentials"].credentials["cos_hmac_keys.access_key_id"]
   tfe_s3_secret_key = module.cos.resource_keys["tfe-credentials"].credentials["cos_hmac_keys.secret_access_key"]
-  tfe_s3_endpoint   = module.cos.s3_endpoint_public
+  tfe_s3_endpoint   = "https://${module.cos.s3_endpoint_direct}"
 
-  tfe_redis_host     = local.redis_host
-  tfe_redis_password = local.redis_pass_base64
+  tfe_redis_host               = local.redis_host
+  tfe_redis_port               = local.redis_port
+  tfe_redis_username           = local.redis_username
+  tfe_redis_password           = local.redis_pass_base64
+  tfe_redis_certificate_base64 = local.redis_certificate_base64
 
   admin_username = var.admin_username
   admin_password = var.admin_password

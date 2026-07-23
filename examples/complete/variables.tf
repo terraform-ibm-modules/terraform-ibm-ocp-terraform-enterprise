@@ -96,6 +96,12 @@ variable "postgres_deletion_protection" {
   default     = true
 }
 
+variable "redis_deletion_protection" {
+  type        = bool
+  description = "Enable deletion protection within terraform. The Redis instance cannot be deleted by terraform when this value is set to 'true'. In order to delete with terraform the value must be set to 'false' and a terraform apply performed before the destroy is performed. The default is 'true'."
+  default     = false
+}
+
 variable "postgres_service_endpoints" {
   description = "Service endpoints for the PostgreSQL instance to deploy. Default is `public-and-private`"
   default     = "public-and-private"

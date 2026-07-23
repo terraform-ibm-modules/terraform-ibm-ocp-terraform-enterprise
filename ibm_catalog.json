@@ -251,6 +251,51 @@
               "virtual": false
             },
             {
+              "key": "tfe_image_tag",
+              "required": false,
+              "virtual": false,
+              "default_value": "2.0.4"
+            },
+            {
+              "key": "tfe_helm_chart_version",
+              "required": false,
+              "virtual": false,
+              "default_value": "2.0.4"
+            },
+            {
+              "key": "tfe_helm_repository",
+              "required": false,
+              "virtual": false,
+              "default_value": "https://helm.releases.hashicorp.com"
+            },
+            {
+              "key": "redis_version",
+              "required": false,
+              "virtual": false
+            },
+            {
+              "key": "redis_member_host_flavor",
+              "required": false,
+              "virtual": false,
+              "default_value": "multitenant"
+            },
+            {
+              "key": "redis_service_endpoints",
+              "required": false,
+              "virtual": false,
+              "default_value": "private",
+              "options": [
+                {
+                  "displayname": "Private",
+                  "value": "private"
+                },
+                {
+                  "displayname": "Public and private",
+                  "value": "public-and-private"
+                }
+              ]
+            },
+            {
               "key": "admin_username",
               "required": true,
               "virtual": false

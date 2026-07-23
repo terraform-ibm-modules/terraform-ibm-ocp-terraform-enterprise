@@ -59,6 +59,26 @@ variable "tfe_license" {
   sensitive   = true
 }
 
+# renovate: datasource=github-releases depName=hashicorp/terraform-enterprise
+variable "tfe_image_tag" {
+  type        = string
+  description = "The version tag of the Terraform Enterprise image to use (e.g., '2.0.4'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
+  default     = "2.0.4"
+}
+
+# renovate: datasource=helm depName=terraform-enterprise registryUrl=https://helm.releases.hashicorp.com
+variable "tfe_helm_chart_version" {
+  type        = string
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '2.0.4'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
+  default     = "2.0.4"
+}
+
+variable "tfe_helm_repository" {
+  type        = string
+  description = "The Helm repository URL for Terraform Enterprise chart (e.g., 'https://helm.releases.hashicorp.com')."
+  default     = "https://helm.releases.hashicorp.com"
+}
+
 variable "admin_username" {
   type        = string
   description = "The user name of the Terraform Enterprise admin user"
@@ -309,6 +329,32 @@ variable "postgres_add_acl_rule" {
   type        = bool
   default     = true
   description = "Concatenate two rules to enable traffic to/from Postgres instance port to the VPC ACLs. If postgres_vpe_enabled is enabled the ACL rules will be configured VPC subnets CIDR as source and target, if postgres_vpe_enabled is disabled the ACL rules will use 0.0.0.0/0 as CIDR of Postgres instance references. Default true."
+}
+
+##############################################################################
+# Redis
+##############################################################################
+
+variable "redis_version" {
+  type        = string
+  description = "Version of Redis to provision. If not specified, the latest version will be used."
+  default     = null
+}
+
+variable "redis_member_host_flavor" {
+  type        = string
+  description = "Host flavor for Redis members. Default to multitenant."
+  default     = "multitenant"
+}
+
+variable "redis_service_endpoints" {
+  type        = string
+  description = "Service endpoints for the Redis instance to deploy. Default is private."
+  default     = "private"
+  validation {
+    condition     = contains(["private", "public-and-private"], var.redis_service_endpoints)
+    error_message = "Allowed values for var.redis_service_endpoints are 'private' and 'public-and-private'"
+  }
 }
 
 variable "subnets_zones_cidr" {
