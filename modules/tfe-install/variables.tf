@@ -69,10 +69,28 @@ variable "tfe_license" {
   sensitive   = true
 }
 
+# renovate: datasource=github-releases depName=hashicorp/terraform-enterprise
 variable "tfe_image_tag" {
-  description = "The version tag of the Terraform Enterprise image to use"
+  description = "The version tag of the Terraform Enterprise image to use (e.g., '2.0.4'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
   type        = string
-  default     = "v202504-1"
+  default     = "2.0.4"
+}
+
+# renovate: datasource=helm depName=terraform-enterprise registryUrl=https://helm.releases.hashicorp.com
+variable "tfe_helm_chart_version" {
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '2.0.4'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
+  type        = string
+  default     = "2.0.4"
+}
+
+variable "tfe_helm_repository" {
+  description = "The Helm repository URL for Terraform Enterprise chart (e.g., 'https://helm.releases.hashicorp.com')."
+  type        = string
+  default     = "https://helm.releases.hashicorp.com"
+  validation {
+    condition     = can(regex("^https?://", var.tfe_helm_repository))
+    error_message = "The Helm repository URL must start with http:// or https://"
+  }
 }
 
 variable "tfe_encryption_password" {
@@ -139,8 +157,28 @@ variable "tfe_redis_host" {
   type        = string
 }
 
+variable "tfe_redis_username" {
+  description = "The Redis username for Terraform Enterprise"
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
+
 variable "tfe_redis_password" {
   description = "The Redis password for Terraform Enterprise"
+  type        = string
+  nullable    = false
+  sensitive   = true
+}
+
+variable "tfe_redis_port" {
+  description = "The Redis port for Terraform Enterprise"
+  type        = number
+  default     = 6379
+}
+
+variable "tfe_redis_certificate_base64" {
+  description = "Base64 encoded TLS certificate for Redis connection (required for IBM Cloud Redis)"
   type        = string
   default     = ""
   sensitive   = true
@@ -235,4 +273,17 @@ variable "rollback_on_failure" {
   description = "Flag to automatically rollback the helm chart on installation failure."
   type        = bool
   default     = true
+}
+
+variable "pg_extension_job_image" {
+  description = "Container image used by the TFE init container that creates required PostgreSQL extensions in IBM Cloud before TFE starts. The image must contain the 'psql' binary. Override this in air-gapped or private-registry environments. See https://hub.docker.com/_/postgres for available tags."
+  type        = string
+  default     = "postgres:16-alpine"
+  nullable    = false
+}
+
+variable "tfe_startup_checks_ignore_failures" {
+  description = "Comma-separated list of startup checks to treat as warnings instead of blocking startup. Useful for tolerating expired certificates in CA bundles. Example: 'tls'. Default is null (all checks must pass)."
+  type        = string
+  default     = null
 }
