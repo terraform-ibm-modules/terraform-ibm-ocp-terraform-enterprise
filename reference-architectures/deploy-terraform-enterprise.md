@@ -3,7 +3,7 @@ copyright:
   years: 2026
 lastupdated: "[{LAST_UPDATED_DATE}]"
 
-subcollection: deployable-reference-architectures 
+subcollection: deployable-reference-architectures
 
 # The release that the reference architecture describes
 version: 1.0
@@ -32,7 +32,7 @@ production: true
 {: #deploy-tfe-byol}
 {: toc-content-type="reference-architecture"}
 
-Terraform Enterprise (TFE) on IBM Cloud streamlines how organizations set up and manage infrastructure as code. 
+Terraform Enterprise (TFE) on IBM Cloud streamlines how organizations set up and manage infrastructure as code.
 
 
 This deployable architecture automates the deployment of a complete TFE infrastructure stack on IBM Cloud using your existing HashiCorp Terraform Enterprise license.
