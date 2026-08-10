@@ -108,6 +108,8 @@ module "ocp_vpc" {
   vpc_acl_rules       = local.final_acl_rules
   subnets_zones_cidr  = var.subnets_zones_cidr
   kms_config          = local.kms_config
+  workers_per_zone    = var.workers_per_zone
+  worker_node_flavor  = var.worker_node_flavor
 }
 
 ########################################################################################################################
@@ -353,8 +355,10 @@ module "tfe_install" {
   cluster_resource_group_id = var.resource_group_id
   namespace                 = var.tfe_namespace
   tfe_license               = local.tfe_license
-  tfe_image_tag             = var.tfe_image_tag
-  tfe_helm_chart_version    = var.tfe_helm_chart_version
+  tfe_image_tag                  = var.tfe_image_tag
+  tfe_image_repository           = var.tfe_image_repository
+  tfe_image_pull_secret_username = var.tfe_image_pull_secret_username
+  tfe_helm_chart_version         = var.tfe_helm_chart_version
   tfe_helm_repository       = var.tfe_helm_repository
   tfe_database_host         = "${local.icd_postgres_hostname}:${local.icd_postgres_port}"
   tfe_database_user         = module.icd_postgres.service_credentials_object.credentials["tfe"].username
@@ -376,7 +380,8 @@ module "tfe_install" {
   admin_password = var.admin_password
   admin_email    = var.admin_email
 
-  tfe_organization = var.tfe_organization
+  tfe_organization   = var.tfe_organization
+  tfe_extra_env_vars = var.tfe_extra_env_vars
 
   # tfe secondary hostname management
   tfe_secondary_hostname_fqdn        = local.tfe_secondary_hostname_fqdn

@@ -13,10 +13,14 @@ module "resource_group" {
 }
 
 module "tfe" {
-  source                                   = "../.."
-  region                                   = var.region
+  source            = "../.."
+  region            = var.region
   resource_group_id                        = module.resource_group.resource_group_id
   resource_tags                            = var.resource_tags
+  existing_cluster_id                      = var.existing_cluster_id
+  existing_vpc_id                          = var.existing_vpc_id
+  workers_per_zone                         = var.workers_per_zone
+  worker_node_flavor                       = var.worker_node_flavor
   vpc_name                                 = "${local.prefix}vpc"
   cluster_name                             = "${local.prefix}cluster"
   kms_instance_name                        = "${local.prefix}kms"
@@ -26,6 +30,8 @@ module "tfe" {
   tfe_license                              = var.tfe_license
   tfe_license_secret_crn                   = var.tfe_license_secret_crn
   tfe_image_tag                            = var.tfe_image_tag
+  tfe_image_repository                     = var.tfe_image_repository
+  tfe_image_pull_secret_username           = var.tfe_image_pull_secret_username
   tfe_helm_chart_version                   = var.tfe_helm_chart_version
   tfe_helm_repository                      = var.tfe_helm_repository
   admin_username                           = var.admin_username
@@ -33,8 +39,8 @@ module "tfe" {
   admin_email                              = var.admin_email
   tfe_organization                         = var.tfe_organization_name
   kms_key_deletion_protection              = false
-  postgres_deletion_protection             = false
-  redis_deletion_protection                = false
+  postgres_deletion_protection             = var.postgres_deletion_protection
+  redis_deletion_protection                = var.redis_deletion_protection
   redis_version                            = var.redis_version
   redis_member_host_flavor                 = var.redis_member_host_flavor
   redis_service_endpoints                  = var.redis_service_endpoints
@@ -49,6 +55,8 @@ module "tfe" {
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id
   secrets_manager_secret_group_name        = "${local.prefix}secrets-group"
   redis_password_secret_name               = "${local.prefix}redis-password"
+  tfe_namespace                            = var.tfe_namespace
+  tfe_extra_env_vars                       = var.tfe_extra_env_vars
   # TFE secondary hostname management
   tfe_secondary_host                         = var.tfe_secondary_host
   existing_cis_instance_name                 = var.existing_cis_instance_name

@@ -71,16 +71,28 @@ variable "tfe_license" {
 
 # renovate: datasource=github-releases depName=hashicorp/terraform-enterprise
 variable "tfe_image_tag" {
-  description = "The version tag of the Terraform Enterprise image to use (e.g., '2.0.4'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
+  description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
   type        = string
-  default     = "2.0.4"
+}
+
+variable "tfe_image_repository" {
+  description = "The container image repository to pull the Terraform Enterprise image from. Defaults to HashiCorp's official registry ('images.releases.hashicorp.com/hashicorp/terraform-enterprise'). For IBM Passport Advantage customers, set to 'cp.icr.io/cp/hashicorp/terraform-enterprise' and provide a corresponding entitlement key as the pull secret password."
+  type        = string
+  default     = "images.releases.hashicorp.com/hashicorp/terraform-enterprise"
+  nullable    = false
+}
+
+variable "tfe_image_pull_secret_username" {
+  description = "The username used to authenticate with the image registry for the pull secret. For HashiCorp's official registry this is always 'terraform'. For IBM Cloud Container Registry (cp.icr.io) set this to 'iamapikey' and set var.tfe_license to the IBM Cloud API key that has entitlement to pull the image."
+  type        = string
+  default     = "terraform"
+  nullable    = false
 }
 
 # renovate: datasource=helm depName=terraform-enterprise registryUrl=https://helm.releases.hashicorp.com
 variable "tfe_helm_chart_version" {
-  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '2.0.4'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
+  description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
   type        = string
-  default     = "2.0.4"
 }
 
 variable "tfe_helm_repository" {
@@ -267,6 +279,13 @@ variable "tfe_resources_configuration_cpu" {
   description = "TFE deployment resource configuration for the CPU. Default to 1."
   type        = string
   default     = "1"
+}
+
+variable "tfe_extra_env_vars" {
+  description = "Additional environment variables to pass to the Terraform Enterprise deployment as plain (non-sensitive) values. Keys must be valid Terraform Enterprise configuration variable names (e.g. 'TFE_CAPACITY_CONCURRENCY'). See https://developer.hashicorp.com/terraform/enterprise/deploy/reference/configuration for the full list. These are merged with the module-managed variables and can override defaults."
+  type        = map(string)
+  default     = {}
+  nullable    = false
 }
 
 variable "rollback_on_failure" {
