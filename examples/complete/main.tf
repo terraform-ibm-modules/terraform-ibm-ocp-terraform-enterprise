@@ -65,6 +65,12 @@ module "tfe" {
   cos_instance_name                        = "${local.prefix}cos"
   cos_bucket_name                          = "${local.prefix}cos-bucket"
   tfe_license                              = var.tfe_license
+  tfe_encryption_password                  = var.tfe_encryption_password
+  tfe_image_tag                            = var.tfe_image_tag
+  tfe_image_repository                     = var.tfe_image_repository
+  tfe_image_pull_secret_username           = var.tfe_image_pull_secret_username
+  tfe_helm_chart_version                   = var.tfe_helm_chart_version
+  tfe_helm_repository                      = var.tfe_helm_repository
   tfe_license_secret_crn                   = var.tfe_license_secret_crn
   admin_username                           = var.admin_username
   admin_password                           = var.admin_password
@@ -78,7 +84,7 @@ module "tfe" {
   vpc_acl_rules                            = var.vpc_acl_rules
   postgres_add_acl_rule                    = var.postgres_add_acl_rule
   kms_key_deletion_protection              = var.kms_key_deletion_protection
-  redis_deletion_protection                = var.redis_deletion_protection
+  redis_deletion_protection                = false  # always false in test examples so CI can destroy
   add_to_catalog                           = var.add_to_catalog
   existing_secrets_manager_crn             = var.secrets_manager_crn
   existing_secrets_manager_secret_group_id = var.secrets_manager_secret_group_id
