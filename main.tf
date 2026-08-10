@@ -354,7 +354,8 @@ module "tfe_install" {
   cluster_id                = module.ocp_vpc.cluster_id
   cluster_resource_group_id = var.resource_group_id
   namespace                 = var.tfe_namespace
-  tfe_license               = local.tfe_license
+  tfe_license                    = local.tfe_license
+  tfe_encryption_password        = var.tfe_encryption_password
   tfe_image_tag                  = var.tfe_image_tag
   tfe_image_repository           = var.tfe_image_repository
   tfe_image_pull_secret_username = var.tfe_image_pull_secret_username

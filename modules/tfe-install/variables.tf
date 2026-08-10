@@ -108,7 +108,6 @@ variable "tfe_helm_repository" {
 variable "tfe_encryption_password" {
   description = "The encryption password for Terraform Enterprise"
   type        = string
-  default     = "vincent"
   sensitive   = true
 }
 
@@ -137,13 +136,11 @@ variable "tfe_database_name" {
 variable "tfe_s3_bucket" {
   description = "The S3 bucket name for Terraform Enterprise object storage"
   type        = string
-  default     = "tfe-bucket-vincent"
 }
 
 variable "tfe_s3_region" {
   description = "The region for the S3 bucket"
   type        = string
-  default     = "eu-es"
 }
 
 variable "tfe_s3_access_key" {
@@ -161,7 +158,6 @@ variable "tfe_s3_secret_key" {
 variable "tfe_s3_endpoint" {
   description = "The endpoint for S3 object storage"
   type        = string
-  default     = "s3.eu-es.cloud-object-storage.appdomain.cloud"
 }
 
 variable "tfe_redis_host" {

@@ -59,6 +59,12 @@ variable "tfe_license" {
   sensitive   = true
 }
 
+variable "tfe_encryption_password" {
+  type        = string
+  description = "The encryption password used by Terraform Enterprise to protect sensitive data at rest. Must be kept secret and consistent across upgrades — changing this value requires a migration procedure."
+  sensitive   = true
+}
+
 variable "tfe_image_repository" {
   type        = string
   description = "The container image repository to pull the Terraform Enterprise image from. Defaults to HashiCorp's official registry ('images.releases.hashicorp.com/hashicorp/terraform-enterprise'). For IBM Passport Advantage customers, set to 'cp.icr.io/cp/hashicorp/terraform-enterprise'."

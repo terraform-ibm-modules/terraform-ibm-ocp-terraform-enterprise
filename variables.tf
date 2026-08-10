@@ -35,6 +35,12 @@ variable "tfe_license" {
   sensitive   = true
 }
 
+variable "tfe_encryption_password" {
+  type        = string
+  description = "The encryption password used by Terraform Enterprise to protect sensitive data at rest. Must be kept secret and consistent across upgrades — changing this value requires a migration procedure."
+  sensitive   = true
+}
+
 variable "tfe_license_secret_crn" {
   type        = string
   description = "The CRN of the Secrets Manager secret containing the license key for Terraform Enterprise"
