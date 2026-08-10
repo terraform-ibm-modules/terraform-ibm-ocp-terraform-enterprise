@@ -252,13 +252,15 @@
             },
             {
               "key": "tfe_image_tag",
-              "required": true,
-              "virtual": false
+              "required": false,
+              "virtual": false,
+              "default_value": "2.0.5"
             },
             {
               "key": "tfe_helm_chart_version",
-              "required": true,
-              "virtual": false
+              "required": false,
+              "virtual": false,
+              "default_value": "2.0.5"
             },
             {
               "key": "tfe_helm_repository",

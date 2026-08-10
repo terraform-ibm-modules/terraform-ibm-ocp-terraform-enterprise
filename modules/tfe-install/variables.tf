@@ -16,6 +16,13 @@ variable "namespace" {
   description = "The namespace to deploy Terraform Enterprise to. This namespace will be created if it does not exist."
   type        = string
   default     = "tfe"
+
+  validation {
+    # The OCP route hostname label is built as "tfe-<namespace>.<ingress-domain>".
+    # DNS labels must be ≤ 63 characters; "tfe-" consumes 4, leaving 59 for the namespace.
+    condition     = length(var.namespace) <= 59
+    error_message = "var.namespace must be 59 characters or fewer. The OCP route hostname is constructed as 'tfe-<namespace>.<ingress-domain>' and DNS labels must not exceed 63 characters."
+  }
 }
 
 #################################################################################
@@ -73,6 +80,7 @@ variable "tfe_license" {
 variable "tfe_image_tag" {
   description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
   type        = string
+  default     = "2.0.5"
 }
 
 variable "tfe_image_repository" {
@@ -93,6 +101,7 @@ variable "tfe_image_pull_secret_username" {
 variable "tfe_helm_chart_version" {
   description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
   type        = string
+  default     = "2.0.5"
 }
 
 variable "tfe_helm_repository" {

@@ -83,12 +83,14 @@ variable "tfe_image_pull_secret_username" {
 variable "tfe_image_tag" {
   type        = string
   description = "The version tag of the Terraform Enterprise image to use (e.g., 'v202504-1'). See https://developer.hashicorp.com/terraform/enterprise/releases for available versions."
+  default     = "2.0.5"
 }
 
 # renovate: datasource=helm depName=terraform-enterprise registryUrl=https://helm.releases.hashicorp.com
 variable "tfe_helm_chart_version" {
   type        = string
   description = "The version of the Terraform Enterprise Helm chart to use (e.g., '1.6.3'). See https://github.com/hashicorp/terraform-enterprise-helm/blob/main/CHANGELOG.md for available versions."
+  default     = "2.0.5"
 }
 
 variable "tfe_helm_repository" {
@@ -510,6 +512,11 @@ variable "tfe_namespace" {
   type        = string
   description = "Kubernetes namespace to deploy Terraform Enterprise into. Must be unique per Terraform Enterprise instance on a shared cluster. Default is 'tfe'."
   default     = "tfe"
+
+  validation {
+    condition     = length(var.tfe_namespace) <= 59
+    error_message = "var.tfe_namespace must be 59 characters or fewer. The OCP route hostname is constructed as 'tfe-<namespace>.<ingress-domain>' and DNS labels must not exceed 63 characters."
+  }
 }
 
 variable "tfe_extra_env_vars" {
