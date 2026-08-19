@@ -568,7 +568,10 @@ resource "kubectl_manifest" "tfe_agent_build_config" {
         dockerfile: |
           FROM hashicorp/tfc-agent
           USER root
-          RUN mkdir /.tfc-agent && chmod 770 /.tfc-agent
+          RUN mkdir /.tfc-agent && chmod og+rw /.tfc-agent && chmod o+rx /home/tfc-agent
+
+          RUN mkdir /.terraform.d && chmod og+rw /.terraform.d
+
           RUN chmod -R 777 /home
 
           # Download and install oc
